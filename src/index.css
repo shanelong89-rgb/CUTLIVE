@@ -167,7 +167,7 @@ h1, h2, h3 {
 }
 
 .masthead {
-  padding: 6vh 0 5vh;
+  padding: 6vh 5vw 5vh;
   border-bottom: 1px solid var(--n-border);
   max-width: 900px;
 }
