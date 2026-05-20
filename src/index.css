@@ -264,7 +264,7 @@ h1, h2, h3 {
   padding: 24px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
-  margin: 0 5vw;
+  margin: 0 5vw !important;
 }
 
 .category-strip::-webkit-scrollbar {
