@@ -221,7 +221,6 @@ h1, h2, h3 {
   padding: 16px 5vw;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
-  margin: 0 auto;
 }
 
 .date-filter-strip::-webkit-scrollbar {
@@ -264,7 +263,6 @@ h1, h2, h3 {
   padding: 24px 5vw;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
-  margin: 0 auto;
 }
 
 .category-strip::-webkit-scrollbar {
