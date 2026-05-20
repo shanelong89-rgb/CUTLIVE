@@ -167,7 +167,7 @@ h1, h2, h3 {
 }
 
 .masthead {
-  padding: 6vh 5vw 5vh;
+  padding: 6vh 0 5vh;
   border-bottom: 1px solid var(--n-border);
   max-width: 900px;
 }
@@ -218,9 +218,10 @@ h1, h2, h3 {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 16px 5vw;
+  padding: 16px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
+  margin: 0 5vw;
 }
 
 .date-filter-strip::-webkit-scrollbar {
@@ -260,9 +261,10 @@ h1, h2, h3 {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 24px 5vw;
+  padding: 24px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
+  margin: 0 5vw;
 }
 
 .category-strip::-webkit-scrollbar {
