@@ -1,5 +1,9 @@
 {
   "version": 2,
+  "public": true,
+  "github": {
+    "enabled": false
+  },
   "builds": [
     {
       "src": "dist/**",
@@ -7,6 +11,9 @@
     }
   ],
   "routes": [
+    {
+      "handle": "filesystem"
+    },
     {
       "src": "/admin",
       "dest": "/index.html"
