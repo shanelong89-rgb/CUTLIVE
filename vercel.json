@@ -1,28 +1,19 @@
 {
   "version": 2,
-  "buildCommand": null,
-  "outputDirectory": "dist",
-  "installCommand": null,
-  "framework": null,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/admin",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "dist/**",
+      "use": "@vercel/static"
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
+      "src": "/admin",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
