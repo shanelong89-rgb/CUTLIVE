@@ -211,6 +211,13 @@ h1, h2, h3 {
 }
 
 /* =====================================================
+   FILTER STRIPS CONTAINER
+   ===================================================== */
+.filter-strips-container {
+  margin: 0 5vw;
+}
+
+/* =====================================================
    DATE FILTER STRIP
    ===================================================== */
 .date-filter-strip {
@@ -221,7 +228,6 @@ h1, h2, h3 {
   padding: 16px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
-  margin: 0 5vw;
 }
 
 .date-filter-strip::-webkit-scrollbar {
@@ -264,7 +270,6 @@ h1, h2, h3 {
   padding: 24px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
-  margin: 0 5vw !important;
 }
 
 .category-strip::-webkit-scrollbar {

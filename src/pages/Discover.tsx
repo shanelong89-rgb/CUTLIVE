@@ -136,29 +136,31 @@ export function Discover() {
       </header>
 
       {/* Date Filter Strip */}
-      <div className="date-filter-strip">
-        {dateFilters.map((filter) => (
-          <button
-            key={filter.id}
-            className={`date-chip ${activeDateFilter === filter.id ? 'active' : ''}`}
-            onClick={() => setActiveDateFilter(filter.id)}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
+      <div className="filter-strips-container">
+        <div className="date-filter-strip">
+          {dateFilters.map((filter) => (
+            <button
+              key={filter.id}
+              className={`date-chip ${activeDateFilter === filter.id ? 'active' : ''}`}
+              onClick={() => setActiveDateFilter(filter.id)}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
 
-      {/* Category Filter */}
-      <div className="category-strip">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            className={`category-chip ${activeCategory === cat ? 'active' : ''}`}
-            onClick={() => setActiveCategory(cat)}
-          >
-            {cat}
-          </button>
-        ))}
+        {/* Category Filter */}
+        <div className="category-strip">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              className={`category-chip ${activeCategory === cat ? 'active' : ''}`}
+              onClick={() => setActiveCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Section Header */}
