@@ -34,6 +34,9 @@ create table if not exists public.events (
   district      text,
   tags          text[],
   submitted_by  text,
+  ticket_url    text,
+  source_url    text,
+  rsvp_enabled  boolean default false,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
 );
