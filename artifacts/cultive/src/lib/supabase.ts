@@ -196,12 +196,17 @@ export async function rejectSubmission(id: string) {
 }
 
 // ─── Admin: role check ───────────────────────────────────────
+// Hardcoded admin emails (always granted access, no SQL required)
+const ADMIN_EMAILS = ['shanelong@gmail.com'];
+
 export async function isAdmin(): Promise<boolean> {
-  const { data, error } = await supabase.rpc('is_admin');
-  if (error) {
-    console.warn('is_admin rpc error:', error.message);
-    return false;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+    return true;
   }
+  // Fallback: check DB role if schema is set up
+  const { data, error } = await supabase.rpc('is_admin');
+  if (error) return false;
   return !!data;
 }
 
