@@ -8,8 +8,9 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { useInboxMessages } from "@/hooks/useInboxMessages";
 
-function NativeTabLayout() {
+function NativeTabLayout({ unreadCount }: { unreadCount: number }) {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
@@ -30,7 +31,7 @@ function NativeTabLayout() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="inbox">
         <Icon sf={{ default: "envelope", selected: "envelope.fill" }} />
-        <Label>Inbox</Label>
+        <Label>Inbox{unreadCount > 0 ? ` (${unreadCount > 9 ? "9+" : unreadCount})` : ""}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="account">
         <Icon sf={{ default: "person", selected: "person.fill" }} />
@@ -40,7 +41,7 @@ function NativeTabLayout() {
   );
 }
 
-function ClassicTabLayout() {
+function ClassicTabLayout({ unreadCount }: { unreadCount: number }) {
   const colors = useColors();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -122,6 +123,16 @@ function ClassicTabLayout() {
         options={{
           title: "Inbox",
           tabBarIcon: ({ color }) => icon("mail", "envelope", color),
+          tabBarBadge: unreadCount > 0 ? (unreadCount > 9 ? "9+" : unreadCount) : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: colors.foreground,
+            color: colors.background,
+            fontSize: 10,
+            fontFamily: "Inter_700Bold",
+            minWidth: 16,
+            height: 16,
+            lineHeight: 16,
+          },
         }}
       />
       <Tabs.Screen
@@ -136,8 +147,10 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
+  const { unreadCount } = useInboxMessages();
+
   if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
+    return <NativeTabLayout unreadCount={unreadCount} />;
   }
-  return <ClassicTabLayout />;
+  return <ClassicTabLayout unreadCount={unreadCount} />;
 }

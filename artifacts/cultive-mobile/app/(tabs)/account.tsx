@@ -1,3 +1,4 @@
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -12,16 +13,17 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
+import { useInboxMessages } from "@/hooks/useInboxMessages";
 import { signOut, supabase } from "@/lib/supabase";
 
-const MENU: string[] = [
-  "Edit Profile",
-  "Membership",
-  "Payment Methods",
-  "My Submissions",
-  "Invite Friends",
-  "Settings",
-  "Help & Support",
+const MENU_ITEMS: { label: string; route?: string }[] = [
+  { label: "Edit Profile" },
+  { label: "Membership" },
+  { label: "Payment Methods" },
+  { label: "My Submissions" },
+  { label: "Invite Friends" },
+  { label: "Settings" },
+  { label: "Help & Support" },
 ];
 
 export default function AccountScreen() {
@@ -29,6 +31,7 @@ export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const [email, setEmail] = useState<string | null>(null);
+  const { unreadCount } = useInboxMessages();
 
   useEffect(() => {
     let mounted = true;
@@ -95,10 +98,7 @@ export default function AccountScreen() {
             onPress={() => router.push("/auth" as any)}
             style={({ pressed }) => [
               styles.cta,
-              {
-                backgroundColor: colors.foreground,
-                opacity: pressed ? 0.85 : 1,
-              },
+              { backgroundColor: colors.foreground, opacity: pressed ? 0.85 : 1 },
             ]}
           >
             <Text style={[styles.ctaText, { color: colors.background }]}>
@@ -133,22 +133,43 @@ export default function AccountScreen() {
       </View>
 
       <View style={[styles.menu, { borderTopColor: colors.border }]}>
-        {MENU.map((label, i) => (
+        {/* Inbox row — always first, shows unread badge */}
+        <Pressable
+          onPress={() => router.push("/(tabs)/inbox" as any)}
+          style={({ pressed }) => [
+            styles.menuItem,
+            { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>
+            00
+          </Text>
+          <Text style={[styles.menuLabel, { color: colors.foreground }]}>
+            Inbox
+          </Text>
+          {unreadCount > 0 && (
+            <View style={[styles.inboxBadge, { backgroundColor: colors.foreground }]}>
+              <Text style={[styles.inboxBadgeText, { color: colors.background }]}>
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Text>
+            </View>
+          )}
+          <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
+        </Pressable>
+
+        {MENU_ITEMS.map((item, i) => (
           <Pressable
             key={i}
             style={({ pressed }) => [
               styles.menuItem,
-              {
-                borderBottomColor: colors.border,
-                opacity: pressed ? 0.6 : 1,
-              },
+              { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },
             ]}
           >
             <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>
               {String(i + 1).padStart(2, "0")}
             </Text>
             <Text style={[styles.menuLabel, { color: colors.foreground }]}>
-              {label}
+              {item.label}
             </Text>
             <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
           </Pressable>
@@ -259,6 +280,20 @@ const styles = StyleSheet.create({
   menuArrow: {
     fontSize: 16,
     fontFamily: "Inter_400Regular",
+  },
+  inboxBadge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 4,
+  },
+  inboxBadgeText: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0,
   },
   footer: {
     textAlign: "center",

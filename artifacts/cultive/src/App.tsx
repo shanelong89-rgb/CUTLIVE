@@ -11,6 +11,7 @@ import { Saved } from './pages/Saved';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
+import { useInboxMessages } from './hooks/useInboxMessages';
 import { useState, useEffect } from 'react';
 
 // Scroll to top only on forward navigation — browser handles scroll restoration on back/forward
@@ -29,13 +30,13 @@ function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
+  const { unreadCount } = useInboxMessages();
 
   return (
     <div className="app">
       <ScrollToTop />
-      {/* Web Navigation - Desktop (hidden on admin) */}
-      {!isAdminPage && <WebNav setIsAuthOpen={setIsAuthOpen} />}
-      
+      {!isAdminPage && <WebNav setIsAuthOpen={setIsAuthOpen} unreadCount={unreadCount} />}
+
       <Routes>
         <Route path="/" element={<Discover />} />
         <Route path="/event/:id" element={<EventDetail setIsAuthOpen={setIsAuthOpen} />} />
@@ -46,18 +47,22 @@ function App() {
         <Route path="/account" element={<Account setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/admin/*" element={<Admin />} />
       </Routes>
-      
-      {/* Mobile Tab Bar (hidden on admin) */}
-      {!isAdminPage && <TabBar />}
-      
-      {/* Auth Modal */}
+
+      {!isAdminPage && <TabBar unreadCount={unreadCount} />}
+
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </div>
   );
 }
 
 // Web Navigation Component
-function WebNav({ setIsAuthOpen }: { setIsAuthOpen: (open: boolean) => void }) {
+function WebNav({
+  setIsAuthOpen,
+  unreadCount,
+}: {
+  setIsAuthOpen: (open: boolean) => void;
+  unreadCount: number;
+}) {
   const { user, isAdmin, loading } = useAuth();
   const navItems = [
     { path: '/', label: 'Discover' },
@@ -70,26 +75,24 @@ function WebNav({ setIsAuthOpen }: { setIsAuthOpen: (open: boolean) => void }) {
   return (
     <header className="web-nav">
       <div className="web-nav-container">
-        {/* Logo */}
         <a href="/" className="web-logo">
           <span className="logo-text">CULTIVE</span>
           <span className="logo-sub">文化活</span>
         </a>
 
-        {/* Desktop Navigation */}
         <nav className="web-nav-links">
           {navItems.map((item) => (
-            <a
-              key={item.path}
-              href={item.path}
-              className="web-nav-link"
-            >
+            <a key={item.path} href={item.path} className="web-nav-link">
               {item.label}
+              {item.path === '/inbox' && unreadCount > 0 && (
+                <span className="nav-badge">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </a>
           ))}
         </nav>
 
-        {/* Right Side Actions */}
         <div className="web-nav-actions">
           {!loading && isAdmin && (
             <a href="/admin" className="web-nav-link" style={{ marginRight: '8px' }}>
@@ -99,10 +102,7 @@ function WebNav({ setIsAuthOpen }: { setIsAuthOpen: (open: boolean) => void }) {
           {!loading && user ? (
             <ProfileMenu />
           ) : !loading ? (
-            <button
-              className="web-nav-btn"
-              onClick={() => setIsAuthOpen(true)}
-            >
+            <button className="web-nav-btn" onClick={() => setIsAuthOpen(true)}>
               Sign In
             </button>
           ) : null}

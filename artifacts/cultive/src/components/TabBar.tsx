@@ -19,16 +19,13 @@ const icons: Record<string, ReactNode> = {
   ticket: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
-      <path d="M13 5v2"/>
-      <path d="M13 17v2"/>
-      <path d="M13 11v2"/>
+      <path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>
     </svg>
   ),
   'plus-circle': (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="10"/>
-      <path d="M8 12h8"/>
-      <path d="M12 8v8"/>
+      <path d="M8 12h8"/><path d="M12 8v8"/>
     </svg>
   ),
   mail: (
@@ -45,7 +42,7 @@ const icons: Record<string, ReactNode> = {
   ),
 };
 
-export function TabBar() {
+export function TabBar({ unreadCount = 0 }: { unreadCount?: number }) {
   return (
     <nav className="tab-bar">
       {tabs.map((tab) => (
@@ -54,7 +51,14 @@ export function TabBar() {
           to={tab.path}
           className={({ isActive }) => `tab-item ${isActive ? 'active' : ''}`}
         >
-          {icons[tab.icon]}
+          <span className="tab-icon-wrap">
+            {icons[tab.icon]}
+            {tab.icon === 'mail' && unreadCount > 0 && (
+              <span className="tab-badge">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </span>
           <span>{tab.label}</span>
         </NavLink>
       ))}
