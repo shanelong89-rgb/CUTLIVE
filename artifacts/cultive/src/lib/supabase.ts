@@ -111,6 +111,43 @@ export async function submitEvent(input: SubmissionInput) {
   return data as Submission;
 }
 
+// ─── Saved events (cloud sync) ───────────────────────────────
+// Stored per user in `public.saved_events` so saves follow the account
+// across devices and sign-ins. Falls back silently if the table isn't
+// set up yet (returns [] / swallows errors) so the local-only experience
+// keeps working.
+export async function listSavedEventIdsRemote(): Promise<string[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data, error } = await supabase
+    .from('saved_events')
+    .select('event_id')
+    .eq('user_id', user.id);
+  if (error) return [];
+  return (data || []).map((r: { event_id: string }) => r.event_id);
+}
+
+export async function addSavedEventRemote(eventId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from('saved_events')
+    .upsert(
+      { user_id: user.id, event_id: eventId },
+      { onConflict: 'user_id,event_id' },
+    );
+}
+
+export async function removeSavedEventRemote(eventId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from('saved_events')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('event_id', eventId);
+}
+
 // ─── Admin: events CRUD ──────────────────────────────────────
 export async function adminListEvents() {
   const { data, error } = await supabase

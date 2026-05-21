@@ -96,10 +96,35 @@ as $$
   );
 $$;
 
+-- ── SAVED EVENTS (per user "favorites" that sync across devices) ─
+create table if not exists public.saved_events (
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  event_id    text not null references public.events(id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  primary key (user_id, event_id)
+);
+
+create index if not exists saved_events_user_idx on public.saved_events (user_id, created_at desc);
+
 -- ── ROW LEVEL SECURITY ──────────────────────────────────────
-alter table public.events      enable row level security;
-alter table public.submissions enable row level security;
-alter table public.profiles    enable row level security;
+alter table public.events       enable row level security;
+alter table public.submissions  enable row level security;
+alter table public.profiles     enable row level security;
+alter table public.saved_events enable row level security;
+
+-- saved_events: a user can only read/insert/delete their own rows
+drop policy if exists "saved_events_read_own"   on public.saved_events;
+drop policy if exists "saved_events_insert_own" on public.saved_events;
+drop policy if exists "saved_events_delete_own" on public.saved_events;
+create policy "saved_events_read_own"
+  on public.saved_events for select
+  using (auth.uid() = user_id);
+create policy "saved_events_insert_own"
+  on public.saved_events for insert
+  with check (auth.uid() = user_id);
+create policy "saved_events_delete_own"
+  on public.saved_events for delete
+  using (auth.uid() = user_id);
 
 -- events: anyone can read; only admins can write
 drop policy if exists "events_read_all"     on public.events;

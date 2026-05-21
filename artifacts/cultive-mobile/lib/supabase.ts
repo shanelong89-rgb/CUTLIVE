@@ -117,8 +117,57 @@ export type Submission = {
   submitter_email: string;
   status?: "pending" | "approved" | "rejected";
   reviewed_at?: string;
+  published_event_id?: string | null;
   created_at: string;
 };
+
+// ─── Saved events (cloud sync) ───────────────────────────────
+// Stored per user in `public.saved_events` so saves follow the account
+// across devices and sign-ins. Falls back silently if the table isn't
+// set up yet so the local-only experience keeps working.
+export async function listSavedEventIdsRemote(): Promise<string[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from("saved_events")
+      .select("event_id")
+      .eq("user_id", user.id);
+    if (error) return [];
+    return (data || []).map((r: { event_id: string }) => r.event_id);
+  } catch {
+    return [];
+  }
+}
+
+export async function addSavedEventRemote(eventId: string): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from("saved_events")
+      .upsert(
+        { user_id: user.id, event_id: eventId },
+        { onConflict: "user_id,event_id" },
+      );
+  } catch {
+    // ignore
+  }
+}
+
+export async function removeSavedEventRemote(eventId: string): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from("saved_events")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("event_id", eventId);
+  } catch {
+    // ignore
+  }
+}
 
 export async function getMySubmissions(): Promise<Submission[]> {
   try {

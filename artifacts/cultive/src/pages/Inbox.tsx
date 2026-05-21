@@ -40,19 +40,40 @@ export function Inbox() {
         </div>
       ) : (
         <div className="inbox-list">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`message-card ${msg.unread ? 'unread' : ''}`}
-              onClick={() => markRead(msg.id)}
-            >
-              <div className="message-header">
-                <h3 className="message-title">{msg.title}</h3>
-                <span className="message-time">{msg.time}</span>
+          {messages.map((msg) => {
+            const inner = (
+              <>
+                <div className="message-header">
+                  <h3 className="message-title">{msg.title}</h3>
+                  <span className="message-time">{msg.time}</span>
+                </div>
+                <p className="message-preview">{msg.preview}</p>
+              </>
+            );
+            const className = `message-card ${msg.unread ? 'unread' : ''}`;
+            if (msg.linkTo) {
+              return (
+                <Link
+                  key={msg.id}
+                  to={msg.linkTo}
+                  className={className}
+                  style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                  onClick={() => markRead(msg.id)}
+                >
+                  {inner}
+                </Link>
+              );
+            }
+            return (
+              <div
+                key={msg.id}
+                className={className}
+                onClick={() => markRead(msg.id)}
+              >
+                {inner}
               </div>
-              <p className="message-preview">{msg.preview}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

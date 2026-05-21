@@ -101,7 +101,10 @@ export default function InboxScreen() {
         messages.map((msg) => (
           <Pressable
             key={msg.id}
-            onPress={() => markRead(msg.id)}
+            onPress={() => {
+              markRead(msg.id);
+              if (msg.linkTo) router.push(msg.linkTo as any);
+            }}
             style={({ pressed }) => [
               styles.msgCard,
               {

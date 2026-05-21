@@ -52,6 +52,7 @@ export interface InboxMessage {
     | "submission-approved"
     | "submission-rejected"
     | "saved-reminder";
+  linkTo?: string;
 }
 
 function relativeTime(iso: string): string {
@@ -74,12 +75,14 @@ function submissionToMessage(s: Submission): InboxMessage {
     return {
       id: `sub-approved-${s.id}`,
       title: `"${s.title}" was approved`,
-      preview:
-        "Your event is now live on CULTIVE. Tap to see it on the discover page.",
+      preview: "Your event is now live on CULTIVE. Tap to view it.",
       time: relativeTime(reviewed),
       unread: false,
       createdAt: reviewed,
       kind: "submission-approved",
+      linkTo: s.published_event_id
+        ? `/event/${s.published_event_id}`
+        : undefined,
     };
   }
   if (status === "rejected") {
@@ -216,6 +219,7 @@ export function useInboxMessages() {
         unread: true,
         createdAt: when.toISOString(),
         kind: "saved-reminder",
+        linkTo: `/event/${ev.id}`,
       });
     }
     if (signupAt) {
