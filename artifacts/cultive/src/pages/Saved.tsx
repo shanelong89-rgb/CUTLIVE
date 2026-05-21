@@ -66,7 +66,17 @@ export function Saved() {
       const all = await getEvents();
       if (!active) return;
       const map = new Map(all.map((e) => [e.id, e] as const));
-      const ordered = ids.map((id) => map.get(id)).filter((e): e is Event => !!e);
+      const saved = ids.map((id) => map.get(id)).filter((e): e is Event => !!e);
+
+      // Sort earliest date first; undated events go to the bottom
+      const parseFirst = (raw?: string): number => {
+        if (!raw) return Infinity;
+        const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+        if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])).getTime();
+        const d = new Date(raw);
+        return isNaN(d.getTime()) ? Infinity : d.getTime();
+      };
+      const ordered = [...saved].sort((a, b) => parseFirst(a.date) - parseFirst(b.date));
       setEvents(ordered);
       setLoading(false);
     })();
