@@ -126,6 +126,158 @@ html, body {
 }
 
 /* =====================================================
+   PROFILE MENU (avatar dropdown in web nav)
+   ===================================================== */
+.profile-menu-wrap {
+  position: relative;
+}
+
+.profile-menu-trigger {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--n-bg, #fff);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.profile-menu-trigger:hover {
+  border-color: var(--n-text, #000);
+  transform: translateY(-1px);
+}
+
+.profile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--n-text, #000);
+  color: var(--n-bg, #fff);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-avatar.lg {
+  width: 44px;
+  height: 44px;
+  font-size: 0.95rem;
+}
+
+.profile-menu-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 280px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.14);
+  padding: 8px;
+  z-index: 1500;
+  animation: profile-menu-in 0.16s ease-out;
+}
+
+@keyframes profile-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.profile-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.profile-menu-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-menu-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--n-text, #000);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-menu-email {
+  font-size: 0.72rem;
+  color: var(--n-muted, #666);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-menu-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: var(--n-text, #000);
+  color: var(--n-bg, #fff);
+  border-radius: 2px;
+  align-self: flex-start;
+}
+
+.profile-menu-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 4px 0;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  text-decoration: none;
+  font-size: 0.85rem;
+  color: var(--n-text, #000);
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.12s;
+}
+
+.profile-menu-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.profile-menu-arrow {
+  font-size: 0.85rem;
+  color: var(--n-muted, #666);
+}
+
+.profile-menu-item.signout {
+  color: #b91c1c;
+}
+
+.profile-menu-item.signout .profile-menu-arrow {
+  color: #b91c1c;
+}
+
+/* =====================================================
    APP CONTAINER - Responsive Layout
    ===================================================== */
 .app {

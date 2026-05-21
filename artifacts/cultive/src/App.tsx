@@ -8,6 +8,8 @@ import { Account } from './pages/Account';
 import { EventDetail } from './pages/EventDetail';
 import { Admin } from './pages/Admin';
 import { AuthModal } from './components/AuthModal';
+import { ProfileMenu } from './components/ProfileMenu';
+import { useAuth } from './hooks/useAuth';
 import { useState } from 'react';
 
 function App() {
@@ -41,6 +43,7 @@ function App() {
 
 // Web Navigation Component
 function WebNav({ setIsAuthOpen }: { setIsAuthOpen: (open: boolean) => void }) {
+  const { user, isAdmin, loading } = useAuth();
   const navItems = [
     { path: '/', label: 'Discover' },
     { path: '/tickets', label: 'Tickets' },
@@ -72,15 +75,21 @@ function WebNav({ setIsAuthOpen }: { setIsAuthOpen: (open: boolean) => void }) {
 
         {/* Right Side Actions */}
         <div className="web-nav-actions">
-          <a href="/admin" className="web-nav-link" style={{ marginRight: '8px' }}>
-            Admin
-          </a>
-          <button 
-            className="web-nav-btn"
-            onClick={() => setIsAuthOpen(true)}
-          >
-            Sign In
-          </button>
+          {!loading && isAdmin && (
+            <a href="/admin" className="web-nav-link" style={{ marginRight: '8px' }}>
+              Admin
+            </a>
+          )}
+          {!loading && user ? (
+            <ProfileMenu />
+          ) : !loading ? (
+            <button
+              className="web-nav-btn"
+              onClick={() => setIsAuthOpen(true)}
+            >
+              Sign In
+            </button>
+          ) : null}
         </div>
       </div>
     </header>
