@@ -33,7 +33,7 @@ export default function AuthScreen() {
       } else {
         await signUp(email, password);
       }
-      router.back();
+      router.replace("/(tabs)" as any);
     } catch (e: any) {
       Alert.alert(
         mode === "signin" ? "Sign in failed" : "Sign up failed",
