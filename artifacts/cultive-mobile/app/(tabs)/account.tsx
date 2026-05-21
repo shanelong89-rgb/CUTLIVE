@@ -33,8 +33,14 @@ export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const [email, setEmail] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [submissionCount, setSubmissionCount] = useState<number | null>(null);
   const { unreadCount } = useInboxMessages();
+
+  const extractDisplayName = (user: { user_metadata?: Record<string, any>; email?: string | null } | null | undefined): string | null => {
+    if (!user) return null;
+    return user.user_metadata?.full_name ?? user.user_metadata?.name ?? null;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -42,6 +48,7 @@ export default function AccountScreen() {
       if (!mounted) return;
       const userEmail = data.session?.user.email ?? null;
       setEmail(userEmail);
+      setDisplayName(extractDisplayName(data.session?.user));
       if (userEmail) {
         supabase
           .from("submissions")
@@ -55,6 +62,7 @@ export default function AccountScreen() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const userEmail = session?.user.email ?? null;
       setEmail(userEmail);
+      setDisplayName(extractDisplayName(session?.user));
       if (userEmail) {
         supabase
           .from("submissions")
@@ -81,7 +89,8 @@ export default function AccountScreen() {
 
   const isLoggedIn = !!email;
   const isAdmin = !!email && ADMIN_EMAILS.includes(email.toLowerCase());
-  const initial = (isLoggedIn ? email!.trim().charAt(0) : "G").toUpperCase();
+  const nameToShow = isLoggedIn ? (displayName ?? email!) : "Guest";
+  const initial = nameToShow.trim().charAt(0).toUpperCase();
 
   return (
     <ScrollView
@@ -109,7 +118,7 @@ export default function AccountScreen() {
           </Text>
         </View>
         <Text style={[styles.name, { color: colors.foreground }]}>
-          {isLoggedIn ? email : "Guest"}
+          {nameToShow}
         </Text>
         <View style={[styles.statusRule, { backgroundColor: colors.foreground }]} />
         <Text style={[styles.status, { color: colors.mutedForeground }]}>
