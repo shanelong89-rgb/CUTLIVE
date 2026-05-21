@@ -466,26 +466,25 @@ export function Discover() {
           padding: '20px 5vw',
           borderTop: '1px solid var(--n-border)',
         }}>
-          {currentPage > 1 ? (
-            <button
-              onClick={() => setCurrentPage(p => p - 1)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '9px 18px',
-                border: '1px solid var(--n-border)',
-                borderRadius: 4,
-                background: 'transparent',
-                fontSize: '0.6rem',
-                fontWeight: 600,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: 'var(--n-text)',
-                cursor: 'pointer',
-              }}
-            >
-              ← Prev
-            </button>
-          ) : <div />}
+          <button
+            onClick={() => setCurrentPage(p => p - 1)}
+            style={{
+              visibility: currentPage > 1 ? 'visible' : 'hidden',
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '9px 18px',
+              border: '1px solid var(--n-border)',
+              borderRadius: 4,
+              background: 'transparent',
+              fontSize: '0.6rem',
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--n-text)',
+              cursor: 'pointer',
+            }}
+          >
+            ← Prev
+          </button>
 
           <div style={{ display: 'flex', gap: 4 }}>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
@@ -509,26 +508,25 @@ export function Discover() {
             ))}
           </div>
 
-          {currentPage < totalPages ? (
-            <button
-              onClick={() => setCurrentPage(p => p + 1)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '9px 18px',
-                border: '1px solid var(--n-border)',
-                borderRadius: 4,
-                background: 'transparent',
-                fontSize: '0.6rem',
-                fontWeight: 600,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: 'var(--n-text)',
-                cursor: 'pointer',
-              }}
-            >
-              Next →
-            </button>
-          ) : <div />}
+          <button
+            onClick={() => setCurrentPage(p => p + 1)}
+            style={{
+              visibility: currentPage < totalPages ? 'visible' : 'hidden',
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '9px 18px',
+              border: '1px solid var(--n-border)',
+              borderRadius: 4,
+              background: 'transparent',
+              fontSize: '0.6rem',
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--n-text)',
+              cursor: 'pointer',
+            }}
+          >
+            Next →
+          </button>
         </div>
       )}
     </div>
