@@ -14,6 +14,7 @@ import {
 const READ_KEY = "cultive:read-messages";
 const SAVED_KEY = "cultive:saved-events";
 const SAVED_EVENT_NAME = "cultive:saved-events-changed";
+const SUBMISSION_STATUSES_KEY = "cultive:submission-statuses";
 
 async function readSavedIds(): Promise<string[]> {
   try {
@@ -25,6 +26,43 @@ async function readSavedIds(): Promise<string[]> {
       : [];
   } catch {
     return [];
+  }
+}
+
+async function readPersistedReadIds(): Promise<Set<string>> {
+  try {
+    const raw = await AsyncStorage.getItem(READ_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
+async function readSubmissionStatuses(): Promise<Record<string, string>> {
+  try {
+    const raw = await AsyncStorage.getItem(SUBMISSION_STATUSES_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, string>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+async function writeSubmissionStatuses(
+  statuses: Record<string, string>,
+): Promise<void> {
+  try {
+    await AsyncStorage.setItem(
+      SUBMISSION_STATUSES_KEY,
+      JSON.stringify(statuses),
+    );
+  } catch {
+    // ignore
   }
 }
 
@@ -109,6 +147,14 @@ function submissionToMessage(s: Submission): InboxMessage {
     createdAt: s.created_at,
     kind: "submission-pending",
   };
+}
+
+function submissionMessageIds(subId: string): string[] {
+  return [
+    `sub-pending-${subId}`,
+    `sub-approved-${subId}`,
+    `sub-rejected-${subId}`,
+  ];
 }
 
 function buildSavedReminders(events: Event[]): InboxMessage[] {
@@ -217,14 +263,8 @@ export function useInboxMessages() {
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
   const loadReadIds = useCallback(async () => {
-    try {
-      const raw = await AsyncStorage.getItem(READ_KEY);
-      if (!raw) return;
-      const arr = JSON.parse(raw);
-      if (Array.isArray(arr)) setReadIds(new Set(arr));
-    } catch {
-      // ignore
-    }
+    const ids = await readPersistedReadIds();
+    setReadIds(ids);
   }, []);
 
   const persistReadIds = useCallback(async (set: Set<string>) => {
@@ -249,6 +289,52 @@ export function useInboxMessages() {
     setSignedIn(true);
     setSignupAt(user.created_at || null);
     const subs = await getMySubmissions();
+
+    // ── Status-change unread tracking ──────────────────────────────────────
+    // Load the last known status for each submission from AsyncStorage.
+    // If a submission's status changed to approved or rejected since we last
+    // recorded it, remove all related message IDs from readIds so the new
+    // message surfaces as unread. Persist both the updated statuses and
+    // updated readIds so the unread flag survives an app restart.
+    const [lastStatuses, currentReadIds] = await Promise.all([
+      readSubmissionStatuses(),
+      readPersistedReadIds(),
+    ]);
+
+    const newStatuses: Record<string, string> = {};
+    let readIdsChanged = false;
+
+    for (const sub of subs) {
+      const currentStatus = sub.status || "pending";
+      const lastStatus = lastStatuses[sub.id];
+      newStatuses[sub.id] = currentStatus;
+
+      const isTerminalChange =
+        lastStatus !== undefined &&
+        lastStatus !== currentStatus &&
+        (currentStatus === "approved" || currentStatus === "rejected");
+
+      if (isTerminalChange) {
+        for (const msgId of submissionMessageIds(sub.id)) {
+          if (currentReadIds.has(msgId)) {
+            currentReadIds.delete(msgId);
+            readIdsChanged = true;
+          }
+        }
+      }
+    }
+
+    await writeSubmissionStatuses(newStatuses);
+
+    if (readIdsChanged) {
+      await AsyncStorage.setItem(
+        READ_KEY,
+        JSON.stringify(Array.from(currentReadIds)),
+      );
+      setReadIds(new Set(currentReadIds));
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     setSubmissions(subs);
     try {
       const savedIds = await readSavedIds();
