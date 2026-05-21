@@ -241,6 +241,48 @@ function sortUpcomingFirst(list: Event[]): Event[] {
     .map((d) => d.e);
 }
 
+function displayDate(raw: string): string {
+  if (!raw) return "";
+  const s = raw.trim().toLowerCase();
+  if (s.includes("today")) return "Today";
+  if (s.includes("tomorrow")) return "Tomorrow";
+
+  const now = new Date();
+
+  // ISO date: 2026-05-23
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (iso) {
+    const d = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+    if (!isNaN(d.getTime())) {
+      const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+    }
+  }
+
+  // Range like "May 8-27" — show condensed form
+  const rangeA = raw.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\s*[-–]\s*(\d{1,2})\b/);
+  if (rangeA) {
+    const d = new Date(`${rangeA[1]} ${rangeA[2]}, ${now.getFullYear()}`);
+    if (!isNaN(d.getTime())) {
+      return `${rangeA[1].slice(0, 3)} ${rangeA[2]}–${rangeA[3]}`;
+    }
+  }
+
+  // "Month Day" like "May 23" or "Sat, May 23"
+  const mDay = raw.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
+  if (mDay) {
+    const d = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
+    if (!isNaN(d.getTime())) {
+      const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+      return `${days[d.getDay()]} ${d.getDate()} ${mDay[1].slice(0,3)}`;
+    }
+  }
+
+  // Fallback: return raw trimmed
+  return raw.length > 10 ? raw.slice(0, 10) : raw;
+}
+
 function getIssueDate(): string {
   const now = new Date();
   const m = [
@@ -489,7 +531,12 @@ function EventRow({
       ]}
     >
       <View style={styles.timeCol}>
-        <Text style={[styles.timeText, { color: colors.foreground }]}>
+        {event.date ? (
+          <Text style={[styles.dateText, { color: colors.foreground }]}>
+            {displayDate(event.date)}
+          </Text>
+        ) : null}
+        <Text style={[styles.timeText, { color: colors.mutedForeground }]}>
           {event.time || "—"}
         </Text>
       </View>
@@ -589,11 +636,17 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 12,
   },
-  timeCol: { width: 56 },
+  timeCol: { width: 64 },
+  dateText: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.2,
+    marginBottom: 3,
+  },
   timeText: {
     fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 0.5,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.3,
   },
   thumb: {
     width: 72,
