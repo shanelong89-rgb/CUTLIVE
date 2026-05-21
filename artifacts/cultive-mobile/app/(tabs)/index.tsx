@@ -28,6 +28,27 @@ const dateFilters = [
 
 const MONTH_NAME_RE = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|June|July|August|September|October|November|December)$/i;
 
+// Hermes (React Native JS engine) does NOT reliably parse new Date("Month DD, YYYY").
+// Always use the numeric constructor new Date(year, monthIdx, day) instead.
+const MONTH_IDX: Record<string, number> = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+  january: 0, february: 1, march: 2, april: 3, june: 5,
+  july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
+};
+
+function mIdx(name: string): number | null {
+  const v = MONTH_IDX[name.toLowerCase()];
+  return v !== undefined ? v : null;
+}
+
+function makeDate(year: number, monthName: string, day: number): Date | null {
+  const mi = mIdx(monthName);
+  if (mi === null) return null;
+  const d = new Date(year, mi, day);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function parseAllEventDates(raw: string, keepPast = false): Date[] {
   if (!raw) return [];
   const now = new Date();
@@ -56,17 +77,17 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
 
   for (const seg of segments) {
     const t = seg.trim();
+    const yr = Number(t.match(/\b(20\d{2})\b/)?.[1] ?? now.getFullYear());
 
-    // Range "Month D1-D2" — e.g. "May 8-27" or "May 8 - 27, 2026"
-    const rangeA = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\s*-\s*(\d{1,2})\b/);
-    if (rangeA) {
-      const yr = t.match(/\b(20\d{2})\b/)?.[1] ?? String(now.getFullYear());
-      const start = new Date(`${rangeA[1]} ${rangeA[2]}, ${yr}`);
-      const end   = new Date(`${rangeA[1]} ${rangeA[3]}, ${yr}`);
-      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+    // Range "Month D1-D2" — e.g. "May 8-27" or "May 8-27, 2026"
+    const rangeA = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\s*-\s*(\d{1,2})/);
+    if (rangeA && MONTH_NAME_RE.test(rangeA[1])) {
+      const start = makeDate(yr, rangeA[1], parseInt(rangeA[2], 10));
+      const end   = makeDate(yr, rangeA[1], parseInt(rangeA[3], 10));
+      if (start && end) {
         if (!keepPast && end.getTime() < today.getTime() - 86400000) {
-          start.setFullYear(Number(yr) + 1);
-          end.setFullYear(Number(yr) + 1);
+          start.setFullYear(yr + 1);
+          end.setFullYear(yr + 1);
         }
         lastMonth = start.getMonth();
         results.push(start, end);
@@ -74,16 +95,15 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
       }
     }
 
-    // Range "D1-D2 Month" — e.g. "8-27 May"
+    // Range "D1-D2 Month" — e.g. "8-27 May" or "29-30 May 2026"
     const rangeB = t.match(/\b(\d{1,2})\s*-\s*(\d{1,2})\s+([A-Za-z]{3,})\b/);
-    if (rangeB) {
-      const yr = t.match(/\b(20\d{2})\b/)?.[1] ?? String(now.getFullYear());
-      const start = new Date(`${rangeB[3]} ${rangeB[1]}, ${yr}`);
-      const end   = new Date(`${rangeB[3]} ${rangeB[2]}, ${yr}`);
-      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+    if (rangeB && MONTH_NAME_RE.test(rangeB[3])) {
+      const start = makeDate(yr, rangeB[3], parseInt(rangeB[1], 10));
+      const end   = makeDate(yr, rangeB[3], parseInt(rangeB[2], 10));
+      if (start && end) {
         if (!keepPast && end.getTime() < today.getTime() - 86400000) {
-          start.setFullYear(Number(yr) + 1);
-          end.setFullYear(Number(yr) + 1);
+          start.setFullYear(yr + 1);
+          end.setFullYear(yr + 1);
         }
         lastMonth = start.getMonth();
         results.push(start, end);
@@ -92,13 +112,11 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
     }
 
     // "Month Day" — e.g. "May 23" or "Sat, May 23"
-    // Guard: only match if the word is actually a month name, not a weekday
-    // abbreviation like "Fri"/"Thu" (Hermes parses "Fri 22, 2026" as a valid date,
-    // which causes the code to skip the correct "22 May" parsing below).
+    // Guard: only match if the word is actually a month name, not a weekday abbrev.
     const mDay = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
     if (mDay && MONTH_NAME_RE.test(mDay[1])) {
-      const guess = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
-      if (!isNaN(guess.getTime())) {
+      const guess = makeDate(now.getFullYear(), mDay[1], parseInt(mDay[2], 10));
+      if (guess) {
         lastMonth = guess.getMonth();
         results.push(maybeRoll(guess));
         continue;
@@ -107,9 +125,9 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
 
     // "Day Month" — e.g. "28 May" or "Thu 28 May"
     const dMonth = t.match(/\b(\d{1,2})\s+([A-Za-z]{3,})\b/);
-    if (dMonth) {
-      const guess = new Date(`${dMonth[2]} ${dMonth[1]}, ${now.getFullYear()}`);
-      if (!isNaN(guess.getTime())) {
+    if (dMonth && MONTH_NAME_RE.test(dMonth[2])) {
+      const guess = makeDate(now.getFullYear(), dMonth[2], parseInt(dMonth[1], 10));
+      if (guess) {
         lastMonth = guess.getMonth();
         results.push(maybeRoll(guess));
         continue;
@@ -126,8 +144,12 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
       }
     }
 
-    const direct = new Date(t);
-    if (!isNaN(direct.getTime())) results.push(direct);
+    // ISO-like last resort (avoids Hermes string-parse quirks via year guard)
+    const iso2 = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+    if (iso2) {
+      const d = new Date(Number(iso2[1]), Number(iso2[2]) - 1, Number(iso2[3]));
+      if (!isNaN(d.getTime())) results.push(d);
+    }
   }
   return results;
 }
@@ -192,24 +214,30 @@ function parseEventDate(raw: string, timeStr?: string): Date | null {
   const s = raw.trim().toLowerCase();
   let base: Date | null = null;
   if (s.includes("today")) base = new Date(today);
-  else if (s.includes("tomorrow"))
-    base = new Date(today.getTime() + 86400000);
+  else if (s.includes("tomorrow")) base = new Date(today.getTime() + 86400000);
   else {
-    const direct = new Date(raw);
-    if (!isNaN(direct.getTime())) base = direct;
-    else {
-      const m = raw.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
-      if (m) {
-        const guess = new Date(`${m[1]} ${m[2]}, ${now.getFullYear()}`);
-        if (!isNaN(guess.getTime())) {
-          if (guess.getTime() < today.getTime() - 86400000)
-            guess.setFullYear(now.getFullYear() + 1);
-          base = guess;
+    // ISO format is safe to parse with numeric constructor
+    const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+    if (iso) {
+      base = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+    } else {
+      // "Month Day" e.g. "May 23" or "Sat, May 23"
+      const mDay = raw.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
+      if (mDay && MONTH_NAME_RE.test(mDay[1])) {
+        base = makeDate(now.getFullYear(), mDay[1], parseInt(mDay[2], 10));
+      }
+      // "Day Month" e.g. "22 May" or "Fri 22 May"
+      if (!base) {
+        const dMonth = raw.match(/\b(\d{1,2})\s+([A-Za-z]{3,})\b/);
+        if (dMonth && MONTH_NAME_RE.test(dMonth[2])) {
+          base = makeDate(now.getFullYear(), dMonth[2], parseInt(dMonth[1], 10));
         }
       }
+      if (base && base.getTime() < today.getTime() - 86400000)
+        base.setFullYear(now.getFullYear() + 1);
     }
   }
-  if (!base) return null;
+  if (!base || isNaN(base.getTime())) return null;
   if (timeStr) {
     const tm = timeStr.match(/(\d{1,2})[:\.](\d{2})/);
     if (tm) base.setHours(parseInt(tm[1], 10), parseInt(tm[2], 10), 0, 0);
@@ -265,34 +293,33 @@ function displayDate(raw: string): string {
     }
   }
 
-  // Range like "May 8-27" — show condensed form
-  const rangeA = raw.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\s*[-–]\s*(\d{1,2})\b/);
-  if (rangeA) {
-    const d = new Date(`${rangeA[1]} ${rangeA[2]}, ${now.getFullYear()}`);
-    if (!isNaN(d.getTime())) {
-      return `${rangeA[1].slice(0, 3)} ${rangeA[2]}–${rangeA[3]}`;
-    }
+  // Range "Month D1-D2" like "May 8-27" or "May 29-30, 2026"
+  const rangeA = raw.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\s*[-\u2013\u2014]\s*(\d{1,2})/);
+  if (rangeA && MONTH_NAME_RE.test(rangeA[1])) {
+    return `${rangeA[1].slice(0, 3)} ${rangeA[2]}–${rangeA[3]}`;
   }
 
-  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  // Range "D1-D2 Month" like "29-30 May" or "8-27 May 2026"
+  const rangeB = raw.match(/\b(\d{1,2})\s*[-\u2013\u2014]\s*(\d{1,2})\s+([A-Za-z]{3,})\b/);
+  if (rangeB && MONTH_NAME_RE.test(rangeB[3])) {
+    return `${rangeB[3].slice(0, 3)} ${rangeB[1]}–${rangeB[2]}`;
+  }
+
+  const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
   // "Month Day" like "May 23" or "Sat, May 23"
   // Guard: only match if the word is actually a month name (not a weekday like "Fri")
   const mDay = raw.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
   if (mDay && MONTH_NAME_RE.test(mDay[1])) {
-    const d = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
-    if (!isNaN(d.getTime())) {
-      return `${days[d.getDay()]} ${d.getDate()} ${mDay[1].slice(0,3)}`;
-    }
+    const d = makeDate(now.getFullYear(), mDay[1], parseInt(mDay[2], 10));
+    if (d) return `${DAYS[d.getDay()]} ${d.getDate()} ${mDay[1].slice(0,3)}`;
   }
 
   // "Day Month" like "22 May" or "Fri 22 May" (weekday prefix is ignored)
   const dMonth = raw.match(/\b(\d{1,2})\s+([A-Za-z]{3,})\b/);
   if (dMonth && MONTH_NAME_RE.test(dMonth[2])) {
-    const d = new Date(`${dMonth[2]} ${dMonth[1]}, ${now.getFullYear()}`);
-    if (!isNaN(d.getTime())) {
-      return `${days[d.getDay()]} ${d.getDate()} ${dMonth[2].slice(0,3)}`;
-    }
+    const d = makeDate(now.getFullYear(), dMonth[2], parseInt(dMonth[1], 10));
+    if (d) return `${DAYS[d.getDay()]} ${d.getDate()} ${dMonth[2].slice(0,3)}`;
   }
 
   // Fallback: return raw trimmed
