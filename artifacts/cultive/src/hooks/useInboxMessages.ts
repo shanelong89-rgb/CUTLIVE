@@ -92,8 +92,10 @@ export function useInboxMessages() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
+    // Use getSession() — reads the persisted session locally (no network call,
+    // works immediately after sign-in even with multiple client instances).
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
     if (!user) {
       setSignedIn(false);
       setSignupAt(null);
@@ -113,8 +115,18 @@ export function useInboxMessages() {
   }, []);
 
   useEffect(() => {
+    // Subscribe FIRST so we don't miss a SIGNED_IN event during initial load.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        load();
+      } else {
+        setSignedIn(false);
+        setSignupAt(null);
+        setSubmissions([]);
+        setLoading(false);
+      }
+    });
     load();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
     return () => sub.subscription.unsubscribe();
   }, [load]);
 

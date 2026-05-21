@@ -104,7 +104,8 @@ export function useInboxMessages() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const user = await getCurrentUser();
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
     if (!user) {
       setSignedIn(false);
       setSignupAt(null);
@@ -121,8 +122,17 @@ export function useInboxMessages() {
 
   useEffect(() => {
     loadReadIds();
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        load();
+      } else {
+        setSignedIn(false);
+        setSignupAt(null);
+        setSubmissions([]);
+        setLoading(false);
+      }
+    });
     load();
-    const { data } = supabase.auth.onAuthStateChange(() => load());
     return () => data.subscription.unsubscribe();
   }, [load, loadReadIds]);
 
