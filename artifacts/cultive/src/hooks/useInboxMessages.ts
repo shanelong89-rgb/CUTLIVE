@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { deleteReadItemsRemote, getEvents, getMySubmissions, listReadItemKeysRemote, markReadItemsRemote, supabase, type Event, type Submission } from '../lib/supabase';
 
 const READ_KEY = 'cultive:read-messages';
@@ -325,6 +325,8 @@ export function useInboxMessages() {
     typeof window === 'undefined' ? new Set() : readReadIds(),
   );
 
+  const loadRef = useRef<() => Promise<void>>(async () => {});
+
   const load = useCallback(async () => {
     setLoading(true);
     const { data: sessionData } = await supabase.auth.getSession();
@@ -444,6 +446,11 @@ export function useInboxMessages() {
     return () => sub.subscription.unsubscribe();
   }, [load]);
 
+  // Keep ref current so the realtime callback always calls the latest load
+  // without needing it in the effect dependency array (which would re-subscribe
+  // on every render and produce "cannot add callbacks after subscribe" errors).
+  loadRef.current = load;
+
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
@@ -456,7 +463,7 @@ export function useInboxMessages() {
           table: 'submissions',
           filter: `user_id=eq.${userId}`,
         },
-        () => { load(); },
+        () => { loadRef.current(); },
       )
       .on(
         'postgres_changes',
@@ -466,13 +473,13 @@ export function useInboxMessages() {
           table: 'user_read_items',
           filter: `user_id=eq.${userId}`,
         },
-        () => { load(); },
+        () => { loadRef.current(); },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, load]);
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const messages: InboxMessage[] = (() => {
     if (!signedIn) return [];
