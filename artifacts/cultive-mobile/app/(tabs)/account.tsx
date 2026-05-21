@@ -33,15 +33,37 @@ export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const [email, setEmail] = useState<string | null>(null);
+  const [submissionCount, setSubmissionCount] = useState<number | null>(null);
   const { unreadCount } = useInboxMessages();
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setEmail(data.session?.user.email ?? null);
+      if (!mounted) return;
+      const userEmail = data.session?.user.email ?? null;
+      setEmail(userEmail);
+      if (userEmail) {
+        supabase
+          .from("submissions")
+          .select("*", { count: "exact", head: true })
+          .eq("submitter_email", userEmail)
+          .then(({ count }) => {
+            if (mounted) setSubmissionCount(count ?? 0);
+          });
+      }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setEmail(session?.user.email ?? null);
+      const userEmail = session?.user.email ?? null;
+      setEmail(userEmail);
+      if (userEmail) {
+        supabase
+          .from("submissions")
+          .select("*", { count: "exact", head: true })
+          .eq("submitter_email", userEmail)
+          .then(({ count }) => setSubmissionCount(count ?? 0));
+      } else {
+        setSubmissionCount(null);
+      }
     });
     return () => {
       mounted = false;
@@ -186,23 +208,36 @@ export default function AccountScreen() {
         )}
 
         {/* Regular menu items */}
-        {MENU_ITEMS.map((item, i) => (
-          <Pressable
-            key={i}
-            style={({ pressed }) => [
-              styles.menuItem,
-              { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },
-            ]}
-          >
-            <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>
-              {String(i + 1).padStart(2, "0")}
-            </Text>
-            <Text style={[styles.menuLabel, { color: colors.foreground }]}>
-              {item.label}
-            </Text>
-            <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
-          </Pressable>
-        ))}
+        {MENU_ITEMS.map((item, i) => {
+          const isSubmissions = item.label === "My Submissions";
+          const meta = isSubmissions
+            ? submissionCount === null
+              ? "—"
+              : `${submissionCount} submitted`
+            : null;
+          return (
+            <Pressable
+              key={i}
+              style={({ pressed }) => [
+                styles.menuItem,
+                { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },
+              ]}
+            >
+              <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>
+                {String(i + 1).padStart(2, "0")}
+              </Text>
+              <Text style={[styles.menuLabel, { color: colors.foreground }]}>
+                {item.label}
+              </Text>
+              {meta !== null && (
+                <Text style={[styles.menuMeta, { color: colors.mutedForeground }]}>
+                  {meta}
+                </Text>
+              )}
+              <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <Text style={[styles.footer, { color: colors.mutedForeground }]}>
@@ -309,6 +344,12 @@ const styles = StyleSheet.create({
   menuArrow: {
     fontSize: 16,
     fontFamily: "Inter_400Regular",
+  },
+  menuMeta: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.5,
+    marginRight: 4,
   },
   inboxBadge: {
     minWidth: 20,

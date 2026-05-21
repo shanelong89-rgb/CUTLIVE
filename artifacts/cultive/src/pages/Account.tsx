@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { signOut, supabase } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
+import { useInboxMessages } from '../hooks/useInboxMessages';
 
 interface AccountProps {
   setIsAuthOpen?: (open: boolean) => void;
@@ -32,6 +33,7 @@ function formatDate(s?: string) {
 export function Account({ setIsAuthOpen }: AccountProps) {
   const { user, isAdmin, loading } = useAuth();
   const { count: savedCount } = useSavedEvents();
+  const { unreadCount } = useInboxMessages();
   const [submissionCount, setSubmissionCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -99,7 +101,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
       href: '/submit',
       meta: submissionCount === null ? '—' : `${submissionCount} submitted`,
     },
-    { label: 'Inbox', href: '/inbox', meta: '0 new' },
+    { label: 'Inbox', href: '/inbox', meta: unreadCount > 0 ? `${unreadCount} unread` : 'up to date' },
     { label: 'Discover Events', href: '/' },
     ...(isAdmin ? [{ label: 'Admin Console', href: '/admin', meta: 'Editor' }] : []),
   ];
