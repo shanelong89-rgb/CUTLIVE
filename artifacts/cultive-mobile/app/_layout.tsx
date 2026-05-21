@@ -32,6 +32,10 @@ function RootLayoutNav() {
         name="auth"
         options={{ presentation: "modal", title: "Sign In" }}
       />
+      <Stack.Screen
+        name="my-submissions"
+        options={{ headerShown: false, presentation: "card" }}
+      />
     </Stack>
   );
 }

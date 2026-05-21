@@ -218,6 +218,11 @@ export default function AccountScreen() {
           return (
             <Pressable
               key={i}
+              onPress={
+                isSubmissions
+                  ? () => router.push("/my-submissions" as any)
+                  : undefined
+              }
               style={({ pressed }) => [
                 styles.menuItem,
                 { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },

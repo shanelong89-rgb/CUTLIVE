@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,7 +15,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
-import { submitEvent } from "@/lib/supabase";
+import { submitEvent, supabase } from "@/lib/supabase";
 
 const CATEGORY_OPTIONS = ["Music", "Arts", "Nightlife", "Food", "Wellness", "Market", "Workshops"];
 
@@ -48,6 +48,23 @@ export default function SubmitScreen() {
     submitter_name: "",
     submitter_email: "",
   });
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
+      if (!user) return;
+      const email = user.email ?? "";
+      const name =
+        (user.user_metadata?.full_name as string | undefined) ||
+        (user.user_metadata?.name as string | undefined) ||
+        email.split("@")[0];
+      setForm((prev) => ({
+        ...prev,
+        submitter_email: prev.submitter_email || email,
+        submitter_name: prev.submitter_name || name,
+      }));
+    });
+  }, []);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
