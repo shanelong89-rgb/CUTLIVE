@@ -2803,6 +2803,47 @@ h1, h2, h3 {
   padding: 24px;
 }
 
+.sub-type-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.sub-type-badge.ig {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.sub-type-badge.manual {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.sub-scrape-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #fef9c3;
+  color: #a16207;
+  letter-spacing: 0.04em;
+}
+
+.sub-ig-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #7c3aed;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sub-ig-link:hover {
+  text-decoration: underline;
+}
+
 .submission-header {
   display: flex;
   justify-content: space-between;

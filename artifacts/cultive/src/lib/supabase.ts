@@ -39,9 +39,13 @@ export type Submission = {
   district?: string;
   ticket_url?: string | null;
   tags?: string[];
-  submitter_name: string;
-  submitter_email: string;
-  status: 'pending' | 'approved' | 'rejected';
+  submitter_name?: string;
+  submitter_email?: string;
+  user_id?: string | null;
+  instagram_url?: string | null;
+  source_id?: string | null;
+  submission_type?: 'manual' | 'instagram';
+  status: 'pending' | 'pending_scrape' | 'approved' | 'rejected';
   created_at: string;
   reviewed_at?: string | null;
   published_event_id?: string | null;

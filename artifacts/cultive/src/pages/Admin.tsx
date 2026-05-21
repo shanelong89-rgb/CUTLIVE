@@ -285,7 +285,7 @@ export function Admin() {
             className={activeTab === 'submissions' ? 'active' : ''}
             onClick={() => setActiveTab('submissions')}
           >
-            Submissions ({submissions.filter(s => s.status === 'pending').length})
+            Submissions ({submissions.filter(s => s.status === 'pending' || s.status === 'pending_scrape').length})
           </button>
         </nav>
         <div className="admin-sidebar-footer">
@@ -338,7 +338,7 @@ function Dashboard({
   submissions: Submission[];
   onRefresh: () => void;
 }) {
-  const pendingCount = submissions.filter(s => s.status === 'pending').length;
+  const pendingCount = submissions.filter(s => s.status === 'pending' || s.status === 'pending_scrape').length;
   const approvedCount = submissions.filter(s => s.status === 'approved').length;
 
   return (
@@ -626,7 +626,15 @@ function SubmissionsTab({
   onReject: (id: string) => void;
 }) {
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
-  const filtered = submissions.filter(s => s.status === filter);
+
+  // Treat both 'pending' and 'pending_scrape' as pending
+  const isPending = (s: Submission) => s.status === 'pending' || s.status === 'pending_scrape';
+  const pendingSubs   = submissions.filter(isPending);
+  const approvedSubs  = submissions.filter(s => s.status === 'approved');
+  const rejectedSubs  = submissions.filter(s => s.status === 'rejected');
+  const filtered = filter === 'pending' ? pendingSubs : filter === 'approved' ? approvedSubs : rejectedSubs;
+
+  const tabCounts = { pending: pendingSubs.length, approved: approvedSubs.length, rejected: rejectedSubs.length };
 
   return (
     <div className="admin-submissions">
@@ -640,7 +648,7 @@ function SubmissionsTab({
               className={filter === s ? 'submit-btn' : 'cancel-btn'}
               style={{ textTransform: 'capitalize', padding: '8px 16px', width: 'auto' }}
             >
-              {s} ({submissions.filter(x => x.status === s).length})
+              {s} ({tabCounts[s]})
             </button>
           ))}
         </div>
@@ -655,35 +663,60 @@ function SubmissionsTab({
           {filtered.map(sub => (
             <div key={sub.id} className="submission-card">
               <div className="submission-header">
-                <h3>{sub.title}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <h3 style={{ margin: 0 }}>{sub.title || 'Untitled Event'}</h3>
+                  {/* Source type badge */}
+                  <span className={`sub-type-badge ${sub.submission_type === 'instagram' ? 'ig' : 'manual'}`}>
+                    {sub.submission_type === 'instagram' ? '📱 Instagram' : '✏️ Manual'}
+                  </span>
+                  {/* Needs-scrape badge */}
+                  {sub.status === 'pending_scrape' && (
+                    <span className="sub-scrape-badge">⏳ Needs scrape</span>
+                  )}
+                </div>
                 <span className="submission-date">
                   {new Date(sub.created_at).toLocaleDateString()}
                 </span>
               </div>
+
               {sub.image ? (
                 <div className="submission-image">
                   <img
                     src={sub.image}
                     alt={sub.title}
                     loading="lazy"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = 'none';
-                    }}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                   />
                 </div>
               ) : null}
+
               <div className="submission-details">
-                <p><strong>Date:</strong> {displayDate(sub.date)}{sub.time ? ` · ${sub.time}` : ''}</p>
-                <p><strong>Venue:</strong> {sub.venue}</p>
-                <p><strong>Category:</strong> {sub.category}</p>
+                {sub.date && <p><strong>Date:</strong> {displayDate(sub.date)}{sub.time ? ` · ${sub.time}` : ''}</p>}
+                {sub.venue && <p><strong>Venue:</strong> {sub.venue}</p>}
+                {sub.category && <p><strong>Category:</strong> {sub.category}</p>}
                 {sub.price && <p><strong>Price:</strong> {sub.price}</p>}
-                {sub.description && (
-                  <p style={{ marginTop: 8 }}>{sub.description}</p>
+                {sub.description && <p style={{ marginTop: 8 }}>{sub.description}</p>}
+
+                {/* Instagram source link */}
+                {sub.instagram_url && (
+                  <a
+                    href={sub.instagram_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="sub-ig-link"
+                  >
+                    ↗ View Instagram post
+                  </a>
                 )}
-                <p style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--n-muted)' }}>
-                  Submitted by <strong>{sub.submitter_name}</strong> ({sub.submitter_email})
-                </p>
+
+                {(sub.submitter_name || sub.submitter_email) && (
+                  <p style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--n-muted)' }}>
+                    Submitted by{sub.submitter_name ? <strong> {sub.submitter_name}</strong> : null}
+                    {sub.submitter_email ? ` (${sub.submitter_email})` : ''}
+                  </p>
+                )}
               </div>
+
               {filter === 'pending' && (
                 <div className="submission-actions">
                   <button className="approve-btn" onClick={() => onApprove(sub)}>
