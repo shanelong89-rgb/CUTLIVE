@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
 import { TabBar } from './components/TabBar';
 import { Discover } from './pages/Discover';
 import { Tickets } from './pages/Tickets';
@@ -11,7 +11,19 @@ import { Saved } from './pages/Saved';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+// Scroll to top only on forward navigation — browser handles scroll restoration on back/forward
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  const navType = useNavigationType();
+  useEffect(() => {
+    if (navType !== 'POP') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [pathname, navType]);
+  return null;
+}
 
 function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -20,6 +32,7 @@ function App() {
 
   return (
     <div className="app">
+      <ScrollToTop />
       {/* Web Navigation - Desktop (hidden on admin) */}
       {!isAdminPage && <WebNav setIsAuthOpen={setIsAuthOpen} />}
       
