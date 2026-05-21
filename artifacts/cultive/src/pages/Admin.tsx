@@ -39,6 +39,7 @@ const EMPTY_EVENT: Event = {
   price: '',
   description: '',
   is_exclusive: false,
+  rsvp_enabled: false,
   district: '',
   ticket_url: '',
   tags: [],
@@ -576,6 +577,19 @@ function EventsTab({
               />
               Members Only (Exclusive)
             </label>
+          </div>
+          <div className="form-group checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={!!formData.rsvp_enabled}
+                onChange={(e) => setFormData({ ...formData, rsvp_enabled: e.target.checked })}
+              />
+              Enable RSVP Free button (partnered event)
+            </label>
+            <small style={{ color: 'var(--n-muted)', marginTop: 4, display: 'block' }}>
+              Only enable once in-app RSVP is set up for this event.
+            </small>
           </div>
           <div className="form-actions">
             <button type="submit" className="submit-btn">

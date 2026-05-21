@@ -251,24 +251,26 @@ export default function EventDetailScreen() {
             BACK
           </Text>
         </Pressable>
-        <Pressable
-          onPress={onRSVP}
-          style={({ pressed }) => [
-            styles.primaryBtn,
-            {
-              backgroundColor: colors.foreground,
-              opacity: pressed ? 0.85 : 1,
-            },
-          ]}
-        >
-          <Text style={[styles.primaryBtnText, { color: colors.background }]}>
-            {isExclusive
-              ? "GET MEMBERSHIP"
-              : hasTicketUrl
-                ? externalLabel
-                : "RSVP FREE"}
-          </Text>
-        </Pressable>
+        {(hasExternalUrl || isExclusive || event.rsvp_enabled) && (
+          <Pressable
+            onPress={onRSVP}
+            style={({ pressed }) => [
+              styles.primaryBtn,
+              {
+                backgroundColor: colors.foreground,
+                opacity: pressed ? 0.85 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.primaryBtnText, { color: colors.background }]}>
+              {isExclusive
+                ? "GET MEMBERSHIP"
+                : hasExternalUrl
+                  ? externalLabel
+                  : "RSVP FREE"}
+            </Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );

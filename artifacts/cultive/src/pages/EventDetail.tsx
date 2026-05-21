@@ -209,11 +209,15 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
           >
             {externalLabel} ↗
           </a>
-        ) : (
+        ) : isExclusive ? (
           <button className="cta-primary" onClick={handleRSVP}>
-            {isExclusive ? 'Get Membership' : 'RSVP Free'}
+            Get Membership
           </button>
-        )}
+        ) : event.rsvp_enabled ? (
+          <button className="cta-primary" onClick={handleRSVP}>
+            RSVP Free
+          </button>
+        ) : null}
       </div>
     </div>
   );
