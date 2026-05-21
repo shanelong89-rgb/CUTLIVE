@@ -37,10 +37,16 @@ export function ProfileMenu() {
     if (!open || !user) return;
     let active = true;
     (async () => {
-      const { count } = await supabase
+      // Match by user_id (Instagram submissions) OR submitter_email (manual submissions)
+      const filters: string[] = [];
+      if (user.id) filters.push(`user_id.eq.${user.id}`);
+      if (user.email) filters.push(`submitter_email.eq.${user.email}`);
+      const query = supabase
         .from('submissions')
-        .select('*', { count: 'exact', head: true })
-        .eq('submitter_email', user.email ?? '');
+        .select('*', { count: 'exact', head: true });
+      const { count } = filters.length
+        ? await query.or(filters.join(','))
+        : await query;
       if (active) setSubmissionCount(count ?? 0);
     })();
     return () => {
