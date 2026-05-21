@@ -242,6 +242,73 @@ create policy "push_tokens_admin_read"
   on public.push_tokens for select
   using (public.is_admin());
 
+-- ── STALE READ ITEM CLEANUP ──────────────────────────────────
+-- Removes user_read_items rows that no longer correspond to a live message:
+--   • sub-pending-{id}  → deleted once the submission is approved/rejected/gone
+--   • sub-approved-{id} → deleted once the submission row itself is gone
+--   • sub-rejected-{id} → same as above
+--   • anything older than 90 days (TTL safety net)
+create or replace function public.cleanup_stale_read_items()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  -- 1. sub-pending-* whose submission is no longer in pending state
+  delete from public.user_read_items
+  where item_key like 'sub-pending-%'
+    and not exists (
+      select 1 from public.submissions
+      where id     = substring(item_key from length('sub-pending-') + 1)
+        and status = 'pending'
+    );
+
+  -- 2. sub-approved-* / sub-rejected-* whose submission row has been deleted
+  delete from public.user_read_items
+  where (item_key like 'sub-approved-%' or item_key like 'sub-rejected-%')
+    and not exists (
+      select 1 from public.submissions
+      where id = case
+        when item_key like 'sub-approved-%'
+          then substring(item_key from length('sub-approved-') + 1)
+        when item_key like 'sub-rejected-%'
+          then substring(item_key from length('sub-rejected-') + 1)
+      end
+    );
+
+  -- 3. TTL safety net: anything marked read more than 90 days ago
+  delete from public.user_read_items
+  where read_at < now() - interval '90 days';
+end;
+$$;
+
+-- Schedule the cleanup to run daily at 03:00 UTC via pg_cron.
+-- pg_cron is available on Supabase Pro plans; on free plans enable it in the
+-- dashboard under Database → Extensions → pg_cron.
+-- If pg_cron is not available the block below is a no-op (notice only).
+do $$
+begin
+  perform cron.unschedule('cleanup-stale-read-items');
+exception when others then
+  null;
+end;
+$$;
+
+do $$
+begin
+  perform cron.schedule(
+    'cleanup-stale-read-items',
+    '0 3 * * *',
+    'select public.cleanup_stale_read_items()'
+  );
+exception when others then
+  raise notice
+    'pg_cron not available — run "select public.cleanup_stale_read_items()" '
+    'manually (or via a Supabase Edge Function cron) to clean up stale read items.';
+end;
+$$;
+
 -- ── HOW TO MAKE YOURSELF ADMIN ──────────────────────────────
 -- After signing up via the app's auth modal once, run:
 --   update public.profiles set is_admin = true where email = 'YOU@EXAMPLE.COM';
