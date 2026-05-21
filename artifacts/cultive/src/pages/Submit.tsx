@@ -137,6 +137,8 @@ export function Submit() {
               <option value="Nightlife">Nightlife</option>
               <option value="Food">Food</option>
               <option value="Wellness">Wellness</option>
+              <option value="Market">Market</option>
+              <option value="Workshops">Workshops</option>
             </select>
           </div>
 

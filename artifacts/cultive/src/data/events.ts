@@ -214,4 +214,4 @@ export const mockEvents: Event[] = [
   },
 ];
 
-export const categories = ['All', 'Music', 'Nightlife', 'Arts', 'Food', 'Wellness', 'Exclusive'];
+export const categories = ['All', 'Music', 'Nightlife', 'Arts', 'Food', 'Wellness', 'Market', 'Workshops', 'Exclusive'];

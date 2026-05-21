@@ -406,6 +406,8 @@ function EventsTab({
                 <option>Nightlife</option>
                 <option>Food</option>
                 <option>Wellness</option>
+                <option>Market</option>
+                <option>Workshops</option>
               </select>
             </div>
           </div>

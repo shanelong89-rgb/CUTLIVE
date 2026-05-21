@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { submitEvent } from "@/lib/supabase";
 
-const CATEGORY_OPTIONS = ["Music", "Arts", "Nightlife", "Food", "Wellness"];
+const CATEGORY_OPTIONS = ["Music", "Arts", "Nightlife", "Food", "Wellness", "Market", "Workshops"];
 
 export default function SubmitScreen() {
   const colors = useColors();

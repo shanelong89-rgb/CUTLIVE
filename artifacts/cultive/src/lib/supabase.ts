@@ -80,7 +80,7 @@ export async function getEventById(id: string) {
 export async function getCategories() {
   const { data, error } = await supabase.from('events').select('category');
   if (error || !data) {
-    return ['All', 'Music', 'Arts', 'Nightlife', 'Food', 'Wellness', 'Exclusive'];
+    return ['All', 'Music', 'Arts', 'Nightlife', 'Food', 'Wellness', 'Market', 'Workshops', 'Exclusive'];
   }
   const categories = [...new Set(data.map(e => e.category).filter(Boolean))];
   return ['All', ...categories, 'Exclusive'];

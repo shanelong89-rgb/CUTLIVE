@@ -247,5 +247,7 @@ export const categories = [
   "Arts",
   "Food",
   "Wellness",
+  "Market",
+  "Workshops",
   "Exclusive",
 ];
