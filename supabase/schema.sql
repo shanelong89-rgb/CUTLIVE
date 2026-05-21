@@ -1,14 +1,23 @@
 -- ============================================================
--- CULTIVE Phase 2 schema: events + submissions + admin profiles
--- Run this in: Supabase Dashboard → SQL Editor → New query → Run
--- Idempotent: safe to re-run.
+-- CULTIVE schema — safe to re-run for adding tables / policies.
+-- Run in: Supabase Dashboard → SQL Editor → New query → Run
+--
+-- ⚠️  WARNING: This file does NOT drop any tables.
+--     All CREATE TABLE statements use IF NOT EXISTS.
+--     Existing events, submissions, and profiles are preserved.
+--
+-- ── NUCLEAR RESET (COMMENTED OUT ON PURPOSE) ─────────────────
+-- Uncomment ONLY when setting up a brand-new empty project.
+-- Running these on a live database PERMANENTLY DELETES ALL DATA.
+--
+--   drop table if exists public.submissions cascade;
+--   drop table if exists public.events      cascade;
+--   drop table if exists public.profiles    cascade;
+--   drop table if exists public.saved_events cascade;
+--   drop table if exists public.user_read_items cascade;
+--   drop table if exists public.push_tokens cascade;
+--
 -- ============================================================
-
--- ── RESET (drops any legacy tables with incompatible types) ─
--- The profiles table is preserved so existing auth users keep
--- their admin flag. Events + submissions are recreated fresh.
-drop table if exists public.submissions cascade;
-drop table if exists public.events      cascade;
 
 -- ── EVENTS ──────────────────────────────────────────────────
 create table if not exists public.events (
