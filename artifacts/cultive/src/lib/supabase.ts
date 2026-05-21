@@ -258,20 +258,45 @@ export async function approveSubmission(sub: Submission) {
   const s = (sub.scraped_data ?? {}) as Record<string, unknown>;
   const str = (key: string) => (typeof s[key] === 'string' ? (s[key] as string) : undefined);
 
+  const resolvedTime = sub.time || str('extracted_time') || '';
+  const resolvedDesc = sub.description || str('extracted_description') || '';
+  const resolvedTitle = sub.title || str('extracted_title') || 'Untitled';
+
+  // Auto-tag nightlife: starts after 17:00, or text says "till late" / related phrases
+  const isLateNight = (() => {
+    if (resolvedTime) {
+      const m = resolvedTime.match(/(\d{1,2})[:\s]?(\d{0,2})\s*(am|pm)?/i);
+      if (m) {
+        let h = parseInt(m[1], 10);
+        const period = (m[3] || '').toLowerCase();
+        if (period === 'pm' && h !== 12) h += 12;
+        if (period === 'am' && h === 12) h = 0;
+        if (h >= 17) return true;
+      }
+    }
+    const haystack = [resolvedTime, resolvedDesc, resolvedTitle].join(' ').toLowerCase();
+    return /till\s*late|late\s*night|midnight|after\s*dark|late\s*show|evening\s*show/.test(haystack);
+  })();
+
+  const baseTags: string[] = sub.tags || [];
+  const finalTags = isLateNight && !baseTags.includes('nightlife')
+    ? [...baseTags, 'nightlife']
+    : baseTags;
+
   // 1. Insert event derived from submission (prefer direct fields, fall back to scraped)
   const event = await createEvent({
-    title: sub.title || str('extracted_title') || 'Untitled',
+    title: resolvedTitle,
     date: sub.date || str('extracted_date') || '',
-    time: sub.time || str('extracted_time') || '',
+    time: resolvedTime,
     venue: sub.venue || str('extracted_venue') || '',
     image: sub.image || str('extracted_image') || '',
     category: sub.category || str('extracted_category') || 'Other',
     price: sub.price || str('extracted_price') || 'Free',
-    description: sub.description || str('extracted_description') || '',
+    description: resolvedDesc,
     is_exclusive: sub.is_exclusive || false,
     district: sub.district || (sub.venue?.split(',')[0] ?? '') || str('extracted_district') || '',
     ticket_url: sub.ticket_url || null,
-    tags: sub.tags || [],
+    tags: finalTags,
   });
   // 2. Mark submission as approved + link
   const { data, error } = await supabase
