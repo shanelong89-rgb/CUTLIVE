@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { signOut } from '../lib/supabase';
+import { signOut, supabase } from '../lib/supabase';
 
 function initialsFor(email?: string | null) {
   if (!email) return '·';
@@ -11,26 +11,50 @@ function initialsFor(email?: string | null) {
   return (a + b).slice(0, 2);
 }
 
+function formatDate(s?: string) {
+  if (!s) return '—';
+  try {
+    return new Date(s).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return s;
+  }
+}
+
 export function ProfileMenu() {
   const { user, isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const [submissionCount, setSubmissionCount] = useState<number | null>(null);
+
+  // Load the user's submission count when the panel opens
+  useEffect(() => {
+    if (!open || !user) return;
+    let active = true;
+    (async () => {
+      const { count } = await supabase
+        .from('submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('submitter_email', user.email ?? '');
+      if (active) setSubmissionCount(count ?? 0);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [open, user]);
 
   useEffect(() => {
     if (!open) return;
-    const onDocClick = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
-    document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onEsc);
+    document.body.style.overflow = 'hidden';
     return () => {
-      document.removeEventListener('mousedown', onDocClick);
       document.removeEventListener('keydown', onEsc);
+      document.body.style.overflow = '';
     };
   }, [open]);
 
@@ -38,13 +62,14 @@ export function ProfileMenu() {
 
   const email = user.email ?? '';
   const handle = email.split('@')[0];
+  const joined = formatDate(user.created_at);
 
   return (
-    <div className="profile-menu-wrap" ref={wrapRef}>
+    <>
       <button
         className="profile-menu-trigger"
-        onClick={() => setOpen((o) => !o)}
-        aria-haspopup="menu"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
         aria-expanded={open}
         title={email}
       >
@@ -52,51 +77,114 @@ export function ProfileMenu() {
       </button>
 
       {open && (
-        <div className="profile-menu-panel" role="menu">
-          <div className="profile-menu-header">
-            <span className="profile-avatar lg">{initialsFor(email)}</span>
-            <div className="profile-menu-id">
-              <span className="profile-menu-name">{handle}</span>
-              <span className="profile-menu-email">{email}</span>
-              {isAdmin && <span className="profile-menu-badge">ADMIN</span>}
-            </div>
-          </div>
+        <>
+          <div
+            className="profile-sidebar-backdrop"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <aside className="profile-sidebar" role="dialog" aria-label="Your profile">
+            <header className="profile-sidebar-head">
+              <span className="profile-sidebar-eyebrow">YOUR PROFILE</span>
+              <button
+                className="profile-sidebar-close"
+                onClick={() => setOpen(false)}
+                aria-label="Close profile"
+              >
+                ×
+              </button>
+            </header>
 
-          <div className="profile-menu-divider" />
+            <section className="profile-sidebar-identity">
+              <span className="profile-avatar xl">{initialsFor(email)}</span>
+              <h2 className="profile-sidebar-name">{handle}</h2>
+              <p className="profile-sidebar-email">{email}</p>
+              <div className="profile-sidebar-badges">
+                {isAdmin && <span className="profile-pill admin">ADMIN</span>}
+                <span className="profile-pill">Member</span>
+              </div>
+            </section>
 
-          <a href="/account" className="profile-menu-item" onClick={() => setOpen(false)}>
-            <span>My Account</span>
-            <span className="profile-menu-arrow">→</span>
-          </a>
-          <a href="/tickets" className="profile-menu-item" onClick={() => setOpen(false)}>
-            <span>My Tickets</span>
-            <span className="profile-menu-arrow">→</span>
-          </a>
-          <a href="/inbox" className="profile-menu-item" onClick={() => setOpen(false)}>
-            <span>Inbox</span>
-            <span className="profile-menu-arrow">→</span>
-          </a>
-          {isAdmin && (
-            <a href="/admin" className="profile-menu-item" onClick={() => setOpen(false)}>
-              <span>Admin Console</span>
-              <span className="profile-menu-arrow">→</span>
-            </a>
-          )}
+            <section className="profile-sidebar-stats">
+              <div className="profile-stat">
+                <span className="profile-stat-num">
+                  {submissionCount === null ? '…' : submissionCount}
+                </span>
+                <span className="profile-stat-label">Submissions</span>
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat-num">0</span>
+                <span className="profile-stat-label">Tickets</span>
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat-num">0</span>
+                <span className="profile-stat-label">Saved</span>
+              </div>
+            </section>
 
-          <div className="profile-menu-divider" />
+            <section className="profile-sidebar-meta">
+              <div className="profile-meta-row">
+                <span className="profile-meta-key">Joined</span>
+                <span className="profile-meta-val">{joined}</span>
+              </div>
+              <div className="profile-meta-row">
+                <span className="profile-meta-key">User ID</span>
+                <span className="profile-meta-val mono">{user.id.slice(0, 8)}…</span>
+              </div>
+              <div className="profile-meta-row">
+                <span className="profile-meta-key">Provider</span>
+                <span className="profile-meta-val">
+                  {user.app_metadata?.provider ?? 'email'}
+                </span>
+              </div>
+            </section>
 
-          <button
-            className="profile-menu-item signout"
-            onClick={async () => {
-              await signOut();
-              setOpen(false);
-            }}
-          >
-            <span>Sign Out</span>
-            <span className="profile-menu-arrow">↗</span>
-          </button>
-        </div>
+            <section className="profile-sidebar-nav">
+              <span className="profile-sidebar-eyebrow soft">NAVIGATION</span>
+              <a href="/account" className="profile-nav-row" onClick={() => setOpen(false)}>
+                <span className="profile-nav-num">01</span>
+                <span className="profile-nav-label">My Account</span>
+                <span className="profile-nav-arrow">→</span>
+              </a>
+              <a href="/tickets" className="profile-nav-row" onClick={() => setOpen(false)}>
+                <span className="profile-nav-num">02</span>
+                <span className="profile-nav-label">My Tickets</span>
+                <span className="profile-nav-arrow">→</span>
+              </a>
+              <a href="/submit" className="profile-nav-row" onClick={() => setOpen(false)}>
+                <span className="profile-nav-num">03</span>
+                <span className="profile-nav-label">Submit Event</span>
+                <span className="profile-nav-arrow">→</span>
+              </a>
+              <a href="/inbox" className="profile-nav-row" onClick={() => setOpen(false)}>
+                <span className="profile-nav-num">04</span>
+                <span className="profile-nav-label">Inbox</span>
+                <span className="profile-nav-arrow">→</span>
+              </a>
+              {isAdmin && (
+                <a href="/admin" className="profile-nav-row" onClick={() => setOpen(false)}>
+                  <span className="profile-nav-num">05</span>
+                  <span className="profile-nav-label">Admin Console</span>
+                  <span className="profile-nav-arrow">→</span>
+                </a>
+              )}
+            </section>
+
+            <footer className="profile-sidebar-foot">
+              <button
+                className="profile-signout"
+                onClick={async () => {
+                  await signOut();
+                  setOpen(false);
+                }}
+              >
+                Sign Out
+              </button>
+              <p className="profile-sidebar-version">CULTIVE · 文化活 · v1.0</p>
+            </footer>
+          </aside>
+        </>
       )}
-    </div>
+    </>
   );
 }
