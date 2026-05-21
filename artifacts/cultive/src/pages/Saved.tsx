@@ -150,6 +150,9 @@ export function Saved() {
                     {isExclusive && ' · Members Only'}
                   </p>
                   <p className="event-venue">{event.venue}</p>
+                  {event.submitted_by && (
+                    <p className="event-curator">✦ {event.submitted_by}</p>
+                  )}
                 </Link>
 
                 <div className="saved-actions">

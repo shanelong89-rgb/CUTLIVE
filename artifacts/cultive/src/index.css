@@ -767,6 +767,18 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
+.event-curator {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--n-muted);
+  margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* =====================================================
    MOBILE TAB BAR (Hidden on Desktop)
    ===================================================== */

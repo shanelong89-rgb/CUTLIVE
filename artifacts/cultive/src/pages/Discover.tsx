@@ -278,6 +278,9 @@ function EventRow({ event }: { event: Event }) {
           </div>
         )}
         <p className="event-venue">{venueName}</p>
+        {event.submitted_by && (
+          <p className="event-curator">✦ {event.submitted_by}</p>
+        )}
       </div>
     </Link>
   );

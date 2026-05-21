@@ -174,6 +174,17 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
           </p>
         </div>
 
+        {event.submitted_by && (
+          <div className="detail-section" style={{ borderTop: '1px solid var(--n-border)', paddingTop: 20 }}>
+            <p style={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--n-muted)', marginBottom: 4 }}>
+              Curated by
+            </p>
+            <p style={{ fontSize: '0.88rem', color: 'var(--n-secondary)', fontWeight: 500 }}>
+              {event.submitted_by}
+            </p>
+          </div>
+        )}
+
         {event.image && (
           <div className="detail-section detail-full-image">
             <h3>Image</h3>

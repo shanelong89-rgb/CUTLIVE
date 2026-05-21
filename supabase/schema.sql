@@ -24,6 +24,7 @@ create table if not exists public.events (
   is_exclusive  boolean default false,
   district      text,
   tags          text[],
+  submitted_by  text,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
 );

@@ -23,6 +23,7 @@ export type Event = {
   source_url?: string | null;
   rsvp_enabled?: boolean;
   tags?: string[];
+  submitted_by?: string | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -351,6 +352,7 @@ export async function approveSubmission(sub: Submission) {
     ticket_url: sub.ticket_url || null,
     source_url: sub.instagram_url || null,
     tags: finalTags,
+    submitted_by: sub.submitter_name || null,
   });
   // 2. Mark submission as approved + link
   const { data, error } = await supabase

@@ -34,6 +34,7 @@ export type Event = {
   source_url?: string | null;
   rsvp_enabled?: boolean;
   tags?: string[];
+  submitted_by?: string | null;
   created_at?: string;
   updated_at?: string;
 };
