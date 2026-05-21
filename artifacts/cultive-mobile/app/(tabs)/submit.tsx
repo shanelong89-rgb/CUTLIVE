@@ -70,6 +70,8 @@ export default function SubmitScreen() {
         image: "",
         is_exclusive: false,
         district: form.venue.split(",")[0] || "",
+        submitter_name: form.submitter_name,
+        submitter_email: form.submitter_email,
       });
       setSubmitted(true);
       setForm({

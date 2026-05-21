@@ -1,122 +1,176 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { mockEvents } from '../data/events';
-import type { Event } from '../lib/supabase';
+import {
+  supabase,
+  signIn,
+  signOut,
+  isAdmin as checkIsAdmin,
+  adminListEvents,
+  adminListSubmissions,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  approveSubmission,
+  rejectSubmission,
+  type Event,
+  type Submission,
+} from '../lib/supabase';
 
-// Simple admin auth - in production use proper auth
-const ADMIN_PASSWORD = 'cultive2025';
-
-interface Submission {
-  id: string;
-  title: string;
-  date: string;
-  venue: string;
-  category: string;
-  submitter_name: string;
-  submitter_email: string;
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-}
+const EMPTY_EVENT: Event = {
+  id: '',
+  title: '',
+  date: '',
+  time: '',
+  venue: '',
+  image: '',
+  category: 'Music',
+  price: '',
+  description: '',
+  is_exclusive: false,
+  district: '',
+};
 
 export function Admin() {
+  const [authChecked, setAuthChecked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginBusy, setLoginBusy] = useState(false);
+
   const [activeTab, setActiveTab] = useState<'dashboard' | 'events' | 'submissions'>('dashboard');
-  const [events, setEvents] = useState<Event[]>(mockEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const [loadingData, setLoadingData] = useState(false);
+
+  // ── Auth + admin gate ────────────────────────────────────
+  const checkSession = useCallback(async () => {
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    if (!session) {
+      setIsLoggedIn(false);
+      setIsAdminUser(false);
+      setAuthChecked(true);
+      return;
+    }
+    setIsLoggedIn(true);
+    const admin = await checkIsAdmin();
+    setIsAdminUser(admin);
+    setAuthChecked(true);
+  }, []);
 
   useEffect(() => {
-    // Load submissions from localStorage (mock)
-    const saved = localStorage.getItem('cultive_submissions');
-    if (saved) {
-      setSubmissions(JSON.parse(saved));
-    } else {
-      // Create some mock submissions
-      const mockSubmissions: Submission[] = [
-        {
-          id: 'sub-1',
-          title: 'Live Jazz at The Murray',
-          date: '2025-05-25',
-          venue: 'The Murray, Central',
-          category: 'Music',
-          submitter_name: 'Sarah Chen',
-          submitter_email: 'sarah@example.com',
-          status: 'pending',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 'sub-2',
-          title: 'Street Food Festival',
-          date: '2025-05-26',
-          venue: 'Kwun Tong',
-          category: 'Food',
-          submitter_name: 'John Lee',
-          submitter_email: 'john@example.com',
-          status: 'pending',
-          created_at: new Date().toISOString()
-        }
-      ];
-      setSubmissions(mockSubmissions);
-      localStorage.setItem('cultive_submissions', JSON.stringify(mockSubmissions));
+    checkSession();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      checkSession();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [checkSession]);
+
+  // ── Load data once admin ─────────────────────────────────
+  const loadData = useCallback(async () => {
+    setLoadingData(true);
+    setDataError(null);
+    try {
+      const [ev, subs] = await Promise.all([
+        adminListEvents(),
+        adminListSubmissions(),
+      ]);
+      setEvents(ev);
+      setSubmissions(subs);
+    } catch (e: any) {
+      setDataError(e?.message ?? 'Failed to load admin data.');
+    } finally {
+      setLoadingData(false);
     }
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAdminUser) loadData();
+  }, [isAdminUser, loadData]);
+
+  // ── Login form ───────────────────────────────────────────
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsLoggedIn(true);
-      localStorage.setItem('cultive_admin', 'true');
-    } else {
-      alert('Invalid password');
+    setLoginBusy(true);
+    setLoginError(null);
+    try {
+      await signIn(email, password);
+      await checkSession();
+    } catch (err: any) {
+      setLoginError(err?.message ?? 'Sign-in failed.');
+    } finally {
+      setLoginBusy(false);
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
     setIsLoggedIn(false);
-    localStorage.removeItem('cultive_admin');
+    setIsAdminUser(false);
   };
 
-  const handleApprove = (id: string) => {
-    const sub = submissions.find(s => s.id === id);
-    if (sub) {
-      const newEvent: Event = {
-        id: 'event-' + Date.now(),
-        title: sub.title,
-        date: sub.date,
-        time: '8:00 PM',
-        venue: sub.venue,
-        image: '',
-        category: sub.category,
-        price: 'Free',
-        description: 'Submitted by ' + sub.submitter_name,
-        isExclusive: false,
-        district: sub.venue.split(',')[0] || 'Hong Kong'
-      };
-      setEvents([newEvent, ...events]);
-      setSubmissions(submissions.map(s => s.id === id ? { ...s, status: 'approved' as const } : s));
-      alert('Event approved and published!');
+  // ── Event CRUD ───────────────────────────────────────────
+  const handleSaveEvent = async (event: Event) => {
+    try {
+      const { id, created_at, updated_at, ...rest } = event;
+      if (id) {
+        const updated = await updateEvent(id, rest);
+        setEvents(prev => prev.map(e => (e.id === id ? updated : e)));
+      } else {
+        const created = await createEvent(rest);
+        setEvents(prev => [created, ...prev]);
+      }
+      setEditingEvent(null);
+    } catch (e: any) {
+      alert(e?.message ?? 'Failed to save event.');
     }
   };
 
-  const handleReject = (id: string) => {
-    setSubmissions(submissions.map(s => s.id === id ? { ...s, status: 'rejected' as const } : s));
-  };
-
-  const handleDeleteEvent = (id: string) => {
-    if (confirm('Delete this event?')) {
-      setEvents(events.filter(e => e.id !== id));
+  const handleDeleteEvent = async (id: string) => {
+    if (!confirm('Delete this event? This cannot be undone.')) return;
+    try {
+      await deleteEvent(id);
+      setEvents(prev => prev.filter(e => e.id !== id));
+    } catch (e: any) {
+      alert(e?.message ?? 'Failed to delete event.');
     }
   };
 
-  const handleSaveEvent = (event: Event) => {
-    if (editingEvent) {
-      setEvents(events.map(e => e.id === event.id ? event : e));
-    } else {
-      setEvents([{ ...event, id: 'event-' + Date.now() }, ...events]);
+  // ── Submission actions ───────────────────────────────────
+  const handleApprove = async (sub: Submission) => {
+    try {
+      const { event, submission } = await approveSubmission(sub);
+      setEvents(prev => [event, ...prev]);
+      setSubmissions(prev => prev.map(s => (s.id === sub.id ? submission : s)));
+    } catch (e: any) {
+      alert(e?.message ?? 'Failed to approve.');
     }
-    setEditingEvent(null);
   };
+
+  const handleReject = async (id: string) => {
+    try {
+      const updated = await rejectSubmission(id);
+      setSubmissions(prev => prev.map(s => (s.id === id ? updated : s)));
+    } catch (e: any) {
+      alert(e?.message ?? 'Failed to reject.');
+    }
+  };
+
+  // ── Render gates ─────────────────────────────────────────
+  if (!authChecked) {
+    return (
+      <div className="admin-login">
+        <div className="admin-login-box">
+          <h1>CULTIVE Admin</h1>
+          <p style={{ color: 'var(--n-muted)', fontSize: '0.85rem' }}>Loading…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) {
     return (
@@ -125,15 +179,35 @@ export function Admin() {
           <h1>CULTIVE Admin</h1>
           <form onSubmit={handleLogin}>
             <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+              />
+            </div>
+            <div className="form-group">
               <label>Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
               />
             </div>
-            <button type="submit" className="submit-btn">Login</button>
+            {loginError && (
+              <p style={{ color: '#b91c1c', fontSize: '0.85rem', marginBottom: 12 }}>
+                {loginError}
+              </p>
+            )}
+            <button type="submit" className="submit-btn" disabled={loginBusy}>
+              {loginBusy ? 'Signing in…' : 'Sign In'}
+            </button>
           </form>
           <Link to="/" className="back-link">← Back to site</Link>
         </div>
@@ -141,9 +215,41 @@ export function Admin() {
     );
   }
 
+  if (!isAdminUser) {
+    return (
+      <div className="admin-login">
+        <div className="admin-login-box">
+          <h1>Not an admin</h1>
+          <p style={{ color: 'var(--n-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+            You're signed in, but this account doesn't have admin access. Ask the
+            project owner to grant you admin in Supabase:
+          </p>
+          <pre
+            style={{
+              background: '#f4f4f5',
+              padding: 12,
+              borderRadius: 4,
+              fontSize: '0.75rem',
+              overflowX: 'auto',
+              marginTop: 12,
+            }}
+          >
+{`update public.profiles
+   set is_admin = true
+ where email = 'your@email.com';`}
+          </pre>
+          <button onClick={handleLogout} className="submit-btn" style={{ marginTop: 16 }}>
+            Sign Out
+          </button>
+          <Link to="/" className="back-link">← Back to site</Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Authenticated admin ──────────────────────────────────
   return (
     <div className="admin-layout">
-      {/* Sidebar */}
       <aside className="admin-sidebar">
         <div className="admin-logo">
           <span>CULTIVE</span>
@@ -170,22 +276,28 @@ export function Admin() {
           </button>
         </nav>
         <button className="admin-logout" onClick={handleLogout}>
-          Logout
+          Sign Out
         </button>
       </aside>
 
-      {/* Main Content */}
       <main className="admin-main">
+        {dataError && (
+          <div style={{ background: '#fee2e2', color: '#b91c1c', padding: 12, borderRadius: 4, marginBottom: 16 }}>
+            {dataError}
+          </div>
+        )}
+        {loadingData && <p style={{ color: 'var(--n-muted)' }}>Loading…</p>}
+
         {activeTab === 'dashboard' && (
-          <Dashboard events={events} submissions={submissions} />
+          <Dashboard events={events} submissions={submissions} onRefresh={loadData} />
         )}
         {activeTab === 'events' && (
           <EventsTab
             events={events}
+            editingEvent={editingEvent}
             onEdit={setEditingEvent}
             onDelete={handleDeleteEvent}
             onSave={handleSaveEvent}
-            editingEvent={editingEvent}
           />
         )}
         {activeTab === 'submissions' && (
@@ -200,14 +312,27 @@ export function Admin() {
   );
 }
 
-// Dashboard Component
-function Dashboard({ events, submissions }: { events: Event[]; submissions: Submission[] }) {
+// ── Dashboard ──────────────────────────────────────────────
+function Dashboard({
+  events,
+  submissions,
+  onRefresh,
+}: {
+  events: Event[];
+  submissions: Submission[];
+  onRefresh: () => void;
+}) {
   const pendingCount = submissions.filter(s => s.status === 'pending').length;
   const approvedCount = submissions.filter(s => s.status === 'approved').length;
 
   return (
     <div className="admin-dashboard">
-      <h2>Dashboard</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Dashboard</h2>
+        <button className="submit-btn" onClick={onRefresh} style={{ width: 'auto', padding: '8px 16px' }}>
+          Refresh
+        </button>
+      </div>
       <div className="stats-grid">
         <div className="stat-card">
           <span className="stat-number">{events.length}</span>
@@ -219,72 +344,36 @@ function Dashboard({ events, submissions }: { events: Event[]; submissions: Subm
         </div>
         <div className="stat-card approved">
           <span className="stat-number">{approvedCount}</span>
-          <span className="stat-label">Approved This Week</span>
-        </div>
-      </div>
-
-      <div className="quick-actions">
-        <h3>Quick Actions</h3>
-        <div className="action-buttons">
-          <Link to="/submit" className="action-btn">
-            + Add New Event
-          </Link>
+          <span className="stat-label">Approved (all time)</span>
         </div>
       </div>
     </div>
   );
 }
 
-// Events Tab Component
+// ── Events Tab ─────────────────────────────────────────────
 function EventsTab({
   events,
+  editingEvent,
   onEdit,
   onDelete,
   onSave,
-  editingEvent
 }: {
   events: Event[];
-  onEdit: (e: Event) => void;
+  editingEvent: Event | null;
+  onEdit: (e: Event | null) => void;
   onDelete: (id: string) => void;
   onSave: (e: Event) => void;
-  editingEvent: Event | null;
 }) {
-  const [formData, setFormData] = useState<Event>(editingEvent || {
-    id: '',
-    title: '',
-    date: '',
-    time: '',
-    venue: '',
-    image: '',
-    category: 'Music',
-    price: '',
-    description: '',
-    isExclusive: false,
-    district: ''
-  });
+  const [formData, setFormData] = useState<Event>(editingEvent || EMPTY_EVENT);
 
   useEffect(() => {
-    if (editingEvent) {
-      setFormData(editingEvent);
-    }
+    setFormData(editingEvent || EMPTY_EVENT);
   }, [editingEvent]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
-    setFormData({
-      id: '',
-      title: '',
-      date: '',
-      time: '',
-      venue: '',
-      image: '',
-      category: 'Music',
-      price: '',
-      description: '',
-      isExclusive: false,
-      district: ''
-    });
   };
 
   if (editingEvent) {
@@ -320,18 +409,20 @@ function EventsTab({
             <div className="form-group">
               <label>Date</label>
               <input
-                type="date"
+                type="text"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                placeholder="e.g. Sat, Jun 7"
                 required
               />
             </div>
             <div className="form-group">
               <label>Time</label>
               <input
-                type="time"
+                type="text"
                 value={formData.time}
                 onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                placeholder="8:00 PM"
               />
             </div>
           </div>
@@ -358,11 +449,20 @@ function EventsTab({
               <label>District</label>
               <input
                 type="text"
-                value={formData.district}
+                value={formData.district || ''}
                 onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                 placeholder="Central, Wan Chai, etc."
               />
             </div>
+          </div>
+          <div className="form-group">
+            <label>Image URL</label>
+            <input
+              type="text"
+              value={formData.image}
+              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+              placeholder="https://…"
+            />
           </div>
           <div className="form-group">
             <label>Description</label>
@@ -376,8 +476,8 @@ function EventsTab({
             <label>
               <input
                 type="checkbox"
-                checked={formData.isExclusive}
-                onChange={(e) => setFormData({ ...formData, isExclusive: e.target.checked })}
+                checked={!!formData.is_exclusive}
+                onChange={(e) => setFormData({ ...formData, is_exclusive: e.target.checked })}
               />
               Members Only (Exclusive)
             </label>
@@ -386,7 +486,7 @@ function EventsTab({
             <button type="submit" className="submit-btn">
               {editingEvent.id ? 'Save Changes' : 'Create Event'}
             </button>
-            <button type="button" className="cancel-btn" onClick={() => onEdit(null as any)}>
+            <button type="button" className="cancel-btn" onClick={() => onEdit(null)}>
               Cancel
             </button>
           </div>
@@ -399,125 +499,113 @@ function EventsTab({
     <div className="admin-events">
       <div className="admin-header">
         <h2>All Events</h2>
-        <button className="submit-btn" onClick={() => onEdit({
-          id: '',
-          title: '',
-          date: '',
-          time: '',
-          venue: '',
-          image: '',
-          category: 'Music',
-          price: '',
-          description: '',
-          isExclusive: false,
-          district: ''
-        })}>
+        <button className="submit-btn" onClick={() => onEdit(EMPTY_EVENT)}>
           + New Event
         </button>
       </div>
-      <div className="events-table">
-        <div className="table-header">
-          <span>Event</span>
-          <span>Date</span>
-          <span>Category</span>
-          <span>Status</span>
-          <span>Actions</span>
+      {events.length === 0 ? (
+        <div className="empty-state">
+          <p>No events yet. Click "+ New Event" to create your first one.</p>
         </div>
-        {events.map(event => (
-          <div key={event.id} className="table-row">
-            <div className="event-info">
-              <strong>{event.title}</strong>
-              <small>{event.venue}</small>
-            </div>
-            <span>{event.date}</span>
-            <span className="category-badge">{event.category}</span>
-            <span className="status-badge published">Published</span>
-            <div className="actions">
-              <button onClick={() => onEdit(event)}>Edit</button>
-              <button onClick={() => onDelete(event.id)} className="delete">Delete</button>
-            </div>
+      ) : (
+        <div className="events-table">
+          <div className="table-header">
+            <span>Event</span>
+            <span>Date</span>
+            <span>Category</span>
+            <span>Status</span>
+            <span>Actions</span>
           </div>
-        ))}
-      </div>
+          {events.map(event => (
+            <div key={event.id} className="table-row">
+              <div className="event-info">
+                <strong>{event.title}</strong>
+                <small>{event.venue}</small>
+              </div>
+              <span>{event.date}</span>
+              <span className="category-badge">{event.category}</span>
+              <span className="status-badge published">Published</span>
+              <div className="actions">
+                <button onClick={() => onEdit(event)}>Edit</button>
+                <button onClick={() => onDelete(event.id)} className="delete">
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-// Submissions Tab Component
+// ── Submissions Tab ────────────────────────────────────────
 function SubmissionsTab({
   submissions,
   onApprove,
-  onReject
+  onReject,
 }: {
   submissions: Submission[];
-  onApprove: (id: string) => void;
+  onApprove: (s: Submission) => void;
   onReject: (id: string) => void;
 }) {
-  const pending = submissions.filter(s => s.status === 'pending');
+  const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const filtered = submissions.filter(s => s.status === filter);
 
   return (
     <div className="admin-submissions">
-      <h2>Submissions Queue</h2>
-      {pending.length === 0 ? (
+      <div className="admin-header">
+        <h2>Submissions</h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {(['pending', 'approved', 'rejected'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setFilter(s)}
+              className={filter === s ? 'submit-btn' : 'cancel-btn'}
+              style={{ textTransform: 'capitalize', padding: '8px 16px', width: 'auto' }}
+            >
+              {s} ({submissions.filter(x => x.status === s).length})
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="empty-state">
-          <p>No pending submissions</p>
+          <p>No {filter} submissions.</p>
         </div>
       ) : (
         <div className="submissions-list">
-          {pending.map(sub => (
+          {filtered.map(sub => (
             <div key={sub.id} className="submission-card">
               <div className="submission-header">
                 <h3>{sub.title}</h3>
-                <span className="submission-date">{new Date(sub.created_at).toLocaleDateString()}</span>
+                <span className="submission-date">
+                  {new Date(sub.created_at).toLocaleDateString()}
+                </span>
               </div>
               <div className="submission-details">
-                <p><strong>Date:</strong> {sub.date}</p>
+                <p><strong>Date:</strong> {sub.date}{sub.time ? ` · ${sub.time}` : ''}</p>
                 <p><strong>Venue:</strong> {sub.venue}</p>
                 <p><strong>Category:</strong> {sub.category}</p>
-                <p><strong>Submitted by:</strong> {sub.submitter_name} ({sub.submitter_email})</p>
-                {/* Show flyer images embedded in description */}
-                {(() => {
-                  const desc = (sub as any).description || '';
-                  const imageMatches = desc.match(/!\[[^\]]*\]\(([^)]+)\)/g) || [];
-                  if (imageMatches.length === 0) return null;
-                  return (
-                    <div style={{ marginTop: '12px' }}>
-                      <p><strong>Flyer/Images:</strong></p>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-                        {imageMatches.map((match: string, idx: number) => {
-                          const urlMatch = match.match(/!\[[^\]]*\]\(([^)]+)\)/);
-                          const url = urlMatch ? urlMatch[1] : '';
-                          return (
-                            <img 
-                              key={idx}
-                              src={url}
-                              alt={`Flyer ${idx + 1}`}
-                              style={{ 
-                                width: '100px', 
-                                height: '130px', 
-                                objectFit: 'cover',
-                                borderRadius: '6px',
-                                border: '1px solid #e5e7eb',
-                                cursor: 'pointer'
-                              }}
-                              onClick={() => window.open(url, '_blank')}
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
+                {sub.price && <p><strong>Price:</strong> {sub.price}</p>}
+                {sub.description && (
+                  <p style={{ marginTop: 8 }}>{sub.description}</p>
+                )}
+                <p style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--n-muted)' }}>
+                  Submitted by <strong>{sub.submitter_name}</strong> ({sub.submitter_email})
+                </p>
               </div>
-              <div className="submission-actions">
-                <button className="approve-btn" onClick={() => onApprove(sub.id)}>
-                  ✓ Approve ($50 HKD)
-                </button>
-                <button className="reject-btn" onClick={() => onReject(sub.id)}>
-                  ✗ Reject
-                </button>
-              </div>
+              {filter === 'pending' && (
+                <div className="submission-actions">
+                  <button className="approve-btn" onClick={() => onApprove(sub)}>
+                    Approve & Publish
+                  </button>
+                  <button className="reject-btn" onClick={() => onReject(sub.id)}>
+                    Reject
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

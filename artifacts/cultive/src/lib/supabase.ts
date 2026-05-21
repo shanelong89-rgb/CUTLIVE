@@ -23,93 +23,197 @@ export type Event = {
   updated_at?: string;
 };
 
-// Fetch all events - fallback to mock data if Supabase fails
+export type Submission = {
+  id: string;
+  title: string;
+  date: string;
+  time?: string;
+  venue: string;
+  category: string;
+  price?: string;
+  description?: string;
+  image?: string;
+  is_exclusive?: boolean;
+  district?: string;
+  submitter_name: string;
+  submitter_email: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  reviewed_at?: string | null;
+  published_event_id?: string | null;
+};
+
+// ─── Public: events ───────────────────────────────────────────
 export async function getEvents() {
   const { data, error } = await supabase
     .from('events')
     .select('*')
     .order('date', { ascending: true });
-  
+
   if (error) {
     console.warn('Supabase error, using mock events:', error.message);
     return mockEvents;
   }
-  
-  if (!data || data.length === 0) {
-    return mockEvents;
-  }
-  
+  if (!data || data.length === 0) return mockEvents;
   return data as Event[];
 }
 
-// Fetch event by ID
 export async function getEventById(id: string) {
-  // First check mock events
   const mockEvent = mockEvents.find(e => e.id === id);
   if (mockEvent) return mockEvent;
-  
+
   const { data, error } = await supabase
     .from('events')
     .select('*')
     .eq('id', id)
     .single();
-  
+
   if (error) {
     console.error('Error fetching event:', error);
     return mockEvents[0] || null;
   }
-  
   return data as Event;
 }
 
-// Submit a new event
-export async function submitEvent(event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) {
-  const { data, error } = await supabase
-    .from('events')
-    .insert([event])
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error submitting event:', error);
-    // Simulate success for demo
-    return { ...event, id: 'new-' + Date.now() } as Event;
-  }
-  
-  return data as Event;
-}
-
-// Get unique categories
 export async function getCategories() {
-  const { data, error } = await supabase
-    .from('events')
-    .select('category');
-  
+  const { data, error } = await supabase.from('events').select('category');
   if (error || !data) {
     return ['All', 'Music', 'Arts', 'Nightlife', 'Food', 'Wellness', 'Exclusive'];
   }
-  
-  const categories = [...new Set(data.map(e => e.category))];
+  const categories = [...new Set(data.map(e => e.category).filter(Boolean))];
   return ['All', ...categories, 'Exclusive'];
 }
 
-// Auth functions
-export async function signUp(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
+// ─── Public: submissions (anyone can submit) ─────────────────
+function genId(prefix: string) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export type SubmissionInput = Omit<
+  Submission,
+  'id' | 'status' | 'created_at' | 'reviewed_at' | 'published_event_id'
+>;
+
+export async function submitEvent(input: SubmissionInput) {
+  const row = { id: genId('sub'), status: 'pending' as const, ...input };
+  const { data, error } = await supabase
+    .from('submissions')
+    .insert([row])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error submitting:', error);
+    throw error;
+  }
+  return data as Submission;
+}
+
+// ─── Admin: events CRUD ──────────────────────────────────────
+export async function adminListEvents() {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('date', { ascending: false });
+  if (error) throw error;
+  return (data || []) as Event[];
+}
+
+export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) {
+  const row = { id: genId('event'), ...event };
+  const { data, error } = await supabase
+    .from('events')
+    .insert([row])
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Event;
+}
+
+export async function updateEvent(id: string, patch: Partial<Event>) {
+  const { data, error } = await supabase
+    .from('events')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Event;
+}
+
+export async function deleteEvent(id: string) {
+  const { error } = await supabase.from('events').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ─── Admin: submissions inbox ────────────────────────────────
+export async function adminListSubmissions(status?: 'pending' | 'approved' | 'rejected') {
+  let q = supabase.from('submissions').select('*').order('created_at', { ascending: false });
+  if (status) q = q.eq('status', status);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data || []) as Submission[];
+}
+
+export async function approveSubmission(sub: Submission) {
+  // 1. Insert event derived from submission
+  const event = await createEvent({
+    title: sub.title,
+    date: sub.date,
+    time: sub.time || '',
+    venue: sub.venue,
+    image: sub.image || '',
+    category: sub.category,
+    price: sub.price || 'Free',
+    description: sub.description || '',
+    is_exclusive: sub.is_exclusive || false,
+    district: sub.district || (sub.venue?.split(',')[0] ?? ''),
   });
-  
+  // 2. Mark submission as approved + link
+  const { data, error } = await supabase
+    .from('submissions')
+    .update({
+      status: 'approved',
+      reviewed_at: new Date().toISOString(),
+      published_event_id: event.id,
+    })
+    .eq('id', sub.id)
+    .select()
+    .single();
+  if (error) throw error;
+  return { event, submission: data as Submission };
+}
+
+export async function rejectSubmission(id: string) {
+  const { data, error } = await supabase
+    .from('submissions')
+    .update({ status: 'rejected', reviewed_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Submission;
+}
+
+// ─── Admin: role check ───────────────────────────────────────
+export async function isAdmin(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('is_admin');
+  if (error) {
+    console.warn('is_admin rpc error:', error.message);
+    return false;
+  }
+  return !!data;
+}
+
+// ─── Auth ────────────────────────────────────────────────────
+export async function signUp(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) throw error;
   return data;
 }
 
 export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
   return data;
 }

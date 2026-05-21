@@ -34,6 +34,27 @@ export type Event = {
   updated_at?: string;
 };
 
+export type SubmissionInput = {
+  title: string;
+  date: string;
+  time?: string;
+  venue: string;
+  category: string;
+  price?: string;
+  description?: string;
+  image?: string;
+  is_exclusive?: boolean;
+  district?: string;
+  submitter_name: string;
+  submitter_email: string;
+};
+
+function genId(prefix: string) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
+}
+
 export async function getEvents(): Promise<Event[]> {
   try {
     const { data, error } = await supabase
@@ -63,22 +84,19 @@ export async function getEventById(id: string): Promise<Event | null> {
   }
 }
 
-export async function submitEvent(
-  event: Omit<Event, "id" | "created_at" | "updated_at">,
-): Promise<Event> {
-  try {
-    const { data, error } = await supabase
-      .from("events")
-      .insert([event])
-      .select()
-      .single();
-    if (error) {
-      return { ...event, id: "new-" + Date.now() } as Event;
-    }
-    return data as Event;
-  } catch {
-    return { ...event, id: "new-" + Date.now() } as Event;
+// Writes to the `submissions` table (admin reviews & publishes).
+export async function submitEvent(input: SubmissionInput) {
+  const row = { id: genId("sub"), status: "pending" as const, ...input };
+  const { data, error } = await supabase
+    .from("submissions")
+    .insert([row])
+    .select()
+    .single();
+  if (error) {
+    console.warn("submitEvent error:", error.message);
+    throw error;
   }
+  return data;
 }
 
 export async function signUp(email: string, password: string) {

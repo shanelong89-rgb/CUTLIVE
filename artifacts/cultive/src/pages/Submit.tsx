@@ -23,8 +23,7 @@ export function Submit() {
     setSubmitting(true);
     
     try {
-      // Create event object
-      const eventData = {
+      await submitEvent({
         title: formData.title,
         date: formData.date,
         time: formData.time,
@@ -32,12 +31,12 @@ export function Submit() {
         category: formData.category,
         price: formData.price,
         description: formData.description,
-        image: '', // Could upload to storage in future
+        image: '',
         is_exclusive: false,
         district: formData.venue.split(',')[0] || '',
-      };
-
-      await submitEvent(eventData);
+        submitter_name: formData.submitter_name,
+        submitter_email: formData.submitter_email,
+      });
       
       setSubmitted(true);
       setTimeout(() => {
