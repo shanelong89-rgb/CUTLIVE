@@ -1584,6 +1584,27 @@ h1, h2, h3 {
   margin: 0;
 }
 
+.inbox-maps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--n-text);
+  text-decoration: none;
+  border: 1px solid var(--n-text);
+  border-radius: 4px;
+  padding: 5px 10px;
+  transition: opacity 0.15s;
+}
+
+.inbox-maps-btn:hover {
+  opacity: 0.6;
+}
+
 /* =====================================================
    ACCOUNT PAGE
    ===================================================== */

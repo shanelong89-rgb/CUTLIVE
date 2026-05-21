@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import {
+  Linking,
   Platform,
   Pressable,
   RefreshControl,
@@ -98,65 +99,94 @@ export default function InboxScreen() {
           </Pressable>
         </View>
       ) : (
-        messages.map((msg) => (
-          <Pressable
-            key={msg.id}
-            onPress={() => {
-              markRead(msg.id);
-              if (msg.linkTo) router.push(msg.linkTo as any);
-            }}
-            style={({ pressed }) => [
-              styles.msgCard,
-              {
-                borderColor: colors.border,
-                backgroundColor: msg.unread
-                  ? colors.secondary
-                  : colors.background,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <View style={styles.msgHeader}>
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: "row",
-                  gap: 8,
-                  alignItems: "center",
-                }}
-              >
-                {msg.unread ? (
-                  <View
-                    style={[styles.dot, { backgroundColor: colors.foreground }]}
-                  />
-                ) : null}
-                <Text
-                  style={[
-                    styles.msgTitle,
-                    {
-                      color: colors.foreground,
-                      fontFamily: msg.unread
-                        ? "Inter_700Bold"
-                        : "Inter_500Medium",
-                    },
-                  ]}
-                  numberOfLines={1}
+        messages.map((msg) => {
+          const isSoon = msg.kind === "saved-reminder-soon";
+          return (
+            <Pressable
+              key={msg.id}
+              onPress={() => {
+                markRead(msg.id);
+                if (msg.linkTo) router.push(msg.linkTo as any);
+              }}
+              style={({ pressed }) => [
+                styles.msgCard,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: msg.unread
+                    ? colors.secondary
+                    : colors.background,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <View style={styles.msgHeader}>
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    gap: 8,
+                    alignItems: "center",
+                  }}
                 >
-                  {msg.title}
+                  {msg.unread ? (
+                    <View
+                      style={[
+                        styles.dot,
+                        { backgroundColor: colors.foreground },
+                      ]}
+                    />
+                  ) : null}
+                  <Text
+                    style={[
+                      styles.msgTitle,
+                      {
+                        color: colors.foreground,
+                        fontFamily: msg.unread
+                          ? "Inter_700Bold"
+                          : "Inter_500Medium",
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {msg.title}
+                  </Text>
+                </View>
+                <Text
+                  style={[styles.msgTime, { color: colors.mutedForeground }]}
+                >
+                  {msg.time}
                 </Text>
               </View>
-              <Text style={[styles.msgTime, { color: colors.mutedForeground }]}>
-                {msg.time}
+              <Text
+                style={[styles.msgPreview, { color: colors.mutedForeground }]}
+                numberOfLines={2}
+              >
+                {msg.preview}
               </Text>
-            </View>
-            <Text
-              style={[styles.msgPreview, { color: colors.mutedForeground }]}
-              numberOfLines={2}
-            >
-              {msg.preview}
-            </Text>
-          </Pressable>
-        ))
+              {isSoon && msg.mapsUrl ? (
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation?.();
+                    Linking.openURL(msg.mapsUrl!);
+                  }}
+                  style={[styles.mapsBtn, { borderColor: colors.foreground }]}
+                >
+                  <Feather
+                    name="map-pin"
+                    size={12}
+                    color={colors.foreground}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={[styles.mapsBtnText, { color: colors.foreground }]}
+                  >
+                    GET DIRECTIONS
+                  </Text>
+                </Pressable>
+              ) : null}
+            </Pressable>
+          );
+        })
       )}
     </ScrollView>
   );
@@ -213,5 +243,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_700Bold",
     letterSpacing: 1.2,
+  },
+  mapsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    marginTop: 12,
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  mapsBtnText: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1.1,
   },
 });

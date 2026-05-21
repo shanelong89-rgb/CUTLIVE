@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useInboxMessages } from '../hooks/useInboxMessages';
 
 export function Inbox() {
   const { messages, unreadCount, loading, signedIn, markRead, markAllRead } =
     useInboxMessages();
+  const navigate = useNavigate();
 
   return (
     <div className="page">
@@ -41,6 +42,9 @@ export function Inbox() {
       ) : (
         <div className="inbox-list">
           {messages.map((msg) => {
+            const isSoon = msg.kind === 'saved-reminder-soon';
+            const cardClass = `message-card ${msg.unread ? 'unread' : ''}`;
+
             const inner = (
               <>
                 <div className="message-header">
@@ -48,15 +52,41 @@ export function Inbox() {
                   <span className="message-time">{msg.time}</span>
                 </div>
                 <p className="message-preview">{msg.preview}</p>
+                {isSoon && msg.mapsUrl && (
+                  <a
+                    href={msg.mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inbox-maps-btn"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Get directions →
+                  </a>
+                )}
               </>
             );
-            const className = `message-card ${msg.unread ? 'unread' : ''}`;
+
+            if (isSoon) {
+              return (
+                <div
+                  key={msg.id}
+                  className={cardClass}
+                  onClick={() => {
+                    markRead(msg.id);
+                    if (msg.linkTo) navigate(msg.linkTo);
+                  }}
+                >
+                  {inner}
+                </div>
+              );
+            }
+
             if (msg.linkTo) {
               return (
                 <Link
                   key={msg.id}
                   to={msg.linkTo}
-                  className={className}
+                  className={cardClass}
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
                   onClick={() => markRead(msg.id)}
                 >
@@ -64,10 +94,11 @@ export function Inbox() {
                 </Link>
               );
             }
+
             return (
               <div
                 key={msg.id}
-                className={className}
+                className={cardClass}
                 onClick={() => markRead(msg.id)}
               >
                 {inner}

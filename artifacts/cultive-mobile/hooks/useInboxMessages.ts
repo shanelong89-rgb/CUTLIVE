@@ -4,7 +4,6 @@ import { DeviceEventEmitter } from "react-native";
 
 import { parseEventDate } from "@/lib/calendar";
 import {
-  getCurrentUser,
   getEvents,
   getMySubmissions,
   supabase,
@@ -51,8 +50,11 @@ export interface InboxMessage {
     | "submission-pending"
     | "submission-approved"
     | "submission-rejected"
-    | "saved-reminder";
+    | "saved-reminder"
+    | "saved-reminder-tomorrow"
+    | "saved-reminder-soon";
   linkTo?: string;
+  mapsUrl?: string;
 }
 
 function relativeTime(iso: string): string {
@@ -107,6 +109,83 @@ function submissionToMessage(s: Submission): InboxMessage {
     createdAt: s.created_at,
     kind: "submission-pending",
   };
+}
+
+function buildSavedReminders(events: Event[]): InboxMessage[] {
+  const msgs: InboxMessage[] = [];
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrowStart = new Date(todayStart.getTime() + 86400000);
+  const tomorrowEnd = new Date(tomorrowStart.getTime() + 86400000);
+
+  for (const ev of events) {
+    const when = parseEventDate(ev.date, ev.time);
+    if (!when) continue;
+    if (when.getTime() < todayStart.getTime()) continue;
+
+    const msUntil = when.getTime() - now.getTime();
+    const hoursUntil = msUntil / 3600000;
+
+    if (msUntil > 0 && hoursUntil <= 2 && ev.time) {
+      // Starting within 2 hours — show Maps + door details
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || "") + " Hong Kong")}`;
+      const hoursLabel =
+        hoursUntil < 1
+          ? `${Math.round(hoursUntil * 60)} min`
+          : `${Math.round(hoursUntil)}h`;
+      const previewParts = [
+        ev.venue,
+        ev.price ? `Door: ${ev.price}` : null,
+      ].filter(Boolean) as string[];
+      msgs.push({
+        id: `reminder-soon-${ev.id}`,
+        title: `Starting in ${hoursLabel}: ${ev.title}`,
+        preview: previewParts.join(" · "),
+        time: `in ${hoursLabel}`,
+        unread: true,
+        createdAt: new Date(now.getTime() - 30000).toISOString(),
+        kind: "saved-reminder-soon",
+        linkTo: `/event/${ev.id}`,
+        mapsUrl,
+      });
+    } else if (when >= tomorrowStart && when < tomorrowEnd) {
+      // Happening tomorrow — heads-up with key details
+      const previewParts = [
+        ev.time || null,
+        ev.venue || null,
+        ev.price || null,
+      ].filter(Boolean) as string[];
+      msgs.push({
+        id: `reminder-tomorrow-${ev.id}`,
+        title: `Tomorrow: ${ev.title}`,
+        preview:
+          previewParts.length > 0
+            ? previewParts.join(" · ")
+            : "Happening tomorrow — get ready.",
+        time: "tomorrow",
+        unread: true,
+        createdAt: tomorrowStart.toISOString(),
+        kind: "saved-reminder-tomorrow",
+        linkTo: `/event/${ev.id}`,
+      });
+    } else {
+      // Generic upcoming reminder
+      msgs.push({
+        id: `reminder-${ev.id}`,
+        title: `Reminder: ${ev.title}`,
+        preview: reminderPreview(when),
+        time: when.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+        }),
+        unread: true,
+        createdAt: when.toISOString(),
+        kind: "saved-reminder",
+        linkTo: `/event/${ev.id}`,
+      });
+    }
+  }
+  return msgs;
 }
 
 export function useInboxMessages() {
@@ -205,23 +284,7 @@ export function useInboxMessages() {
   const messages: InboxMessage[] = (() => {
     if (!signedIn) return [];
     const base: InboxMessage[] = submissions.map(submissionToMessage);
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    for (const ev of savedEvents) {
-      const when = parseEventDate(ev.date, ev.time);
-      if (!when) continue;
-      if (when.getTime() < todayStart.getTime()) continue;
-      base.push({
-        id: `reminder-${ev.id}`,
-        title: `Reminder: ${ev.title}`,
-        preview: reminderPreview(when),
-        time: when.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-        unread: true,
-        createdAt: when.toISOString(),
-        kind: "saved-reminder",
-        linkTo: `/event/${ev.id}`,
-      });
-    }
+    base.push(...buildSavedReminders(savedEvents));
     if (signupAt) {
       base.push({
         id: "welcome",
