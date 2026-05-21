@@ -228,6 +228,21 @@ export async function markReadItemsRemote(keys: string[]): Promise<void> {
   }
 }
 
+export async function deleteReadItemsRemote(keys: string[]): Promise<void> {
+  if (!keys.length) return;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from('user_read_items')
+      .delete()
+      .eq('user_id', user.id)
+      .in('item_key', keys);
+  } catch {
+    // ignore — local state is source of truth
+  }
+}
+
 // ─── Admin: events CRUD ──────────────────────────────────────
 export async function adminListEvents() {
   const { data, error } = await supabase

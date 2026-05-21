@@ -4,6 +4,7 @@ import { DeviceEventEmitter } from "react-native";
 
 import { parseEventDate } from "@/lib/calendar";
 import {
+  deleteReadItemsRemote,
   getEvents,
   getMySubmissions,
   listReadItemKeysRemote,
@@ -305,12 +306,12 @@ export function useInboxMessages() {
     ]);
 
     // Merge remote read keys into local so read state syncs across devices.
-    if (remoteReadKeys.length > 0) {
-      for (const k of remoteReadKeys) currentReadIds.add(k);
-    }
+    const sizeBefore = currentReadIds.size;
+    for (const k of remoteReadKeys) currentReadIds.add(k);
+    const remoteAdded = currentReadIds.size > sizeBefore;
 
     const newStatuses: Record<string, string> = {};
-    let readIdsChanged = false;
+    const keysToUnread: string[] = [];
 
     for (const sub of subs) {
       const currentStatus = sub.status || "pending";
@@ -326,7 +327,7 @@ export function useInboxMessages() {
         for (const msgId of submissionMessageIds(sub.id)) {
           if (currentReadIds.has(msgId)) {
             currentReadIds.delete(msgId);
-            readIdsChanged = true;
+            keysToUnread.push(msgId);
           }
         }
       }
@@ -334,12 +335,18 @@ export function useInboxMessages() {
 
     await writeSubmissionStatuses(newStatuses);
 
-    if (readIdsChanged) {
+    // Always persist and apply the final merged read state so that reads from
+    // another device (remote merge) propagate even when no status change occurs.
+    if (remoteAdded || keysToUnread.length > 0) {
       await AsyncStorage.setItem(
         READ_KEY,
         JSON.stringify(Array.from(currentReadIds)),
       );
-      setReadIds(new Set(currentReadIds));
+    }
+    setReadIds(new Set(currentReadIds));
+
+    if (keysToUnread.length > 0) {
+      deleteReadItemsRemote(keysToUnread).catch(() => {});
     }
     // ───────────────────────────────────────────────────────────────────────
 

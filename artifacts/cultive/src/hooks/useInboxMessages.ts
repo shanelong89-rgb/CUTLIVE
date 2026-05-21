@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getEvents, getMySubmissions, listReadItemKeysRemote, markReadItemsRemote, supabase, type Event, type Submission } from '../lib/supabase';
+import { deleteReadItemsRemote, getEvents, getMySubmissions, listReadItemKeysRemote, markReadItemsRemote, supabase, type Event, type Submission } from '../lib/supabase';
 
 const READ_KEY = 'cultive:read-messages';
 const SAVED_KEY = 'cultive:saved-events';
 const SAVED_EVENT_NAME = 'cultive:saved-events-changed';
+const SUBMISSION_STATUSES_KEY = 'cultive:submission-statuses';
 
 function readSavedIds(): string[] {
   try {
@@ -142,6 +143,35 @@ function writeReadIds(set: Set<string>) {
   } catch {
     // ignore
   }
+}
+
+function readSubmissionStatuses(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(SUBMISSION_STATUSES_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, string>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeSubmissionStatuses(statuses: Record<string, string>) {
+  try {
+    localStorage.setItem(SUBMISSION_STATUSES_KEY, JSON.stringify(statuses));
+  } catch {
+    // ignore
+  }
+}
+
+function submissionMessageIds(subId: string): string[] {
+  return [
+    `sub-pending-${subId}`,
+    `sub-approved-${subId}`,
+    `sub-rejected-${subId}`,
+  ];
 }
 
 function relativeTime(iso: string): string {
@@ -308,20 +338,55 @@ export function useInboxMessages() {
     setSignedIn(true);
     setSignupAt(user.created_at || null);
 
-    // Merge local read state with remote so it's consistent across devices.
-    const [remoteKeys] = await Promise.all([listReadItemKeysRemote()]);
-    if (remoteKeys.length > 0) {
-      const merged = new Set([...readReadIds(), ...remoteKeys]);
-      writeReadIds(merged);
-      setReadIds(merged);
+    const [remoteKeys, subs] = await Promise.all([
+      listReadItemKeysRemote(),
+      getMySubmissions().catch(() => [] as Submission[]),
+    ]);
+
+    // ── Status-change unread tracking ──────────────────────────────────────
+    // Load the last known status for each submission from localStorage.
+    // If a submission's status changed to approved or rejected since we last
+    // recorded it, remove all related message IDs from readIds so the new
+    // message surfaces as unread. Also delete those keys from remote so
+    // other devices don't pull them back as "read".
+    const lastStatuses = readSubmissionStatuses();
+    const currentReadIds = readReadIds();
+
+    // Merge remote read keys into local so read state syncs across devices.
+    for (const k of remoteKeys) currentReadIds.add(k);
+
+    const newStatuses: Record<string, string> = {};
+    const keysToUnread: string[] = [];
+
+    for (const sub of subs) {
+      const currentStatus = sub.status || 'pending';
+      const lastStatus = lastStatuses[sub.id];
+      newStatuses[sub.id] = currentStatus;
+
+      const isTerminalChange =
+        lastStatus !== undefined &&
+        lastStatus !== currentStatus &&
+        (currentStatus === 'approved' || currentStatus === 'rejected');
+
+      if (isTerminalChange) {
+        for (const msgId of submissionMessageIds(sub.id)) {
+          if (currentReadIds.has(msgId)) {
+            currentReadIds.delete(msgId);
+            keysToUnread.push(msgId);
+          }
+        }
+      }
     }
 
-    try {
-      const subs = await getMySubmissions();
-      setSubmissions(subs);
-    } catch {
-      setSubmissions([]);
+    writeSubmissionStatuses(newStatuses);
+    writeReadIds(currentReadIds);
+    setReadIds(new Set(currentReadIds));
+    if (keysToUnread.length > 0) {
+      deleteReadItemsRemote(keysToUnread).catch(() => {});
     }
+    // ───────────────────────────────────────────────────────────────────────
+
+    setSubmissions(subs);
     try {
       const savedIds = readSavedIds();
       if (savedIds.length > 0) {
