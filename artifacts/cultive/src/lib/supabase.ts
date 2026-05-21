@@ -125,8 +125,14 @@ export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'upda
     .from('events')
     .insert([row])
     .select()
-    .single();
+    .maybeSingle();
   if (error) throw error;
+  if (!data) {
+    throw new Error(
+      "Insert blocked by database security. Run in Supabase SQL editor:\n" +
+      "update public.profiles set is_admin = true where email = '<your login email>';"
+    );
+  }
   return data as Event;
 }
 
@@ -136,8 +142,14 @@ export async function updateEvent(id: string, patch: Partial<Event>) {
     .update({ ...patch, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
   if (error) throw error;
+  if (!data) {
+    throw new Error(
+      "Update blocked by database security. Run in Supabase SQL editor:\n" +
+      "update public.profiles set is_admin = true where email = '<your login email>';"
+    );
+  }
   return data as Event;
 }
 
