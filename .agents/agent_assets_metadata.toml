@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "j7TUrb6RNu8PPTBT_YOQm"
+uri = "file://artifacts/cultive/email-templates/cultive-email-templates.zip"
+type = "unspecified"
+title = "CULTIVE Email Templates"
