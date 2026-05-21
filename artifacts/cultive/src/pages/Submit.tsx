@@ -166,7 +166,7 @@ export function Submit() {
               I already have an account
             </button>
           </div>
-          <p className="submit-auth-note">Your submissions are tied to your account so we know where to send payment.</p>
+          <p className="submit-auth-note">Your account lets us keep track of your submissions and notify you when they go live.</p>
         </div>
         <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       </div>
@@ -207,7 +207,7 @@ export function Submit() {
     <div className="page">
       <div className="page-header">
         <h1>Submit an Event</h1>
-        <p>Share what you know. Freelance editors get paid for approved submissions.</p>
+        <p>Know something happening in the city? Share it with the community.</p>
       </div>
 
       {/* ── Instagram quick-submit ── */}
@@ -396,7 +396,7 @@ export function Submit() {
             name="submitter_email"
             value={formData.submitter_email}
             onChange={handleChange}
-            placeholder="we'll send payment here once approved"
+            placeholder="we'll notify you here when it's approved"
             required
           />
         </div>
