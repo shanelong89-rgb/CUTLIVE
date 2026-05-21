@@ -1,0 +1,55 @@
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+index-BwLZtXkM.js:54  GET https://qmjdqldmpmeguuyepbsw.supabase.co/rest/v1/submissions?select=*&or=%28user_id.eq.a8979480-d757-4d33-a030-1172ef6219aa%2Csubmitter_email.eq.shanelong89%40gmail.com%29&order=created_at.desc 403 (Forbidden)
+(anonymous) @ index-BwLZtXkM.js:54
+(anonymous) @ index-BwLZtXkM.js:54
+await in (anonymous)
+(anonymous) @ index-BwLZtXkM.js:11
+then @ index-BwLZtXkM.js:11
+instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2 [DEPRECATED] Default export is deprecated. Instead use `import { create } from 'zustand'`.
+f @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+27960 @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+a @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+93052 @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+a @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+Promise.then
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+r @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+s @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+Promise.then
+r @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+s @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ feedback.js:2
+index-BwLZtXkM.js:54  GET https://qmjdqldmpmeguuyepbsw.supabase.co/rest/v1/submissions?select=*&or=%28user_id.eq.a8979480-d757-4d33-a030-1172ef6219aa%2Csubmitter_email.eq.shanelong89%40gmail.com%29&order=created_at.desc 403 (Forbidden)
+(anonymous) @ index-BwLZtXkM.js:54
+(anonymous) @ index-BwLZtXkM.js:54
+await in (anonymous)
+(anonymous) @ index-BwLZtXkM.js:11
+then @ index-BwLZtXkM.js:11
+index-BwLZtXkM.js:54  GET https://qmjdqldmpmeguuyepbsw.supabase.co/rest/v1/submissions?select=*&or=%28user_id.eq.a8979480-d757-4d33-a030-1172ef6219aa%2Csubmitter_email.eq.shanelong89%40gmail.com%29&order=created_at.desc 403 (Forbidden)
+(anonymous) @ index-BwLZtXkM.js:54
+(anonymous) @ index-BwLZtXkM.js:54
+await in (anonymous)
+(anonymous) @ index-BwLZtXkM.js:11
+then @ index-BwLZtXkM.js:11
+index-BwLZtXkM.js:54  POST https://qmjdqldmpmeguuyepbsw.supabase.co/rest/v1/submissions?columns=%22id%22%2C%22instagram_url%22%2C%22source_id%22%2C%22submission_type%22%2C%22status%22%2C%22title%22%2C%22user_id%22&select=* 403 (Forbidden)
+(anonymous) @ index-BwLZtXkM.js:54
+(anonymous) @ index-BwLZtXkM.js:54
+await in (anonymous)
+(anonymous) @ index-BwLZtXkM.js:11
+then @ index-BwLZtXkM.js:11
+index-BwLZtXkM.js:56 {code: '42501', details: null, hint: 'Grant the required privileges to the current role with: GRANT SELECT ON auth.users TO authenticated;', message: 'permission denied for table users'}
+S @ index-BwLZtXkM.js:56
+await in S
+lm @ index-BwLZtXkM.js:8
+(anonymous) @ index-BwLZtXkM.js:8
+mh @ index-BwLZtXkM.js:8
+Nu @ index-BwLZtXkM.js:8
+Iu @ index-BwLZtXkM.js:9
+ib @ index-BwLZtXkM.js:9

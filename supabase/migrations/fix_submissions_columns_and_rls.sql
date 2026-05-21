@@ -52,8 +52,8 @@ alter table public.push_tokens enable row level security;
 drop policy if exists "push_tokens_self_upsert" on public.push_tokens;
 create policy "push_tokens_self_upsert"
   on public.push_tokens for all
-  using  (email = (select email from auth.users where id = auth.uid()))
-  with check (email = (select email from auth.users where id = auth.uid()));
+  using  (email = auth.email())
+  with check (email = auth.email());
 drop policy if exists "push_tokens_admin_read" on public.push_tokens;
 create policy "push_tokens_admin_read"
   on public.push_tokens for select
@@ -77,7 +77,7 @@ create policy "submissions_owner_read"
   on public.submissions for select
   using (
     auth.uid() = user_id
-    or submitter_email = (select email from auth.users where id = auth.uid())
+    or submitter_email = auth.email()
     or public.is_admin()
   );
 
