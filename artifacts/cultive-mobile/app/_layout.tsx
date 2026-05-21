@@ -41,6 +41,10 @@ function RootLayoutNav() {
         name="my-submissions"
         options={{ headerShown: false, presentation: "card" }}
       />
+      <Stack.Screen
+        name="admin"
+        options={{ headerShown: false, presentation: "card" }}
+      />
     </Stack>
   );
 }

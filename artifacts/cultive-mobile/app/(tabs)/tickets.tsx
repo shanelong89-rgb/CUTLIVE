@@ -77,11 +77,12 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   title: {
     fontSize: 32,
-    fontWeight: "700",
+    fontFamily: "Inter_900Black",
     letterSpacing: -0.5,
   },
   sub: {
     fontSize: 14,
+    fontFamily: "Inter_400Regular",
     marginTop: 6,
     marginBottom: 28,
   },
@@ -101,18 +102,19 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 11,
+    fontFamily: "Inter_700Bold",
     letterSpacing: 1.4,
-    fontWeight: "700",
     marginBottom: 8,
   },
   cardTitle: {
     fontSize: 22,
-    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
     letterSpacing: -0.3,
     marginBottom: 10,
   },
   body: {
     fontSize: 14,
+    fontFamily: "Inter_400Regular",
     lineHeight: 21,
     marginBottom: 22,
   },
@@ -131,5 +133,6 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 14,
+    fontFamily: "Inter_400Regular",
   },
 });

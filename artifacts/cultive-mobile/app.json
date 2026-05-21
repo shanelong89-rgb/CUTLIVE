@@ -19,11 +19,22 @@
       "infoPlist": {
         "NSCalendarsUsageDescription": "CULTIVE saves events to your calendar so you don't miss them.",
         "NSCalendarsFullAccessUsageDescription": "CULTIVE saves events to your calendar so you don't miss them.",
-        "NSRemindersUsageDescription": "CULTIVE uses reminders to notify you about upcoming events."
+        "NSRemindersUsageDescription": "CULTIVE uses reminders to notify you about upcoming events.",
+        "NSCameraUsageDescription": "CULTIVE uses your camera to add a photo when submitting an event.",
+        "NSPhotoLibraryUsageDescription": "CULTIVE accesses your photo library to add an image when submitting an event.",
+        "NSPhotoLibraryAddUsageDescription": "CULTIVE may save event photos to your photo library."
       }
     },
     "android": {
-      "package": "com.replit.cultivemobile"
+      "package": "com.replit.cultivemobile",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
     },
     "web": {
       "favicon": "./assets/images/icon.png"

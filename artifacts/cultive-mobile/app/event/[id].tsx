@@ -110,7 +110,7 @@ export default function EventDetailScreen() {
     if (isExclusive) {
       router.push("/auth" as any);
     } else {
-      Alert.alert("You're on the list!", "Check your tickets tab for the QR.");
+      Alert.alert("You're on the list!", "We've noted your RSVP. Look out for updates in your inbox.");
     }
   };
 
@@ -287,11 +287,12 @@ function MetaRow({
   showChevron,
 }: {
   icon: React.ComponentProps<typeof Feather>["name"];
-  text: string;
+  text: string | null | undefined;
   colors: ReturnType<typeof useColors>;
   onPress?: () => void;
   showChevron?: boolean;
 }) {
+  if (!text) return null;
   const content = (
     <>
       <Feather name={icon} size={15} color={colors.foreground} />

@@ -138,6 +138,7 @@ export default function SubmitScreen() {
   const onSubmit = async () => {
     if (
       !form.title ||
+      !form.price ||
       !form.date ||
       !form.time ||
       !form.venue ||

@@ -310,6 +310,35 @@ export async function signOut() {
   if (error) throw error;
 }
 
+export async function adminListSubmissions(): Promise<Submission[]> {
+  try {
+    const { data, error } = await supabase
+      .from("submissions")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) return [];
+    return (data || []) as Submission[];
+  } catch {
+    return [];
+  }
+}
+
+export async function approveSubmission(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("submissions")
+    .update({ status: "approved" })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function rejectSubmission(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("submissions")
+    .update({ status: "rejected" })
+    .eq("id", id);
+  if (error) throw error;
+}
+
 export async function upsertPushToken(
   email: string,
   token: string,
