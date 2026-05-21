@@ -688,6 +688,7 @@ function SubmissionsTab({
   onReject: (id: string) => void;
 }) {
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Treat both 'pending' and 'pending_scrape' as pending
   const isPending = (s: Submission) => s.status === 'pending' || s.status === 'pending_scrape';
@@ -699,6 +700,26 @@ function SubmissionsTab({
   const tabCounts = { pending: pendingSubs.length, approved: approvedSubs.length, rejected: rejectedSubs.length };
 
   return (
+    <>
+      {lightboxUrl && (
+        <div
+          className="submission-lightbox-overlay"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="submission-lightbox-close"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close image"
+          >
+            ✕
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Submission photo"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     <div className="admin-submissions">
       <div className="admin-header">
         <h2>Submissions</h2>
@@ -757,12 +778,16 @@ function SubmissionsTab({
                     </div>
 
                     {sub.image ? (
-                      <div className="submission-image">
+                      <div
+                        className="submission-image"
+                        onClick={() => setLightboxUrl(sub.image!)}
+                        title="Click to view full size"
+                      >
                         <img
                           src={sub.image}
                           alt={dispTitle}
                           loading="lazy"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).parentElement!.style.display = 'none'; }}
                         />
                       </div>
                     ) : null}
@@ -826,5 +851,6 @@ function SubmissionsTab({
         </div>
       )}
     </div>
+    </>
   );
 }

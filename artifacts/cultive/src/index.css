@@ -2115,12 +2115,52 @@ h1, h2, h3 {
   background: var(--n-bg-alt, #f6f6f4);
   max-width: 360px;
   border: 1px solid var(--n-border, rgba(0, 0, 0, 0.08));
+  cursor: zoom-in;
 }
 .submission-image img {
   display: block;
   width: 100%;
   max-height: 200px;
   object-fit: cover;
+  transition: opacity 0.15s;
+}
+.submission-image:hover img {
+  opacity: 0.88;
+}
+
+.submission-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  padding: 24px;
+}
+.submission-lightbox-overlay img {
+  max-width: min(90vw, 900px);
+  max-height: 88vh;
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+}
+.submission-lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.submission-lightbox-close:hover {
+  background: rgba(255,255,255,0.28);
 }
 
 /* =====================================================
