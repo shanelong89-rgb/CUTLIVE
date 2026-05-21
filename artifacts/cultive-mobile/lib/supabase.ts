@@ -99,6 +99,51 @@ export async function submitEvent(input: SubmissionInput) {
   return data;
 }
 
+export type Submission = {
+  id: string;
+  title: string;
+  date: string;
+  time?: string;
+  venue: string;
+  category: string;
+  price?: string;
+  description?: string;
+  image?: string;
+  is_exclusive?: boolean;
+  district?: string;
+  submitter_name: string;
+  submitter_email: string;
+  status?: "pending" | "approved" | "rejected";
+  reviewed_at?: string;
+  created_at: string;
+};
+
+export async function getMySubmissions(): Promise<Submission[]> {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const email = userData?.user?.email;
+    if (!email) return [];
+    const { data, error } = await supabase
+      .from("submissions")
+      .select("*")
+      .eq("submitter_email", email)
+      .order("created_at", { ascending: false });
+    if (error) return [];
+    return (data || []) as Submission[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getCurrentUser() {
+  try {
+    const { data } = await supabase.auth.getUser();
+    return data?.user ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function signUp(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) throw error;

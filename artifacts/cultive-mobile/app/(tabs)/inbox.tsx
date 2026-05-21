@@ -1,8 +1,10 @@
 import { Feather } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { router } from "expo-router";
+import React from "react";
 import {
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,61 +13,21 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
-
-interface Message {
-  id: number;
-  title: string;
-  preview: string;
-  time: string;
-  unread: boolean;
-}
-
-const INITIAL: Message[] = [
-  {
-    id: 1,
-    title: "Welcome to CULTIVE",
-    preview:
-      "Your curated guide to Hong Kong's best events starts now...",
-    time: "2h ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Your Jazz Night RSVP confirmed",
-    preview:
-      "Show your QR code at The Peninsula entrance. See you there!",
-    time: "1d ago",
-    unread: false,
-  },
-  {
-    id: 3,
-    title: "New exclusive: Hidden Speakeasy Tour",
-    preview:
-      "Members-only access to 4 secret bars in Central. Limited spots...",
-    time: "2d ago",
-    unread: false,
-  },
-  {
-    id: 4,
-    title: "Payment received: $50 HKD",
-    preview:
-      "Thanks for submitting 'Street Art Workshop' — it's now live!",
-    time: "3d ago",
-    unread: false,
-  },
-];
+import { useInboxMessages } from "@/hooks/useInboxMessages";
 
 export default function InboxScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
-  const [messages, setMessages] = useState(INITIAL);
-  const unread = messages.filter((m) => m.unread).length;
-
-  const markRead = (id: number) =>
-    setMessages((p) =>
-      p.map((m) => (m.id === id ? { ...m, unread: false } : m)),
-    );
+  const {
+    messages,
+    unreadCount,
+    loading,
+    signedIn,
+    refresh,
+    markRead,
+    markAllRead,
+  } = useInboxMessages();
 
   return (
     <ScrollView
@@ -75,29 +37,65 @@ export default function InboxScreen() {
         paddingBottom: insets.bottom + (isWeb ? 84 : 100),
         paddingHorizontal: 20,
       }}
+      refreshControl={
+        <RefreshControl refreshing={loading} onRefresh={refresh} />
+      }
     >
       <View style={styles.headerRow}>
-        <Text style={[styles.title, { color: colors.foreground }]}>
-          Inbox
-        </Text>
-        {unread > 0 ? (
+        <Text style={[styles.title, { color: colors.foreground }]}>Inbox</Text>
+        {unreadCount > 0 ? (
           <View style={[styles.badge, { backgroundColor: colors.foreground }]}>
             <Text style={[styles.badgeText, { color: colors.background }]}>
-              {unread}
+              {unreadCount}
             </Text>
           </View>
         ) : null}
       </View>
       <Text style={[styles.sub, { color: colors.mutedForeground }]}>
-        Updates, confirmations, and exclusive invites
+        Updates on your submissions and CULTIVE news
       </Text>
 
-      {messages.length === 0 ? (
+      {signedIn && unreadCount > 0 ? (
+        <Pressable onPress={markAllRead} style={styles.markAll}>
+          <Text style={[styles.markAllText, { color: colors.mutedForeground }]}>
+            MARK ALL AS READ
+          </Text>
+        </Pressable>
+      ) : null}
+
+      {!signedIn ? (
+        <View style={styles.empty}>
+          <Feather name="bell" size={36} color={colors.mutedForeground} />
+          <Text style={{ color: colors.mutedForeground, marginTop: 12 }}>
+            Sign in to see your inbox
+          </Text>
+          <Pressable
+            onPress={() => router.push("/account" as any)}
+            style={styles.ctaBtn}
+          >
+            <Text style={[styles.ctaText, { color: colors.foreground }]}>
+              GO TO ACCOUNT →
+            </Text>
+          </Pressable>
+        </View>
+      ) : loading && messages.length === 0 ? (
+        <View style={styles.empty}>
+          <Text style={{ color: colors.mutedForeground }}>Loading…</Text>
+        </View>
+      ) : messages.length === 0 ? (
         <View style={styles.empty}>
           <Feather name="bell" size={36} color={colors.mutedForeground} />
           <Text style={{ color: colors.mutedForeground, marginTop: 12 }}>
             No messages yet
           </Text>
+          <Pressable
+            onPress={() => router.push("/submit" as any)}
+            style={styles.ctaBtn}
+          >
+            <Text style={[styles.ctaText, { color: colors.foreground }]}>
+              SUBMIT AN EVENT →
+            </Text>
+          </Pressable>
         </View>
       ) : (
         messages.map((msg) => (
@@ -116,13 +114,17 @@ export default function InboxScreen() {
             ]}
           >
             <View style={styles.msgHeader}>
-              <View style={{ flex: 1, flexDirection: "row", gap: 8, alignItems: "center" }}>
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  gap: 8,
+                  alignItems: "center",
+                }}
+              >
                 {msg.unread ? (
                   <View
-                    style={[
-                      styles.dot,
-                      { backgroundColor: colors.foreground },
-                    ]}
+                    style={[styles.dot, { backgroundColor: colors.foreground }]}
                   />
                 ) : null}
                 <Text
@@ -140,9 +142,7 @@ export default function InboxScreen() {
                   {msg.title}
                 </Text>
               </View>
-              <Text
-                style={[styles.msgTime, { color: colors.mutedForeground }]}
-              >
+              <Text style={[styles.msgTime, { color: colors.mutedForeground }]}>
                 {msg.time}
               </Text>
             </View>
@@ -179,7 +179,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: 12,
+  },
+  markAll: { marginBottom: 16 },
+  markAllText: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 1.2,
+    textDecorationLine: "underline",
   },
   msgCard: {
     borderWidth: 1,
@@ -198,4 +205,10 @@ const styles = StyleSheet.create({
   msgPreview: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   empty: { padding: 48, alignItems: "center" },
+  ctaBtn: { marginTop: 16 },
+  ctaText: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1.2,
+  },
 });

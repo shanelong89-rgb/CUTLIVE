@@ -158,6 +158,20 @@ export async function deleteEvent(id: string) {
   if (error) throw error;
 }
 
+// ─── User-facing: my submissions (for inbox) ─────────────────
+export async function getMySubmissions(): Promise<Submission[]> {
+  const { data: userData } = await supabase.auth.getUser();
+  const email = userData?.user?.email;
+  if (!email) return [];
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*')
+    .eq('submitter_email', email)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data || []) as Submission[];
+}
+
 // ─── Admin: submissions inbox ────────────────────────────────
 export async function adminListSubmissions(status?: 'pending' | 'approved' | 'rejected') {
   let q = supabase.from('submissions').select('*').order('created_at', { ascending: false });

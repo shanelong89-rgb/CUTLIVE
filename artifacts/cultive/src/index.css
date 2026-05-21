@@ -1600,6 +1600,35 @@ h1, h2, h3 {
 }
 
 /* =====================================================
+   INBOX EXTRAS
+   ===================================================== */
+.inbox-mark-all {
+  margin-top: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--n-muted, #666);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.inbox-mark-all:hover { color: var(--n-fg, #111); }
+.inbox-cta-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--n-fg, #111);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+}
+
+/* =====================================================
    COMING SOON CARD (Tickets page)
    ===================================================== */
 .coming-soon-card {
