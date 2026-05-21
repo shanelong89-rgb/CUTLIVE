@@ -189,6 +189,38 @@ export async function removeSavedEventRemote(eventId: string): Promise<void> {
     .eq('event_id', eventId);
 }
 
+// ─── Inbox read state (cross-device sync) ────────────────────
+export async function listReadItemKeysRemote(): Promise<string[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from('user_read_items')
+      .select('item_key')
+      .eq('user_id', user.id);
+    if (error) return [];
+    return (data || []).map((r: { item_key: string }) => r.item_key);
+  } catch {
+    return [];
+  }
+}
+
+export async function markReadItemsRemote(keys: string[]): Promise<void> {
+  if (!keys.length) return;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from('user_read_items')
+      .upsert(
+        keys.map((k) => ({ user_id: user.id, item_key: k })),
+        { onConflict: 'user_id,item_key' },
+      );
+  } catch {
+    // ignore — local state is source of truth
+  }
+}
+
 // ─── Admin: events CRUD ──────────────────────────────────────
 export async function adminListEvents() {
   const { data, error } = await supabase

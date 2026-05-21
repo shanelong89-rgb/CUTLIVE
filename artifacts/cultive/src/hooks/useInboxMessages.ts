@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getEvents, getMySubmissions, supabase, type Event, type Submission } from '../lib/supabase';
+import { getEvents, getMySubmissions, listReadItemKeysRemote, markReadItemsRemote, supabase, type Event, type Submission } from '../lib/supabase';
 
 const READ_KEY = 'cultive:read-messages';
 const SAVED_KEY = 'cultive:saved-events';
@@ -307,6 +307,15 @@ export function useInboxMessages() {
     }
     setSignedIn(true);
     setSignupAt(user.created_at || null);
+
+    // Merge local read state with remote so it's consistent across devices.
+    const [remoteKeys] = await Promise.all([listReadItemKeysRemote()]);
+    if (remoteKeys.length > 0) {
+      const merged = new Set([...readReadIds(), ...remoteKeys]);
+      writeReadIds(merged);
+      setReadIds(merged);
+    }
+
     try {
       const subs = await getMySubmissions();
       setSubmissions(subs);
@@ -396,6 +405,7 @@ export function useInboxMessages() {
       next.add(id);
       writeReadIds(next);
       setReadIds(next);
+      markReadItemsRemote([id]).catch(() => {});
     },
     [readIds],
   );
@@ -405,6 +415,7 @@ export function useInboxMessages() {
     messages.forEach((m) => next.add(m.id));
     writeReadIds(next);
     setReadIds(next);
+    markReadItemsRemote(messages.map((m) => m.id)).catch(() => {});
   }, [readIds, messages]);
 
   return { messages, unreadCount, loading, signedIn, refresh: load, markRead, markAllRead };

@@ -167,6 +167,31 @@ create policy "profiles_admin_update"
   on public.profiles for update
   using (public.is_admin());
 
+-- ── USER READ ITEMS (inbox read state, cross-device sync) ───
+create table if not exists public.user_read_items (
+  user_id  uuid not null references auth.users(id) on delete cascade,
+  item_key text not null,
+  read_at  timestamptz not null default now(),
+  primary key (user_id, item_key)
+);
+alter table public.user_read_items enable row level security;
+drop policy if exists "read_items_self" on public.user_read_items;
+create policy "read_items_self"
+  on public.user_read_items for all
+  using  (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- ── USER SUBMISSIONS READ ACCESS ────────────────────────────
+-- Allow signed-in users to read their own submissions (needed for inbox).
+drop policy if exists "submissions_owner_read" on public.submissions;
+create policy "submissions_owner_read"
+  on public.submissions for select
+  using (
+    auth.uid() = user_id
+    or submitter_email = (select email from auth.users where id = auth.uid())
+    or public.is_admin()
+  );
+
 -- ── HOW TO MAKE YOURSELF ADMIN ──────────────────────────────
 -- After signing up via the app's auth modal once, run:
 --   update public.profiles set is_admin = true where email = 'YOU@EXAMPLE.COM';

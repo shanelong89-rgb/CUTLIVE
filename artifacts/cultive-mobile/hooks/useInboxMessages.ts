@@ -6,6 +6,8 @@ import { parseEventDate } from "@/lib/calendar";
 import {
   getEvents,
   getMySubmissions,
+  listReadItemKeysRemote,
+  markReadItemsRemote,
   supabase,
   type Event,
   type Submission,
@@ -296,10 +298,16 @@ export function useInboxMessages() {
     // recorded it, remove all related message IDs from readIds so the new
     // message surfaces as unread. Persist both the updated statuses and
     // updated readIds so the unread flag survives an app restart.
-    const [lastStatuses, currentReadIds] = await Promise.all([
+    const [lastStatuses, currentReadIds, remoteReadKeys] = await Promise.all([
       readSubmissionStatuses(),
       readPersistedReadIds(),
+      listReadItemKeysRemote(),
     ]);
+
+    // Merge remote read keys into local so read state syncs across devices.
+    if (remoteReadKeys.length > 0) {
+      for (const k of remoteReadKeys) currentReadIds.add(k);
+    }
 
     const newStatuses: Record<string, string> = {};
     let readIdsChanged = false;
@@ -418,6 +426,7 @@ export function useInboxMessages() {
       next.add(id);
       setReadIds(next);
       persistReadIds(next);
+      markReadItemsRemote([id]).catch(() => {});
     },
     [readIds, persistReadIds],
   );
@@ -427,6 +436,7 @@ export function useInboxMessages() {
     messages.forEach((m) => next.add(m.id));
     setReadIds(next);
     persistReadIds(next);
+    markReadItemsRemote(messages.map((m) => m.id)).catch(() => {});
   }, [readIds, messages, persistReadIds]);
 
   return {
