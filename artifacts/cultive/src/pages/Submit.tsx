@@ -1,6 +1,34 @@
 import { useState, useRef } from 'react';
 import { submitEvent } from '../lib/supabase';
 
+// Convert "YYYY-MM-DD" from <input type="date"> into the human-readable
+// format used elsewhere in the app (e.g. "Sat, Jun 7"). Parses as a local
+// date to avoid timezone shifts.
+function formatDate(iso: string): string {
+  if (!iso) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+// Convert "HH:MM" 24h from <input type="time"> into "8:00 PM" style.
+function formatTime(hhmm: string): string {
+  if (!hhmm) return '';
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
+  if (!m) return hhmm;
+  const h24 = Number(m[1]);
+  const min = m[2];
+  const period = h24 >= 12 ? 'PM' : 'AM';
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}:${min} ${period}`;
+}
+
 export function Submit() {
   const [formData, setFormData] = useState({
     title: '',
@@ -26,8 +54,8 @@ export function Submit() {
     try {
       await submitEvent({
         title: formData.title,
-        date: formData.date,
-        time: formData.time,
+        date: formatDate(formData.date),
+        time: formatTime(formData.time),
         venue: formData.venue,
         category: formData.category,
         price: formData.price,
