@@ -44,7 +44,8 @@ export function parseEventDate(raw: string, timeStr?: string): Date | null {
       if (m) {
         const guess = new Date(`${m[1]} ${m[2]}, ${now.getFullYear()}`);
         if (!isNaN(guess.getTime())) {
-          if (guess.getTime() < today.getTime() - 86400000)
+          // Only roll to next year if > 14 days in the past — recent/ongoing events stay as-is
+          if (guess.getTime() < today.getTime() - 14 * 86400000)
             guess.setFullYear(now.getFullYear() + 1);
           base = guess;
         }

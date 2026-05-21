@@ -32,7 +32,8 @@ function parseEventDate(raw: string, timeStr?: string): Date | null {
       if (m) {
         const guess = new Date(`${m[1]} ${m[2]}, ${now.getFullYear()}`);
         if (!isNaN(guess.getTime())) {
-          if (guess.getTime() < today.getTime() - 86400000)
+          // Only roll to next year if > 14 days in the past — recent/ongoing events stay as-is
+          if (guess.getTime() < today.getTime() - 14 * 86400000)
             guess.setFullYear(now.getFullYear() + 1);
           base = guess;
         }
@@ -152,16 +153,36 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrowStart = new Date(todayStart.getTime() + 86400000);
   const tomorrowEnd = new Date(tomorrowStart.getTime() + 86400000);
+  // Allow events from the past 14 days — covers ongoing exhibitions and multi-day events
+  const cutoff = new Date(todayStart.getTime() - 14 * 86400000);
 
   for (const ev of events) {
     const when = parseEventDate(ev.date, ev.time);
     if (!when) continue;
-    if (when.getTime() < todayStart.getTime()) continue;
+    if (when.getTime() < cutoff.getTime()) continue;
 
     const msUntil = when.getTime() - now.getTime();
     const hoursUntil = msUntil / 3600000;
 
-    if (msUntil > 0 && hoursUntil <= 2 && ev.time) {
+    if (msUntil <= 0) {
+      // Already started / happening now — show Maps + door details
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || '') + ' Hong Kong')}`;
+      const previewParts = [
+        ev.venue,
+        ev.price ? `Door: ${ev.price}` : null,
+      ].filter(Boolean) as string[];
+      msgs.push({
+        id: `reminder-now-${ev.id}`,
+        title: `Happening now: ${ev.title}`,
+        preview: previewParts.join(' · ') || 'On right now — get there.',
+        time: 'now',
+        unread: true,
+        createdAt: new Date(now.getTime() - 60000).toISOString(),
+        kind: 'saved-reminder-soon',
+        linkTo: `/event/${ev.id}`,
+        mapsUrl,
+      });
+    } else if (hoursUntil <= 2 && ev.time) {
       // Starting within 2 hours — show Maps + door details
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || '') + ' Hong Kong')}`;
       const hoursLabel =
