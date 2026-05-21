@@ -606,10 +606,10 @@ function EventsTab({
           <div className="form-group">
             <label>Source / Instagram link (optional)</label>
             <input
-              type="url"
+              type="text"
               value={formData.source_url || ''}
               onChange={(e) => setFormData({ ...formData, source_url: e.target.value })}
-              placeholder="https://www.instagram.com/p/… or event source URL"
+              placeholder="instagram.com/p/… or full URL"
             />
             <small style={{ color: 'var(--n-muted)' }}>
               Shows a "View on Instagram" (or "View at source") button on the event page.

@@ -52,8 +52,10 @@ function displayDateRange(date?: string, dateEnd?: string | null): string {
 function safeHttpUrl(raw: string | null | undefined): string {
   const trimmed = (raw ?? "").trim();
   if (!trimmed) return "";
+  // Auto-prepend https:// if the URL has no protocol
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   try {
-    const u = new URL(trimmed);
+    const u = new URL(withProtocol);
     if (u.protocol === "http:" || u.protocol === "https:") return u.toString();
   } catch {
     // not a valid URL
