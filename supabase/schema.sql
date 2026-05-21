@@ -49,11 +49,14 @@ create table if not exists public.submissions (
   submitter_email     text,
   user_id             uuid references auth.users(id) on delete set null,
   status              text not null default 'pending'
-                      check (status in ('pending', 'approved', 'rejected')),
+                      check (status in ('pending', 'pending_scrape', 'approved', 'rejected')),
   created_at          timestamptz default now(),
   reviewed_at         timestamptz,
   published_event_id  text references public.events(id) on delete set null,
-  tags                text[]
+  tags                text[],
+  instagram_url       text,
+  source_id           text,
+  submission_type     text check (submission_type in ('manual', 'instagram'))
 );
 
 create index if not exists submissions_status_idx  on public.submissions (status, created_at desc);
