@@ -295,7 +295,7 @@ export async function approveSubmission(sub: Submission) {
     description: resolvedDesc,
     is_exclusive: sub.is_exclusive || false,
     district: sub.district || (sub.venue?.split(',')[0] ?? '') || str('extracted_district') || '',
-    ticket_url: sub.ticket_url || null,
+    ticket_url: sub.ticket_url || sub.instagram_url || null,
     tags: finalTags,
   });
   // 2. Mark submission as approved + link

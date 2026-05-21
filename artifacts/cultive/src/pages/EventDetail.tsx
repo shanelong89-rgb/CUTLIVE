@@ -78,7 +78,12 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
   const ticketUrl = safeHttpUrl(event.ticket_url);
   const hasTicketUrl = ticketUrl.length > 0;
   const isFree = /free/i.test(event.price || '');
-  const externalLabel = isFree ? 'RSVP at source' : 'Buy Tickets';
+  const isInstagramUrl = ticketUrl.includes('instagram.com');
+  const externalLabel = isInstagramUrl
+    ? 'View on Instagram'
+    : isFree
+    ? 'RSVP at source'
+    : 'Buy Tickets';
 
   return (
     <div className="detail-page">
