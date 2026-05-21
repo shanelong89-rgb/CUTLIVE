@@ -132,8 +132,10 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
     }
 
     // "Month Day" — e.g. "May 23" or "Sat, May 23"
+    // Guard: only proceed if the matched word is actually a month name so that
+    // weekday prefixes like "Fri 22 May" don't steal the match from "22 May".
     const mDay = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
-    if (mDay) {
+    if (mDay && /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|June|July|August|September|October|November|December)$/i.test(mDay[1])) {
       const guess = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
       if (!isNaN(guess.getTime())) {
         lastMonth = guess.getMonth();

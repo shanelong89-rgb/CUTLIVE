@@ -26,6 +26,8 @@ const dateFilters = [
   { id: "week", label: "This Week" },
 ];
 
+const MONTH_NAME_RE = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|June|July|August|September|October|November|December)$/i;
+
 function parseAllEventDates(raw: string, keepPast = false): Date[] {
   if (!raw) return [];
   const now = new Date();
@@ -90,8 +92,11 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
     }
 
     // "Month Day" — e.g. "May 23" or "Sat, May 23"
+    // Guard: only match if the word is actually a month name, not a weekday
+    // abbreviation like "Fri"/"Thu" (Hermes parses "Fri 22, 2026" as a valid date,
+    // which causes the code to skip the correct "22 May" parsing below).
     const mDay = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
-    if (mDay) {
+    if (mDay && MONTH_NAME_RE.test(mDay[1])) {
       const guess = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
       if (!isNaN(guess.getTime())) {
         lastMonth = guess.getMonth();
