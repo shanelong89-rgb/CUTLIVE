@@ -44,6 +44,7 @@ const EMPTY_EVENT: Event = {
   district: '',
   ticket_url: '',
   source_url: '',
+  submitted_by: '',
   tags: [],
 };
 
@@ -457,6 +458,7 @@ function EventsTab({
                 <option>Wellness</option>
                 <option>Market</option>
                 <option>Workshops</option>
+                <option>Other</option>
               </select>
             </div>
           </div>
@@ -595,6 +597,18 @@ function EventsTab({
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
             />
+          </div>
+          <div className="form-group">
+            <label>Curated by (optional)</label>
+            <input
+              type="text"
+              value={formData.submitted_by || ''}
+              onChange={(e) => setFormData({ ...formData, submitted_by: e.target.value })}
+              placeholder="e.g. Shane Long"
+            />
+            <small style={{ color: 'var(--n-muted)' }}>
+              Shows as "Curated by [name]" on the event page. Auto-filled when approving a submission.
+            </small>
           </div>
           <div className="form-group checkbox">
             <label>
