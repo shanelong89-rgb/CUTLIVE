@@ -1,4 +1,3 @@
-import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -15,14 +14,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { signOut, supabase } from "@/lib/supabase";
 
-const MENU: { icon: React.ComponentProps<typeof Feather>["name"]; label: string }[] = [
-  { icon: "user", label: "Edit Profile" },
-  { icon: "award", label: "Membership" },
-  { icon: "credit-card", label: "Payment Methods" },
-  { icon: "file-text", label: "My Submissions" },
-  { icon: "users", label: "Invite Friends" },
-  { icon: "settings", label: "Settings" },
-  { icon: "help-circle", label: "Help & Support" },
+const MENU: string[] = [
+  "Edit Profile",
+  "Membership",
+  "Payment Methods",
+  "My Submissions",
+  "Invite Friends",
+  "Settings",
+  "Help & Support",
 ];
 
 export default function AccountScreen() {
@@ -54,6 +53,7 @@ export default function AccountScreen() {
   };
 
   const isLoggedIn = !!email;
+  const initial = (isLoggedIn ? email!.trim().charAt(0) : "G").toUpperCase();
 
   return (
     <ScrollView
@@ -63,24 +63,31 @@ export default function AccountScreen() {
         paddingBottom: insets.bottom + (isWeb ? 84 : 100),
       }}
     >
+      <View style={styles.kicker}>
+        <Text style={[styles.kickerText, { color: colors.mutedForeground }]}>
+          MEMBER · NO. {isLoggedIn ? "001" : "000"}
+        </Text>
+      </View>
+
       <View style={styles.headerBlock}>
         <View
           style={[
             styles.avatar,
-            { borderColor: colors.border, backgroundColor: colors.secondary },
+            { borderColor: colors.foreground, backgroundColor: colors.background },
           ]}
         >
-          <Feather
-            name={isLoggedIn ? "user-check" : "user"}
-            size={36}
-            color={colors.foreground}
-          />
+          <Text style={[styles.avatarInitial, { color: colors.foreground }]}>
+            {initial}
+          </Text>
         </View>
         <Text style={[styles.name, { color: colors.foreground }]}>
           {isLoggedIn ? email : "Guest"}
         </Text>
+        <View style={[styles.statusRule, { backgroundColor: colors.foreground }]} />
         <Text style={[styles.status, { color: colors.mutedForeground }]}>
-          {isLoggedIn ? "Premium Member" : "Sign in to access exclusive events"}
+          {isLoggedIn
+            ? "PREMIUM MEMBER"
+            : "SIGN IN TO ACCESS EXCLUSIVE EVENTS"}
         </Text>
 
         {!isLoggedIn ? (
@@ -106,7 +113,7 @@ export default function AccountScreen() {
               {
                 backgroundColor: "transparent",
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: colors.foreground,
                 opacity: pressed ? 0.7 : 1,
               },
             ]}
@@ -118,10 +125,15 @@ export default function AccountScreen() {
         )}
       </View>
 
-      <View
-        style={[styles.menu, { borderTopColor: colors.border }]}
-      >
-        {MENU.map((item, i) => (
+      <View style={styles.sectionLabelRow}>
+        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
+          INDEX
+        </Text>
+        <View style={[styles.sectionLabelRule, { backgroundColor: colors.border }]} />
+      </View>
+
+      <View style={[styles.menu, { borderTopColor: colors.border }]}>
+        {MENU.map((label, i) => (
           <Pressable
             key={i}
             style={({ pressed }) => [
@@ -132,72 +144,127 @@ export default function AccountScreen() {
               },
             ]}
           >
-            <Feather name={item.icon} size={18} color={colors.foreground} />
-            <Text style={[styles.menuLabel, { color: colors.foreground }]}>
-              {item.label}
+            <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>
+              {String(i + 1).padStart(2, "0")}
             </Text>
-            <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+            <Text style={[styles.menuLabel, { color: colors.foreground }]}>
+              {label}
+            </Text>
+            <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
           </Pressable>
         ))}
       </View>
 
       <Text style={[styles.footer, { color: colors.mutedForeground }]}>
-        CULTIVE v1.0.0 · Made in Hong Kong
+        CULTIVE · V1.0.0 · MADE IN HONG KONG
       </Text>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  kicker: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    alignItems: "center",
+  },
+  kickerText: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 2.5,
+  },
   headerBlock: {
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 32,
+    paddingBottom: 36,
   },
   avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    marginBottom: 18,
+  },
+  avatarInitial: {
+    fontSize: 38,
+    fontFamily: "Inter_900Black",
+    letterSpacing: -1,
   },
   name: {
     fontSize: 22,
     fontFamily: "Inter_700Bold",
-    marginBottom: 4,
-  },
-  status: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    marginBottom: 12,
     textAlign: "center",
   },
+  statusRule: {
+    width: 24,
+    height: 1,
+    marginBottom: 12,
+  },
+  status: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    textAlign: "center",
+    letterSpacing: 2,
+  },
   cta: {
-    marginTop: 24,
+    marginTop: 28,
     paddingHorizontal: 36,
     paddingVertical: 14,
-    borderRadius: 4,
+    borderRadius: 2,
   },
   ctaText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_700Bold",
-    letterSpacing: 2,
+    letterSpacing: 2.5,
+  },
+  sectionLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 2.5,
+  },
+  sectionLabelRule: {
+    flex: 1,
+    height: 1,
   },
   menu: { borderTopWidth: 1 },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    paddingVertical: 16,
+    gap: 18,
+    paddingVertical: 20,
     paddingHorizontal: 20,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  menuLabel: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
+  menuIndex: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 1.5,
+    width: 22,
+  },
+  menuLabel: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: "Inter_500Medium",
+  },
+  menuArrow: {
+    fontSize: 16,
+    fontFamily: "Inter_400Regular",
+  },
   footer: {
     textAlign: "center",
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    paddingTop: 32,
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 2,
+    paddingTop: 36,
   },
 });
