@@ -130,6 +130,21 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
           </p>
         </div>
 
+        {event.image && (
+          <div className="detail-section detail-full-image">
+            <h3>Image</h3>
+            <a
+              href={event.image}
+              target="_blank"
+              rel="noreferrer"
+              className="detail-full-image-link"
+              title="Open full size in new tab"
+            >
+              <img src={event.image} alt={event.title} loading="lazy" />
+            </a>
+          </div>
+        )}
+
         <div className="detail-section">
           <h3>What to expect</h3>
           <ul style={{ 
