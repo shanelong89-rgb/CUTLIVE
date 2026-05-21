@@ -61,6 +61,67 @@ function parseEventDate(raw: string, timeStr?: string): Date | null {
   return base;
 }
 
+// Parse ALL dates out of a multi-date string like "Sat, May 23 & Sat, May 30"
+// or "May 23 & 30". Returns every date found so filters can match any of them.
+function parseAllEventDates(raw: string): Date[] {
+  if (!raw) return [];
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const s = raw.trim();
+
+  // Keywords
+  if (s.toLowerCase().includes('today')) return [new Date(today)];
+  if (s.toLowerCase().includes('tomorrow')) return [new Date(today.getTime() + 86400000)];
+
+  // ISO date
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (iso) {
+    const d = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+    return isNaN(d.getTime()) ? [] : [d];
+  }
+
+  // Split on & / "and", process each segment
+  const segments = s.split(/\s*&\s*|\s+and\s+/i);
+  const results: Date[] = [];
+  let lastMonth: number | null = null;
+
+  for (const seg of segments) {
+    const t = seg.trim();
+
+    // Try "Month Day" pattern (e.g. "Sat, May 23" or "May 23")
+    const mDay = t.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
+    if (mDay) {
+      const guess = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
+      if (!isNaN(guess.getTime())) {
+        if (guess.getTime() < today.getTime() - 86400000) guess.setFullYear(now.getFullYear() + 1);
+        lastMonth = guess.getMonth();
+        results.push(guess);
+        continue;
+      }
+    }
+
+    // Bare day number — reuse the last seen month (e.g. "& 30" after "May 23")
+    const bareDay = t.match(/\b(\d{1,2})\b/);
+    if (bareDay && lastMonth !== null) {
+      const day = parseInt(bareDay[1], 10);
+      if (day >= 1 && day <= 31) {
+        const d = new Date(now.getFullYear(), lastMonth, day);
+        if (!isNaN(d.getTime())) {
+          if (d.getTime() < today.getTime() - 86400000) d.setFullYear(now.getFullYear() + 1);
+          results.push(d);
+          continue;
+        }
+      }
+    }
+
+    // Fallback: native parse
+    const direct = new Date(t);
+    if (!isNaN(direct.getTime())) results.push(direct);
+  }
+
+  return results;
+}
+
 function getIssueDate(): string {
   const now = new Date();
   const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -104,24 +165,23 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
   const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
   return events.filter(event => {
-    const parsed = parseEventDate(event.date, event.time);
-    if (!parsed) return false;
-    const t = parsed.getTime();
+    const dates = parseAllEventDates(event.date);
+    if (dates.length === 0) return false;
+
+    const inRange = (start: Date, end: Date) =>
+      dates.some(d => d.getTime() >= start.getTime() && d.getTime() < end.getTime());
 
     switch (dateFilter) {
       case 'today':
-        return t >= todayStart.getTime() && t < todayEnd.getTime();
-      case 'tomorrow': {
-        const tomorrowStart = todayEnd;
-        const tomorrowEnd   = new Date(todayEnd.getTime() + 86400000);
-        return t >= tomorrowStart.getTime() && t < tomorrowEnd.getTime();
-      }
+        return inRange(todayStart, todayEnd);
+      case 'tomorrow':
+        return inRange(todayEnd, new Date(todayEnd.getTime() + 86400000));
       case 'weekend':
-        return t >= weekendStart.getTime() && t < weekendEnd.getTime();
+        return inRange(weekendStart, weekendEnd);
       case 'week':
-        return t >= todayStart.getTime() && t < weekEnd.getTime();
+        return inRange(todayStart, weekEnd);
       case 'month':
-        return t >= monthStart.getTime() && t < monthEnd.getTime();
+        return inRange(monthStart, monthEnd);
       default:
         return true;
     }
