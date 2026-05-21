@@ -89,10 +89,23 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
   for (const seg of segments) {
     const t = seg.trim();
 
-    // Try "Month Day" pattern (e.g. "Sat, May 23" or "May 23")
-    const mDay = t.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
+    // "Month Day" — e.g. "May 23" or "Sat, May 23"
+    const mDay = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
     if (mDay) {
       const guess = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
+      if (!isNaN(guess.getTime())) {
+        if (!keepPast && guess.getTime() < today.getTime() - 86400000)
+          guess.setFullYear(now.getFullYear() + 1);
+        lastMonth = guess.getMonth();
+        results.push(guess);
+        continue;
+      }
+    }
+
+    // "Day Month" — e.g. "28 May" or "Thu 28 May" or "Thu, 28 May"
+    const dMonth = t.match(/\b(\d{1,2})\s+([A-Za-z]{3,})\b/);
+    if (dMonth) {
+      const guess = new Date(`${dMonth[2]} ${dMonth[1]}, ${now.getFullYear()}`);
       if (!isNaN(guess.getTime())) {
         if (!keepPast && guess.getTime() < today.getTime() - 86400000)
           guess.setFullYear(now.getFullYear() + 1);
