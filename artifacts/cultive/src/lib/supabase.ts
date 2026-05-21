@@ -98,6 +98,32 @@ export type SubmissionInput = Omit<
   'id' | 'status' | 'created_at' | 'reviewed_at' | 'published_event_id'
 >;
 
+// ─── Instagram link submission ────────────────────────────────
+function extractInstagramPostId(url: string): string | null {
+  const m = url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+export async function submitInstagramLink(instagramUrl: string, userId?: string) {
+  const sourceId = extractInstagramPostId(instagramUrl);
+  const row = {
+    id: genId('sub'),
+    instagram_url: instagramUrl,
+    source_id: sourceId,
+    submission_type: 'instagram',
+    status: 'pending_scrape',
+    title: 'Pending scrape…',
+    ...(userId ? { user_id: userId } : {}),
+  };
+  const { data, error } = await supabase
+    .from('submissions')
+    .insert([row])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function submitEvent(input: SubmissionInput) {
   const row = { id: genId('sub'), status: 'pending' as const, ...input };
   const { data, error } = await supabase

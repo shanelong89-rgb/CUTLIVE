@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { submitEvent } from '../lib/supabase';
+import { submitEvent, submitInstagramLink, supabase } from '../lib/supabase';
 import { AVAILABLE_TAGS } from '../data/events';
 
 // Convert "YYYY-MM-DD" from <input type="date"> into the human-readable
@@ -31,6 +31,31 @@ function formatTime(hhmm: string): string {
 }
 
 export function Submit() {
+  // ── Instagram quick-submit ──
+  const [igUrl, setIgUrl] = useState('');
+  const [igSubmitting, setIgSubmitting] = useState(false);
+  const [igSubmitted, setIgSubmitted] = useState(false);
+  const [igError, setIgError] = useState('');
+
+  const handleInstagramSubmit = async () => {
+    if (!igUrl.trim()) return;
+    setIgSubmitting(true);
+    setIgError('');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await submitInstagramLink(igUrl.trim(), user?.id);
+      setIgSubmitted(true);
+      setIgUrl('');
+      setTimeout(() => setIgSubmitted(false), 5000);
+    } catch (err: unknown) {
+      setIgError('Could not save link. Please try again.');
+      console.error(err);
+    } finally {
+      setIgSubmitting(false);
+    }
+  };
+
+  // ── Manual form ──
   const [formData, setFormData] = useState({
     title: '',
     date: '',
@@ -110,6 +135,45 @@ export function Submit() {
       <div className="page-header">
         <h1>Submit an Event</h1>
         <p>Share what you know. Freelance editors get paid for approved submissions.</p>
+      </div>
+
+      {/* ── Instagram quick-submit ── */}
+      <div className="ig-submit-section">
+        <div className="ig-submit-header">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+          <span>Submit via Instagram link</span>
+        </div>
+        <p className="ig-submit-hint">Paste a post or reel URL — we'll extract the event details automatically.</p>
+        <div className="ig-input-row">
+          <input
+            type="url"
+            value={igUrl}
+            onChange={(e) => setIgUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleInstagramSubmit()}
+            placeholder="https://www.instagram.com/p/..."
+            className="ig-url-input"
+          />
+          <button
+            type="button"
+            onClick={handleInstagramSubmit}
+            disabled={!igUrl.trim() || igSubmitting}
+            className="ig-submit-btn"
+          >
+            {igSubmitting ? 'Sending…' : 'Submit'}
+          </button>
+        </div>
+        {igSubmitted && (
+          <p className="ig-success">✅ Link received! We'll extract the details and notify you when it's ready for review.</p>
+        )}
+        {igError && <p className="ig-error">{igError}</p>}
+      </div>
+
+      <div className="submit-section-divider">
+        <span>or fill out manually</span>
       </div>
 
       {submitted && (

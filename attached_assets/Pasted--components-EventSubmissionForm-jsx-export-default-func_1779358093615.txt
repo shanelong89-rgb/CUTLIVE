@@ -1,0 +1,67 @@
+// components/EventSubmissionForm.jsx
+export default function EventSubmissionForm() {
+  const [mode, setMode] = useState('manual'); // 'manual' | 'instagram'
+  const [igUrl, setIgUrl] = useState('');
+  const [formData, setFormData] = useState({...});
+  const [loading, setLoading] = useState(false);
+
+  const handleInstagramSubmit = async () => {
+    setLoading(true);
+    
+    // Save to Supabase
+    const { data, error } = await supabase
+      .from('submissions')
+      .insert({
+        user_id: currentUser.id,
+        instagram_url: igUrl,
+        submission_type: 'instagram',
+        status: 'pending_scrape', // Waiting for agent
+        title: 'Pending scrape...', // Placeholder
+      });
+    
+    if (data) {
+      alert('✅ Instagram link submitted! We will extract the details and notify you when its ready for review.');
+      setIgUrl('');
+    }
+    
+    setLoading(false);
+  };
+
+  return (
+    <div className="submission-form">
+      <h1>Submit an Event</h1>
+      <p className="subtitle">Share what you know. Freelance editors get paid for approved submissions.</p>
+      
+      {/* NEW: Instagram Link Option */}
+      <div className="ig-section">
+        <h3>📱 SUBMIT VIA INSTAGRAM</h3>
+        <div className="input-group">
+          <input
+            type="url"
+            value={igUrl}
+            onChange={(e) => setIgUrl(e.target.value)}
+            placeholder="https://instagram.com/p/..."
+            className="ig-input"
+          />
+          <button 
+            onClick={handleInstagramSubmit}
+            disabled={!igUrl || loading}
+            className="ig-button"
+          >
+            {loading ? 'Submitting...' : 'Submit IG Link'}
+          </button>
+        </div>
+        <p className="helper-text">Paste an Instagram post link and we'll extract the event details automatically.</p>
+      </div>
+      
+      <div className="divider">
+        <span>OR FILL OUT MANUALLY</span>
+      </div>
+      
+      {/* Existing manual form fields */}
+      <div className="manual-form">
+        {/* ... your existing form fields ... */}
+      </div>
+    </div>
+  );
+}
