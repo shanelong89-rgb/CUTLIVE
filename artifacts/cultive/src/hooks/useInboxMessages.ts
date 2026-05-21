@@ -293,19 +293,22 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
         preview: previewParts.length > 0 ? previewParts.join(' · ') : 'Happening tomorrow — get ready.',
         time: 'tomorrow',
         unread: true,
-        createdAt: tomorrowStart.toISOString(),
+        // Use now - 2min so it sorts below "now/soon" reminders but above older messages
+        createdAt: new Date(now.getTime() - 120000).toISOString(),
         kind: 'saved-reminder-tomorrow',
         linkTo: `/event/${ev.id}`,
       });
     } else {
-      // Generic upcoming reminder
+      // Generic upcoming reminder — sort by imminence: 5min per day away so
+      // near events appear higher than distant ones, all below "now/soon/tomorrow"
+      const daysUntil = Math.max(1, Math.ceil(msUntil / 86400000));
       msgs.push({
         id: `reminder-${ev.id}`,
         title: `Reminder: ${ev.title}`,
         preview: reminderPreview(when),
         time: when.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
         unread: true,
-        createdAt: when.toISOString(),
+        createdAt: new Date(now.getTime() - daysUntil * 300000).toISOString(),
         kind: 'saved-reminder',
         linkTo: `/event/${ev.id}`,
       });
