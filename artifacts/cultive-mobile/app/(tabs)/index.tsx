@@ -28,24 +28,41 @@ const dateFilters = [
 
 function filterByDate(events: Event[], dateFilter: string): Event[] {
   if (dateFilter === "all") return events;
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEnd = new Date(todayStart.getTime() + 86400000);
+
+  const dayOfWeek = todayStart.getDay();
+  const daysUntilEndOfWeek = 7 - dayOfWeek;
+  const weekEnd = new Date(todayStart.getTime() + daysUntilEndOfWeek * 86400000);
+
+  const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
+  const weekendStart =
+    dayOfWeek === 6
+      ? todayStart
+      : dayOfWeek === 0
+      ? todayStart
+      : new Date(todayStart.getTime() + daysUntilSat * 86400000);
+  const weekendEnd = new Date(
+    weekendStart.getTime() + (dayOfWeek === 0 ? 1 : 2) * 86400000
+  );
+
   return events.filter((event) => {
-    const d = event.date.toLowerCase();
+    const parsed = parseEventDate(event.date, event.time);
+    if (!parsed) return false;
+    const t = parsed.getTime();
     switch (dateFilter) {
       case "today":
-        return d.includes("today");
-      case "tomorrow":
-        return d.includes("tomorrow");
+        return t >= todayStart.getTime() && t < todayEnd.getTime();
+      case "tomorrow": {
+        const tomorrowEnd = new Date(todayEnd.getTime() + 86400000);
+        return t >= todayEnd.getTime() && t < tomorrowEnd.getTime();
+      }
       case "weekend":
-        return d.includes("sat") || d.includes("sun");
+        return t >= weekendStart.getTime() && t < weekendEnd.getTime();
       case "week":
-        return (
-          d.includes("today") ||
-          d.includes("tomorrow") ||
-          d.includes("thu") ||
-          d.includes("fri") ||
-          d.includes("sat") ||
-          d.includes("sun")
-        );
+        return t >= todayStart.getTime() && t < weekEnd.getTime();
       default:
         return true;
     }

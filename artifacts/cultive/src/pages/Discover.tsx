@@ -77,24 +77,51 @@ const dateFilters = [
   { id: 'month', label: 'This Month' },
 ];
 
-// Filter events by date
+// Filter events by date using actual parsed dates, not string matching.
 function filterByDate(events: Event[], dateFilter: string): Event[] {
   if (dateFilter === 'all') return events;
 
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEnd = new Date(todayStart.getTime() + 86400000);
+
+  // This week: today through the following Sunday night
+  const dayOfWeek = todayStart.getDay(); // 0=Sun … 6=Sat
+  const daysUntilEndOfWeek = 7 - dayOfWeek; // days until next Sunday (exclusive)
+  const weekEnd = new Date(todayStart.getTime() + daysUntilEndOfWeek * 86400000);
+
+  // This weekend: nearest coming Saturday 00:00 → Sunday 23:59
+  const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7; // always ≥1 if today isn't Sat
+  const weekendStart = dayOfWeek === 6
+    ? todayStart                                                    // today is Sat
+    : dayOfWeek === 0
+      ? todayStart                                                  // today is Sun
+      : new Date(todayStart.getTime() + daysUntilSat * 86400000);  // next Sat
+  const weekendEnd = new Date(weekendStart.getTime() + (dayOfWeek === 0 ? 1 : 2) * 86400000);
+
+  // Month: first → last day of current month
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
   return events.filter(event => {
-    const dateStr = event.date.toLowerCase();
+    const parsed = parseEventDate(event.date, event.time);
+    if (!parsed) return false;
+    const t = parsed.getTime();
 
     switch (dateFilter) {
       case 'today':
-        return dateStr.includes('today');
-      case 'tomorrow':
-        return dateStr.includes('tomorrow');
+        return t >= todayStart.getTime() && t < todayEnd.getTime();
+      case 'tomorrow': {
+        const tomorrowStart = todayEnd;
+        const tomorrowEnd   = new Date(todayEnd.getTime() + 86400000);
+        return t >= tomorrowStart.getTime() && t < tomorrowEnd.getTime();
+      }
       case 'weekend':
-        return dateStr.includes('sat') || dateStr.includes('sun');
+        return t >= weekendStart.getTime() && t < weekendEnd.getTime();
       case 'week':
-        return !dateStr.includes('jun') && (dateStr.includes('today') || dateStr.includes('tomorrow') || dateStr.includes('thu') || dateStr.includes('fri') || dateStr.includes('sat') || dateStr.includes('sun'));
+        return t >= todayStart.getTime() && t < weekEnd.getTime();
       case 'month':
-        return dateStr.includes('may');
+        return t >= monthStart.getTime() && t < monthEnd.getTime();
       default:
         return true;
     }
