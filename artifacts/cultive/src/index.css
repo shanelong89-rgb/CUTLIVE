@@ -2196,9 +2196,9 @@ h1, h2, h3 {
 /* Actions column replacing the old absolute-positioned remove button */
 .saved-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
   padding-right: 4px;
 }
