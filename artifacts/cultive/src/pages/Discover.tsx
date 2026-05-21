@@ -57,8 +57,9 @@ function EventRow({ event }: { event: Event }) {
 
   return (
     <Link to={`/event/${event.id}`} className="event-row">
-      {/* Time Column */}
+      {/* Date + Time Column */}
       <div className="event-time">
+        {event.date && <span className="event-date">{event.date}</span>}
         <span>{formatTime(event.time) || '—'}</span>
       </div>
 
