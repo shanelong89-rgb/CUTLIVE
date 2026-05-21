@@ -283,11 +283,14 @@ function EventRow({ event }: { event: Event }) {
   );
 }
 
+const PAGE_SIZE = 10;
+
 export function Discover() {
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [activeDateFilter, setActiveDateFilter] = useState('all');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch events from Supabase
   useEffect(() => {
@@ -300,6 +303,9 @@ export function Discover() {
     }
     fetchEvents();
   }, []);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => { setCurrentPage(1); }, [activeTags, activeDateFilter]);
 
   const filteredEvents = useMemo(() => {
     let filtered = events;
@@ -348,6 +354,9 @@ export function Discover() {
     });
     return decorated.map((d) => d.e);
   }, [events, activeTags, activeDateFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE));
+  const pagedEvents = filteredEvents.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div>
@@ -417,7 +426,7 @@ export function Discover() {
           {activeDateFilter !== 'all' && ` · ${dateFilters.find(d => d.id === activeDateFilter)?.label}`}
         </span>
         <span className="section-label">
-          {loading ? 'Loading...' : `${filteredEvents.length} events`}
+          {loading ? 'Loading…' : `${filteredEvents.length} events · pg ${currentPage}/${totalPages}`}
         </span>
       </div>
 
@@ -432,8 +441,8 @@ export function Discover() {
           }}>
             Loading events...
           </div>
-        ) : filteredEvents.length > 0 ? (
-          filteredEvents.map((event) => (
+        ) : pagedEvents.length > 0 ? (
+          pagedEvents.map((event) => (
             <EventRow key={event.id} event={event} />
           ))
         ) : (
@@ -448,29 +457,78 @@ export function Discover() {
         )}
       </div>
 
-      {/* View All Link */}
-      <Link
-        to="/"
-        style={{
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          padding: '24px 5vw',
-          fontSize: '0.55rem',
-          fontWeight: 600,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: 'var(--n-secondary)',
-          textDecoration: 'none',
+          justifyContent: 'space-between',
+          padding: '20px 5vw',
           borderTop: '1px solid var(--n-border)',
-        }}
-      >
-        View all events
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M7 17L17 7M17 7H7M17 7V17"/>
-        </svg>
-      </Link>
+        }}>
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '9px 18px',
+              border: '1px solid var(--n-border)',
+              borderRadius: 4,
+              background: 'transparent',
+              fontSize: '0.6rem',
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: currentPage === 1 ? 'var(--n-muted)' : 'var(--n-text)',
+              cursor: currentPage === 1 ? 'default' : 'pointer',
+            }}
+          >
+            ← Prev
+          </button>
+
+          <div style={{ display: 'flex', gap: 4 }}>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+              <button
+                key={n}
+                onClick={() => setCurrentPage(n)}
+                style={{
+                  width: 32, height: 32,
+                  borderRadius: 4,
+                  border: '1px solid',
+                  borderColor: n === currentPage ? 'var(--n-text)' : 'var(--n-border)',
+                  background: n === currentPage ? 'var(--n-text)' : 'transparent',
+                  color: n === currentPage ? '#fff' : 'var(--n-secondary)',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '9px 18px',
+              border: '1px solid var(--n-border)',
+              borderRadius: 4,
+              background: 'transparent',
+              fontSize: '0.6rem',
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: currentPage === totalPages ? 'var(--n-muted)' : 'var(--n-text)',
+              cursor: currentPage === totalPages ? 'default' : 'pointer',
+            }}
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
