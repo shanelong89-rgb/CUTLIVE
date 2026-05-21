@@ -383,6 +383,9 @@ function EventsTab({
   onSave: (e: Event) => void;
 }) {
   const [formData, setFormData] = useState<Event>(editingEvent || EMPTY_EVENT);
+  const [igUrl, setIgUrl] = useState('');
+  const [igBusy, setIgBusy] = useState(false);
+  const [igMsg, setIgMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   useEffect(() => {
     setFormData(editingEvent || EMPTY_EVENT);
@@ -391,6 +394,21 @@ function EventsTab({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
+  };
+
+  const handleIgAdd = async () => {
+    if (!igUrl.trim()) return;
+    setIgBusy(true);
+    setIgMsg(null);
+    try {
+      await submitInstagramLink(igUrl.trim());
+      setIgUrl('');
+      setIgMsg({ type: 'ok', text: '✅ Queued in Submissions → Pending.' });
+    } catch (e: unknown) {
+      setIgMsg({ type: 'err', text: (e as Error)?.message ?? 'Failed to queue link.' });
+    } finally {
+      setIgBusy(false);
+    }
   };
 
   if (editingEvent) {
@@ -571,26 +589,6 @@ function EventsTab({
       </div>
     );
   }
-
-  // ── Instagram quick-add ──
-  const [igUrl, setIgUrl] = useState('');
-  const [igBusy, setIgBusy] = useState(false);
-  const [igMsg, setIgMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-
-  const handleIgAdd = async () => {
-    if (!igUrl.trim()) return;
-    setIgBusy(true);
-    setIgMsg(null);
-    try {
-      await submitInstagramLink(igUrl.trim());
-      setIgUrl('');
-      setIgMsg({ type: 'ok', text: '✅ Queued in Submissions → Pending.' });
-    } catch (e: unknown) {
-      setIgMsg({ type: 'err', text: (e as Error)?.message ?? 'Failed to queue link.' });
-    } finally {
-      setIgBusy(false);
-    }
-  };
 
   return (
     <div className="admin-events">
