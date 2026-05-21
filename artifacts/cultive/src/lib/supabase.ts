@@ -445,7 +445,7 @@ export async function sendSubmissionPushNotification(opts: {
 
 // ─── Admin: role check ───────────────────────────────────────
 // Hardcoded admin emails (always granted access, no SQL required)
-const ADMIN_EMAILS = ['shanelong@gmail.com'];
+const ADMIN_EMAILS = ['shanelong89@gmail.com'];
 
 export async function isAdmin(): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();

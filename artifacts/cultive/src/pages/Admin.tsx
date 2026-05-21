@@ -489,10 +489,9 @@ function EventsTab({
             <div className="form-group">
               <label>Date</label>
               <input
-                type="text"
+                type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                placeholder="e.g. Sat, Jun 7"
                 required
               />
             </div>
@@ -856,10 +855,15 @@ function SubmissionsTab({
 
                     {filter === 'pending' && (
                       <div className="submission-actions">
-                        {isPendingScrape ? (
-                          <span style={{ fontSize: '0.875rem', color: 'var(--n-muted)', fontStyle: 'italic' }}>
-                            Waiting for scrape…
-                          </span>
+                        {isPendingScrape && !hasScrapedData ? (
+                          <>
+                            <span style={{ fontSize: '0.82rem', color: 'var(--n-muted)', fontStyle: 'italic', flex: 1 }}>
+                              No scraped data yet — open the Instagram link, fill in details manually via Edit, then approve.
+                            </span>
+                            <button className="reject-btn" onClick={() => onReject(sub.id)}>
+                              Reject
+                            </button>
+                          </>
                         ) : (
                           <>
                             <button className="approve-btn" onClick={() => onApprove(sub)}>
