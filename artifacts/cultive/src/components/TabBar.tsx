@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 const tabs = [
   { path: '/', icon: 'compass', label: 'Discover' },
   { path: '/tickets', icon: 'ticket', label: 'Tickets' },
-  { path: '/submit', icon: 'plus-circle', label: 'Submit' },
+  { path: '/saved', icon: 'bookmark', label: 'Saved' },
   { path: '/inbox', icon: 'mail', label: 'Inbox' },
   { path: '/account', icon: 'user', label: 'Account' },
 ];
@@ -22,10 +22,9 @@ const icons: Record<string, ReactNode> = {
       <path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>
     </svg>
   ),
-  'plus-circle': (
+  bookmark: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10"/>
-      <path d="M8 12h8"/><path d="M12 8v8"/>
+      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
     </svg>
   ),
   mail: (

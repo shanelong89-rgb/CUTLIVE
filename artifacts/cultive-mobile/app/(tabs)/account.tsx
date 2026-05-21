@@ -16,6 +16,8 @@ import { useColors } from "@/hooks/useColors";
 import { useInboxMessages } from "@/hooks/useInboxMessages";
 import { signOut, supabase } from "@/lib/supabase";
 
+const ADMIN_EMAILS = ["shanelong@gmail.com"];
+
 const MENU_ITEMS: { label: string; route?: string }[] = [
   { label: "Edit Profile" },
   { label: "Membership" },
@@ -56,6 +58,7 @@ export default function AccountScreen() {
   };
 
   const isLoggedIn = !!email;
+  const isAdmin = !!email && ADMIN_EMAILS.includes(email.toLowerCase());
   const initial = (isLoggedIn ? email!.trim().charAt(0) : "G").toUpperCase();
 
   return (
@@ -88,9 +91,7 @@ export default function AccountScreen() {
         </Text>
         <View style={[styles.statusRule, { backgroundColor: colors.foreground }]} />
         <Text style={[styles.status, { color: colors.mutedForeground }]}>
-          {isLoggedIn
-            ? "PREMIUM MEMBER"
-            : "SIGN IN TO ACCESS EXCLUSIVE EVENTS"}
+          {isLoggedIn ? "PREMIUM MEMBER" : "SIGN IN TO ACCESS EXCLUSIVE EVENTS"}
         </Text>
 
         {!isLoggedIn ? (
@@ -133,7 +134,7 @@ export default function AccountScreen() {
       </View>
 
       <View style={[styles.menu, { borderTopColor: colors.border }]}>
-        {/* Inbox row — always first, shows unread badge */}
+        {/* Inbox row — shows unread badge */}
         <Pressable
           onPress={() => router.push("/(tabs)/inbox" as any)}
           style={({ pressed }) => [
@@ -141,12 +142,8 @@ export default function AccountScreen() {
             { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },
           ]}
         >
-          <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>
-            00
-          </Text>
-          <Text style={[styles.menuLabel, { color: colors.foreground }]}>
-            Inbox
-          </Text>
+          <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>00</Text>
+          <Text style={[styles.menuLabel, { color: colors.foreground }]}>Inbox</Text>
           {unreadCount > 0 && (
             <View style={[styles.inboxBadge, { backgroundColor: colors.foreground }]}>
               <Text style={[styles.inboxBadgeText, { color: colors.background }]}>
@@ -157,6 +154,38 @@ export default function AccountScreen() {
           <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
         </Pressable>
 
+        {/* Submit Event (non-admin) or Admin Console (admin) */}
+        {isAdmin ? (
+          <Pressable
+            onPress={() => router.push("/admin" as any)}
+            style={({ pressed }) => [
+              styles.menuItem,
+              { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
+            <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>—</Text>
+            <Text style={[styles.menuLabel, { color: colors.foreground }]}>
+              Admin Console
+            </Text>
+            <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => router.push("/(tabs)/submit" as any)}
+            style={({ pressed }) => [
+              styles.menuItem,
+              { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
+            <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>—</Text>
+            <Text style={[styles.menuLabel, { color: colors.foreground }]}>
+              Submit Event
+            </Text>
+            <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
+          </Pressable>
+        )}
+
+        {/* Regular menu items */}
         {MENU_ITEMS.map((item, i) => (
           <Pressable
             key={i}

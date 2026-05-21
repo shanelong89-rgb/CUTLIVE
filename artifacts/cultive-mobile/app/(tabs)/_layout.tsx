@@ -17,21 +17,17 @@ function NativeTabLayout({ unreadCount }: { unreadCount: number }) {
         <Icon sf={{ default: "newspaper", selected: "newspaper.fill" }} />
         <Label>Discover</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="saved">
-        <Icon sf={{ default: "bookmark", selected: "bookmark.fill" }} />
-        <Label>Saved</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="tickets">
         <Icon sf={{ default: "ticket", selected: "ticket.fill" }} />
         <Label>Tickets</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="submit">
-        <Icon sf={{ default: "plus.circle", selected: "plus.circle.fill" }} />
-        <Label>Submit</Label>
+      <NativeTabs.Trigger name="saved">
+        <Icon sf={{ default: "bookmark", selected: "bookmark.fill" }} />
+        <Label>Saved</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="inbox">
         <Icon sf={{ default: "envelope", selected: "envelope.fill" }} />
-        <Label>Inbox{unreadCount > 0 ? ` (${unreadCount > 9 ? "9+" : unreadCount})` : ""}</Label>
+        <Label>{unreadCount > 0 ? `Inbox (${unreadCount > 9 ? "9+" : unreadCount})` : "Inbox"}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="account">
         <Icon sf={{ default: "person", selected: "person.fill" }} />
@@ -98,13 +94,6 @@ function ClassicTabLayout({ unreadCount }: { unreadCount: number }) {
         }}
       />
       <Tabs.Screen
-        name="saved"
-        options={{
-          title: "Saved",
-          tabBarIcon: ({ color }) => icon("bookmark", "bookmark", color),
-        }}
-      />
-      <Tabs.Screen
         name="tickets"
         options={{
           title: "Tickets",
@@ -112,10 +101,10 @@ function ClassicTabLayout({ unreadCount }: { unreadCount: number }) {
         }}
       />
       <Tabs.Screen
-        name="submit"
+        name="saved"
         options={{
-          title: "Submit",
-          tabBarIcon: ({ color }) => icon("plus-circle", "plus.circle", color),
+          title: "Saved",
+          tabBarIcon: ({ color }) => icon("bookmark", "bookmark", color),
         }}
       />
       <Tabs.Screen
@@ -140,6 +129,13 @@ function ClassicTabLayout({ unreadCount }: { unreadCount: number }) {
         options={{
           title: "Account",
           tabBarIcon: ({ color }) => icon("user", "person", color),
+        }}
+      />
+      {/* Submit tab hidden from bar but keeps its route accessible */}
+      <Tabs.Screen
+        name="submit"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
