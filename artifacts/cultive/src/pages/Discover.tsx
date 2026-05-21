@@ -8,6 +8,17 @@ function formatTime(time?: string): string {
   return '';
 }
 
+// If the date is stored as a raw ISO string (YYYY-MM-DD), convert it to
+// "Sat, May 23" format. Already-formatted strings pass through unchanged.
+function displayDate(raw?: string): string {
+  if (!raw) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (!m) return raw;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 // Parse freeform event date strings into a Date (best-effort).
 // Returns null if we can't make sense of it.
 function parseEventDate(raw: string, timeStr?: string): Date | null {
@@ -101,7 +112,7 @@ function EventRow({ event }: { event: Event }) {
     <Link to={`/event/${event.id}`} className="event-row">
       {/* Date + Time Column */}
       <div className="event-time">
-        {event.date && <span className="event-date">{event.date}</span>}
+        {event.date && <span className="event-date">{displayDate(event.date)}</span>}
         <span>{formatTime(event.time) || '—'}</span>
       </div>
 

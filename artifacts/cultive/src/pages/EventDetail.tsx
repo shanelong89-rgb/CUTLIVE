@@ -4,6 +4,15 @@ import { getEventById } from '../lib/supabase';
 import type { Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 
+function displayDate(raw?: string): string {
+  if (!raw) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (!m) return raw;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 interface EventDetailProps {
   setIsAuthOpen?: (open: boolean) => void;
 }
@@ -93,7 +102,7 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
               <line x1="8" y1="2" x2="8" y2="6"/>
               <line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
-            {event.date}
+            {displayDate(event.date)}
           </div>
           <div className="detail-row">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
