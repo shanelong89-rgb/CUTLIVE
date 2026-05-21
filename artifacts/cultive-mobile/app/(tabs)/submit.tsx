@@ -117,7 +117,7 @@ export default function SubmitScreen() {
     <KeyboardAwareScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={{
-        paddingTop: insets.top + (isWeb ? 67 : 12),
+        paddingTop: insets.top + (isWeb ? 96 : 32),
         paddingBottom: insets.bottom + (isWeb ? 84 : 120),
         paddingHorizontal: 20,
       }}

@@ -33,7 +33,7 @@ export default function InboxScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={{
-        paddingTop: insets.top + (isWeb ? 67 : 12),
+        paddingTop: insets.top + (isWeb ? 96 : 32),
         paddingBottom: insets.bottom + (isWeb ? 84 : 100),
         paddingHorizontal: 20,
       }}
