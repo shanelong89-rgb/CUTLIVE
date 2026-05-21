@@ -155,7 +155,7 @@ export function Submit() {
           <h2 className="submit-auth-title">Sign in to submit events</h2>
           <p className="submit-auth-body">
             CULTIVE relies on community contributors to keep the listings fresh.
-            Create a free account to submit events — approved submissions earn <strong>$50 HKD</strong> each.
+            Create a free account to submit events and help the city discover what's on.
           </p>
           <div className="submit-auth-actions">
             <button className="submit-auth-btn-primary" onClick={() => setAuthModalOpen(true)}>
@@ -384,7 +384,7 @@ export function Submit() {
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.85rem', color: 'var(--n-muted)' }}>
-          Freelance editors earn $50 HKD per approved event submission
+          All submissions are reviewed before publishing
         </p>
       </form>
     </div>
