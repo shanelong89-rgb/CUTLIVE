@@ -285,9 +285,18 @@ export function Discover() {
     // Sort: upcoming first (soonest → latest), then undated, then past at the bottom
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
+    const todayTs = todayStart.getTime();
     const decorated = filtered.map((e) => {
-      const parsed = parseEventDate(e.date, e.time);
-      const isPast = parsed ? parsed.getTime() < todayStart.getTime() : false;
+      // Use all parsed dates so day-first and multi-date events sort correctly
+      const all = parseAllEventDates(e.date, true);
+      const upcoming = all.filter(d => d.getTime() >= todayTs);
+      // Prefer soonest upcoming; fall back to latest past occurrence
+      const parsed = upcoming.length > 0
+        ? upcoming.reduce((a, b) => a.getTime() < b.getTime() ? a : b)
+        : all.length > 0
+          ? all.reduce((a, b) => a.getTime() > b.getTime() ? a : b)
+          : null;
+      const isPast = parsed ? parsed.getTime() < todayTs : false;
       return { e, parsed, isPast };
     });
     decorated.sort((a, b) => {

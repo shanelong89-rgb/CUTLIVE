@@ -184,13 +184,21 @@ function parseEventDate(raw: string, timeStr?: string): Date | null {
 function sortUpcomingFirst(list: Event[]): Event[] {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
+  const todayTs = todayStart.getTime();
   return [...list]
     .map((e) => {
-      const parsed = parseEventDate(e.date, e.time);
+      const all = parseAllEventDates(e.date, true);
+      const upcoming = all.filter((d) => d.getTime() >= todayTs);
+      const parsed =
+        upcoming.length > 0
+          ? upcoming.reduce((a, b) => (a.getTime() < b.getTime() ? a : b))
+          : all.length > 0
+          ? all.reduce((a, b) => (a.getTime() > b.getTime() ? a : b))
+          : null;
       return {
         e,
         parsed,
-        isPast: parsed ? parsed.getTime() < todayStart.getTime() : false,
+        isPast: parsed ? parsed.getTime() < todayTs : false,
       };
     })
     .sort((a, b) => {
