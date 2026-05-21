@@ -14,6 +14,7 @@ import {
   deleteEvent,
   approveSubmission,
   rejectSubmission,
+  submitInstagramLink,
   type Event,
   type Submission,
 } from '../lib/supabase';
@@ -571,6 +572,26 @@ function EventsTab({
     );
   }
 
+  // ── Instagram quick-add ──
+  const [igUrl, setIgUrl] = useState('');
+  const [igBusy, setIgBusy] = useState(false);
+  const [igMsg, setIgMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const handleIgAdd = async () => {
+    if (!igUrl.trim()) return;
+    setIgBusy(true);
+    setIgMsg(null);
+    try {
+      await submitInstagramLink(igUrl.trim());
+      setIgUrl('');
+      setIgMsg({ type: 'ok', text: '✅ Queued in Submissions → Pending.' });
+    } catch (e: unknown) {
+      setIgMsg({ type: 'err', text: (e as Error)?.message ?? 'Failed to queue link.' });
+    } finally {
+      setIgBusy(false);
+    }
+  };
+
   return (
     <div className="admin-events">
       <div className="admin-header">
@@ -579,6 +600,35 @@ function EventsTab({
           + New Event
         </button>
       </div>
+
+      {/* Instagram quick-add */}
+      <div className="admin-ig-add">
+        <span className="admin-ig-add-label">Add via Instagram link</span>
+        <div className="admin-ig-add-row">
+          <input
+            type="url"
+            value={igUrl}
+            onChange={e => setIgUrl(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleIgAdd()}
+            placeholder="https://www.instagram.com/p/..."
+            className="admin-ig-add-input"
+          />
+          <button
+            type="button"
+            className="admin-ig-add-btn"
+            disabled={!igUrl.trim() || igBusy}
+            onClick={handleIgAdd}
+          >
+            {igBusy ? 'Queuing…' : 'Queue'}
+          </button>
+        </div>
+        {igMsg && (
+          <p style={{ marginTop: 6, fontSize: '0.82rem', color: igMsg.type === 'ok' ? '#16a34a' : '#dc2626' }}>
+            {igMsg.text}
+          </p>
+        )}
+      </div>
+
       {events.length === 0 ? (
         <div className="empty-state">
           <p>No events yet. Click "+ New Event" to create your first one.</p>

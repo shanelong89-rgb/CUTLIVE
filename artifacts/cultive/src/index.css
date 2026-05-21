@@ -2651,6 +2651,67 @@ h1, h2, h3 {
   margin: 0;
 }
 
+/* Admin Instagram quick-add */
+.admin-ig-add {
+  background: var(--n-surface);
+  border: 1px solid var(--n-border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+}
+
+.admin-ig-add-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--n-muted);
+  margin-bottom: 8px;
+}
+
+.admin-ig-add-row {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-ig-add-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--n-border);
+  border-radius: 6px;
+  background: var(--n-bg);
+  color: var(--n-text);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.admin-ig-add-input:focus {
+  border-color: var(--n-accent);
+}
+
+.admin-ig-add-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: none;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.admin-ig-add-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-ig-add-btn:not(:disabled):hover {
+  opacity: 0.85;
+}
+
 /* Events Table */
 .events-table {
   background: var(--n-bg);
