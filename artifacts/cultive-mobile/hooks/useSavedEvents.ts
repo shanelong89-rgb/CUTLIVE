@@ -4,6 +4,10 @@ import { DeviceEventEmitter } from "react-native";
 
 import { addEventToCalendar, removeEventFromCalendar } from "@/lib/calendar";
 import {
+  cancelEventNotifications,
+  scheduleEventNotifications,
+} from "@/lib/notifications";
+import {
   addSavedEventRemote,
   getEventById,
   listSavedEventIdsRemote,
@@ -76,7 +80,6 @@ export function useSavedEvents() {
             if (!remoteSet.has(id)) addSavedEventRemote(id).catch(() => {});
           }
         } else {
-          // Account switch / fresh sign-in: drop previous user's local cache.
           next = remote;
         }
         await writeOwner(userId);
@@ -130,30 +133,31 @@ export function useSavedEvents() {
 
   const isSaved = useCallback((id: string) => ids.includes(id), [ids]);
 
-  const toggle = useCallback(
-    async (id: string) => {
-      const current = await read();
-      const isAdding = !current.includes(id);
-      const next = isAdding
-        ? [id, ...current]
-        : current.filter((x) => x !== id);
-      await write(next);
-      setIds(next);
-      if (isAdding) {
-        addSavedEventRemote(id).catch(() => {});
-        try {
-          const event = await getEventById(id);
-          if (event) await addEventToCalendar(event);
-        } catch {
-          // ignore
+  const toggle = useCallback(async (id: string) => {
+    const current = await read();
+    const isAdding = !current.includes(id);
+    const next = isAdding
+      ? [id, ...current]
+      : current.filter((x) => x !== id);
+    await write(next);
+    setIds(next);
+    if (isAdding) {
+      addSavedEventRemote(id).catch(() => {});
+      try {
+        const event = await getEventById(id);
+        if (event) {
+          await addEventToCalendar(event);
+          scheduleEventNotifications(event).catch(() => {});
         }
-      } else {
-        removeSavedEventRemote(id).catch(() => {});
-        removeEventFromCalendar(id).catch(() => {});
+      } catch {
+        // ignore
       }
-    },
-    [],
-  );
+    } else {
+      removeSavedEventRemote(id).catch(() => {});
+      removeEventFromCalendar(id).catch(() => {});
+      cancelEventNotifications(id).catch(() => {});
+    }
+  }, []);
 
   const remove = useCallback(async (id: string) => {
     const next = (await read()).filter((x) => x !== id);
@@ -161,13 +165,17 @@ export function useSavedEvents() {
     setIds(next);
     removeSavedEventRemote(id).catch(() => {});
     removeEventFromCalendar(id).catch(() => {});
+    cancelEventNotifications(id).catch(() => {});
   }, []);
 
   const clear = useCallback(async () => {
     const previous = await read();
     await write([]);
     setIds([]);
-    for (const id of previous) removeSavedEventRemote(id).catch(() => {});
+    for (const id of previous) {
+      removeSavedEventRemote(id).catch(() => {});
+      cancelEventNotifications(id).catch(() => {});
+    }
   }, []);
 
   return { ids, count: ids.length, ready, isSaved, toggle, remove, clear };

@@ -2133,11 +2133,78 @@ h1, h2, h3 {
 .saved-row {
   position: relative;
 }
-.saved-remove {
+
+/* Actions column replacing the old absolute-positioned remove button */
+.saved-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+
+.saved-cal-wrap {
+  position: relative;
+}
+
+.saved-cal-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--n-border, rgba(0, 0, 0, 0.12));
+  color: var(--n-muted, #666);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.saved-cal-btn:hover {
+  background: var(--n-bg-alt);
+  border-color: var(--n-text);
+  color: var(--n-text);
+}
+
+/* Calendar dropdown */
+.cal-dropdown {
   position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--n-bg);
+  border: 1px solid var(--n-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 188px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.cal-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--n-text);
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.cal-option:hover {
+  background: var(--n-bg-alt);
+}
+.cal-option + .cal-option {
+  border-top: 1px solid var(--n-border);
+}
+
+.saved-remove {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -2151,7 +2218,6 @@ h1, h2, h3 {
   align-items: center;
   justify-content: center;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
-  z-index: 2;
 }
 .saved-remove:hover {
   background: #b91c1c;

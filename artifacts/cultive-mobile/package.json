@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.0",
-    "expo-calendar": "^55.0.15"
+    "expo-calendar": "^55.0.15",
+    "expo-notifications": "^0.32.17"
   }
 }

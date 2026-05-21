@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,12 +16,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 import { useSavedEvents } from "@/hooks/useSavedEvents";
+import { addEventToCalendar } from "@/lib/calendar";
 import { getEvents, type Event } from "@/lib/supabase";
 
 export default function SavedScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { ids, count, remove, clear } = useSavedEvents();
+  const [addingCalId, setAddingCalId] = useState<string | null>(null);
 
   const { data: allEvents = [], isLoading } = useQuery({
     queryKey: ["events"],
@@ -32,6 +34,25 @@ export default function SavedScreen() {
     const map = new Map(allEvents.map((e) => [e.id, e] as const));
     return ids.map((id) => map.get(id)).filter((e): e is Event => !!e);
   }, [allEvents, ids]);
+
+  async function handleAddToCalendar(item: Event) {
+    setAddingCalId(item.id);
+    try {
+      const added = await addEventToCalendar(item);
+      if (added) {
+        Alert.alert("Added to Calendar", `"${item.title}" has been saved to your calendar.`);
+      } else {
+        Alert.alert(
+          "Calendar Access Needed",
+          "Please allow CULTIVE to access your calendar in Settings.",
+        );
+      }
+    } catch {
+      Alert.alert("Couldn't add to calendar", "Please try again.");
+    } finally {
+      setAddingCalId(null);
+    }
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -143,13 +164,27 @@ export default function SavedScreen() {
                   {item.venue}
                 </Text>
               </View>
-              <Pressable
-                onPress={() => remove(item.id)}
-                hitSlop={10}
-                style={styles.removeBtn}
-              >
-                <Feather name="x" size={18} color={colors.mutedForeground} />
-              </Pressable>
+              <View style={styles.rowActions}>
+                <Pressable
+                  onPress={() => handleAddToCalendar(item)}
+                  hitSlop={8}
+                  style={styles.actionBtn}
+                  disabled={addingCalId === item.id}
+                >
+                  <Feather
+                    name="calendar"
+                    size={16}
+                    color={addingCalId === item.id ? colors.border : colors.mutedForeground}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() => remove(item.id)}
+                  hitSlop={8}
+                  style={styles.actionBtn}
+                >
+                  <Feather name="x" size={18} color={colors.mutedForeground} />
+                </Pressable>
+              </View>
             </Pressable>
           )}
         />
@@ -219,7 +254,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
-  removeBtn: {
+  rowActions: {
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 8,
+  },
+  actionBtn: {
     width: 32,
     height: 32,
     alignItems: "center",
