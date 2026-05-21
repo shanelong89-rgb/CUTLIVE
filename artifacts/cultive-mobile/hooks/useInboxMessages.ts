@@ -1,14 +1,43 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
+import { DeviceEventEmitter } from "react-native";
 
+import { parseEventDate } from "@/lib/calendar";
 import {
   getCurrentUser,
+  getEvents,
   getMySubmissions,
   supabase,
+  type Event,
   type Submission,
 } from "@/lib/supabase";
 
 const READ_KEY = "cultive:read-messages";
+const SAVED_KEY = "cultive:saved-events";
+const SAVED_EVENT_NAME = "cultive:saved-events-changed";
+
+async function readSavedIds(): Promise<string[]> {
+  try {
+    const raw = await AsyncStorage.getItem(SAVED_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((x: unknown) => typeof x === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function reminderPreview(when: Date): string {
+  const diff = when.getTime() - Date.now();
+  const days = Math.round(diff / 86400000);
+  if (diff < 0) return "Happening now";
+  if (days === 0) return "Happening today — don't miss it.";
+  if (days === 1) return "Happening tomorrow — get ready.";
+  if (days < 7) return `Coming up in ${days} days.`;
+  return `Coming up on ${when.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}.`;
+}
 
 export interface InboxMessage {
   id: string;
@@ -21,7 +50,8 @@ export interface InboxMessage {
     | "welcome"
     | "submission-pending"
     | "submission-approved"
-    | "submission-rejected";
+    | "submission-rejected"
+    | "saved-reminder";
 }
 
 function relativeTime(iso: string): string {
@@ -80,6 +110,7 @@ export function useInboxMessages() {
   const [signedIn, setSignedIn] = useState(false);
   const [signupAt, setSignupAt] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [savedEvents, setSavedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
@@ -117,7 +148,32 @@ export function useInboxMessages() {
     setSignupAt(user.created_at || null);
     const subs = await getMySubmissions();
     setSubmissions(subs);
+    try {
+      const savedIds = await readSavedIds();
+      if (savedIds.length > 0) {
+        const all = await getEvents();
+        setSavedEvents(all.filter((e) => savedIds.includes(e.id)));
+      } else {
+        setSavedEvents([]);
+      }
+    } catch {
+      setSavedEvents([]);
+    }
     setLoading(false);
+  }, []);
+
+  const refreshSaved = useCallback(async () => {
+    try {
+      const savedIds = await readSavedIds();
+      if (savedIds.length === 0) {
+        setSavedEvents([]);
+        return;
+      }
+      const all = await getEvents();
+      setSavedEvents(all.filter((e) => savedIds.includes(e.id)));
+    } catch {
+      // ignore
+    }
   }, []);
 
   useEffect(() => {
@@ -129,16 +185,39 @@ export function useInboxMessages() {
         setSignedIn(false);
         setSignupAt(null);
         setSubmissions([]);
+        setSavedEvents([]);
         setLoading(false);
       }
     });
+    const sub = DeviceEventEmitter.addListener(SAVED_EVENT_NAME, () => {
+      refreshSaved();
+    });
     load();
-    return () => data.subscription.unsubscribe();
-  }, [load, loadReadIds]);
+    return () => {
+      data.subscription.unsubscribe();
+      sub.remove();
+    };
+  }, [load, loadReadIds, refreshSaved]);
 
   const messages: InboxMessage[] = (() => {
     if (!signedIn) return [];
     const base: InboxMessage[] = submissions.map(submissionToMessage);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    for (const ev of savedEvents) {
+      const when = parseEventDate(ev.date, ev.time);
+      if (!when) continue;
+      if (when.getTime() < todayStart.getTime()) continue;
+      base.push({
+        id: `reminder-${ev.id}`,
+        title: `Reminder: ${ev.title}`,
+        preview: reminderPreview(when),
+        time: when.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        unread: true,
+        createdAt: when.toISOString(),
+        kind: "saved-reminder",
+      });
+    }
     if (signupAt) {
       base.push({
         id: "welcome",

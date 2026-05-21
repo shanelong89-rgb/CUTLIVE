@@ -1,7 +1,62 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getMySubmissions, supabase, type Submission } from '../lib/supabase';
+import { getEvents, getMySubmissions, supabase, type Event, type Submission } from '../lib/supabase';
 
 const READ_KEY = 'cultive:read-messages';
+const SAVED_KEY = 'cultive:saved-events';
+const SAVED_EVENT_NAME = 'cultive:saved-events-changed';
+
+function readSavedIds(): string[] {
+  try {
+    const raw = localStorage.getItem(SAVED_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseEventDate(raw: string, timeStr?: string): Date | null {
+  if (!raw) return null;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const s = raw.trim().toLowerCase();
+  let base: Date | null = null;
+  if (s.includes('today')) base = new Date(today);
+  else if (s.includes('tomorrow')) base = new Date(today.getTime() + 86400000);
+  else {
+    const direct = new Date(raw);
+    if (!isNaN(direct.getTime())) base = direct;
+    else {
+      const m = raw.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
+      if (m) {
+        const guess = new Date(`${m[1]} ${m[2]}, ${now.getFullYear()}`);
+        if (!isNaN(guess.getTime())) {
+          if (guess.getTime() < today.getTime() - 86400000)
+            guess.setFullYear(now.getFullYear() + 1);
+          base = guess;
+        }
+      }
+    }
+  }
+  if (!base) return null;
+  if (timeStr) {
+    const tm = timeStr.match(/(\d{1,2})[:\.](\d{2})/);
+    if (tm) base.setHours(parseInt(tm[1], 10), parseInt(tm[2], 10), 0, 0);
+  }
+  return base;
+}
+
+function reminderPreview(when: Date): string {
+  const now = Date.now();
+  const diff = when.getTime() - now;
+  const days = Math.round(diff / 86400000);
+  if (diff < 0) return 'Happening now';
+  if (days === 0) return 'Happening today — don\'t miss it.';
+  if (days === 1) return 'Happening tomorrow — get ready.';
+  if (days < 7) return `Coming up in ${days} days.`;
+  return `Coming up on ${when.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}.`;
+}
 
 export interface InboxMessage {
   id: string;
@@ -10,7 +65,7 @@ export interface InboxMessage {
   time: string;
   unread: boolean;
   createdAt: string;
-  kind: 'welcome' | 'submission-pending' | 'submission-approved' | 'submission-rejected';
+  kind: 'welcome' | 'submission-pending' | 'submission-approved' | 'submission-rejected' | 'saved-reminder';
 }
 
 function readReadIds(): Set<string> {
@@ -85,6 +140,7 @@ export function useInboxMessages() {
   const [signedIn, setSignedIn] = useState(false);
   const [signupAt, setSignupAt] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [savedEvents, setSavedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [readIds, setReadIds] = useState<Set<string>>(() =>
     typeof window === 'undefined' ? new Set() : readReadIds(),
@@ -111,8 +167,43 @@ export function useInboxMessages() {
     } catch {
       setSubmissions([]);
     }
+    try {
+      const savedIds = readSavedIds();
+      if (savedIds.length > 0) {
+        const all = await getEvents();
+        setSavedEvents(all.filter((e) => savedIds.includes(e.id)));
+      } else {
+        setSavedEvents([]);
+      }
+    } catch {
+      setSavedEvents([]);
+    }
     setLoading(false);
   }, []);
+
+  const refreshSaved = useCallback(async () => {
+    try {
+      const savedIds = readSavedIds();
+      if (savedIds.length === 0) {
+        setSavedEvents([]);
+        return;
+      }
+      const all = await getEvents();
+      setSavedEvents(all.filter((e) => savedIds.includes(e.id)));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    const sync = () => refreshSaved();
+    window.addEventListener(SAVED_EVENT_NAME, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener(SAVED_EVENT_NAME, sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, [refreshSaved]);
 
   useEffect(() => {
     // Subscribe FIRST so we don't miss a SIGNED_IN event during initial load.
@@ -133,6 +224,22 @@ export function useInboxMessages() {
   const messages: InboxMessage[] = (() => {
     if (!signedIn) return [];
     const base: InboxMessage[] = submissions.map(submissionToMessage);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    for (const ev of savedEvents) {
+      const when = parseEventDate(ev.date, ev.time);
+      if (!when) continue;
+      if (when.getTime() < todayStart.getTime()) continue;
+      base.push({
+        id: `reminder-${ev.id}`,
+        title: `Reminder: ${ev.title}`,
+        preview: reminderPreview(when),
+        time: when.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        unread: true,
+        createdAt: when.toISOString(),
+        kind: 'saved-reminder',
+      });
+    }
     if (signupAt) {
       base.push({
         id: 'welcome',

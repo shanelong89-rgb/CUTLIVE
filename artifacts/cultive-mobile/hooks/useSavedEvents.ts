@@ -2,6 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import { DeviceEventEmitter } from "react-native";
 
+import { addEventToCalendar, removeEventFromCalendar } from "@/lib/calendar";
+import { getEventById } from "@/lib/supabase";
+
 const STORAGE_KEY = "cultive:saved-events";
 const EVENT_NAME = "cultive:saved-events-changed";
 
@@ -55,11 +58,22 @@ export function useSavedEvents() {
   const toggle = useCallback(
     async (id: string) => {
       const current = await read();
-      const next = current.includes(id)
-        ? current.filter((x) => x !== id)
-        : [id, ...current];
+      const isAdding = !current.includes(id);
+      const next = isAdding
+        ? [id, ...current]
+        : current.filter((x) => x !== id);
       await write(next);
       setIds(next);
+      if (isAdding) {
+        try {
+          const event = await getEventById(id);
+          if (event) await addEventToCalendar(event);
+        } catch {
+          // ignore
+        }
+      } else {
+        removeEventFromCalendar(id).catch(() => {});
+      }
     },
     [],
   );
@@ -68,6 +82,7 @@ export function useSavedEvents() {
     const next = (await read()).filter((x) => x !== id);
     await write(next);
     setIds(next);
+    removeEventFromCalendar(id).catch(() => {});
   }, []);
 
   const clear = useCallback(async () => {
