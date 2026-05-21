@@ -6,6 +6,7 @@ import React from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -169,7 +170,18 @@ export default function EventDetailScreen() {
           <View style={[styles.meta, { borderColor: colors.border }]}>
             <MetaRow icon="calendar" text={event.date} colors={colors} />
             <MetaRow icon="clock" text={event.time} colors={colors} />
-            <MetaRow icon="map-pin" text={event.venue} colors={colors} />
+            <MetaRow
+              icon="map-pin"
+              text={event.venue}
+              colors={colors}
+              onPress={() => {
+                const q = encodeURIComponent(event.venue);
+                Linking.openURL(
+                  `https://www.google.com/maps/search/?api=1&query=${q}`,
+                ).catch(() => {});
+              }}
+              showChevron
+            />
             <MetaRow icon="tag" text={event.price} colors={colors} />
           </View>
 
@@ -232,19 +244,50 @@ function MetaRow({
   icon,
   text,
   colors,
+  onPress,
+  showChevron,
 }: {
   icon: React.ComponentProps<typeof Feather>["name"];
   text: string;
   colors: ReturnType<typeof useColors>;
+  onPress?: () => void;
+  showChevron?: boolean;
 }) {
-  return (
-    <View style={styles.metaRow}>
+  const content = (
+    <>
       <Feather name={icon} size={15} color={colors.foreground} />
-      <Text style={[styles.metaText, { color: colors.foreground }]}>
+      <Text
+        style={[
+          styles.metaText,
+          { color: colors.foreground, flex: 1 },
+          onPress ? { textDecorationLine: "underline" } : null,
+        ]}
+      >
         {text}
       </Text>
-    </View>
+      {showChevron ? (
+        <Feather
+          name="external-link"
+          size={13}
+          color={colors.mutedForeground}
+        />
+      ) : null}
+    </>
   );
+  if (onPress) {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.metaRow,
+          { opacity: pressed ? 0.6 : 1 },
+        ]}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+  return <View style={styles.metaRow}>{content}</View>;
 }
 
 const styles = StyleSheet.create({

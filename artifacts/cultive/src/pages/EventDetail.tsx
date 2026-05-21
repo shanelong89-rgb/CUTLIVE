@@ -85,13 +85,24 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
             </svg>
             {event.time}
           </div>
-          <div className="detail-row">
+          <a
+            className="detail-row detail-row-link"
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venue)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open in Google Maps"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
               <circle cx="12" cy="10" r="3"/>
             </svg>
-            {event.venue}
-          </div>
+            <span style={{ textDecoration: 'underline', flex: 1 }}>{event.venue}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 14, height: 14, opacity: 0.5 }}>
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
           <div className="detail-row">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="12" cy="8" r="7"/>
