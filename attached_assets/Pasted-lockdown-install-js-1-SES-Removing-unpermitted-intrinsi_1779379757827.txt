@@ -1,0 +1,46 @@
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2 [DEPRECATED] Default export is deprecated. Instead use `import { create } from 'zustand'`.
+f @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+27960 @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+a @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+93052 @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+a @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+Promise.then
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+r @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+s @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+Promise.then
+r @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+s @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ instrument.9d383a043c41345fb525.js?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P?dpl=dpl_DoNGfTug5YJKeXbiFAPedhS71s1P:2
+(anonymous) @ feedback.js:2
+index-BwLZtXkM.js:54  GET https://qmjdqldmpmeguuyepbsw.supabase.co/rest/v1/submissions?select=*&or=%28user_id.eq.a8979480-d757-4d33-a030-1172ef6219aa%2Csubmitter_email.eq.shanelong89%40gmail.com%29&order=created_at.desc 403 (Forbidden)
+(anonymous) @ index-BwLZtXkM.js:54
+(anonymous) @ index-BwLZtXkM.js:54
+await in (anonymous)
+(anonymous) @ index-BwLZtXkM.js:11
+then @ index-BwLZtXkM.js:11
+index-BwLZtXkM.js:54  GET https://qmjdqldmpmeguuyepbsw.supabase.co/rest/v1/submissions?select=*&or=%28user_id.eq.a8979480-d757-4d33-a030-1172ef6219aa%2Csubmitter_email.eq.shanelong89%40gmail.com%29&order=created_at.desc 403 (Forbidden)
+(anonymous) @ index-BwLZtXkM.js:54
+(anonymous) @ index-BwLZtXkM.js:54
+await in (anonymous)
+(anonymous) @ index-BwLZtXkM.js:11
+then @ index-BwLZtXkM.js:11
+index-BwLZtXkM.js:54  GET https://qmjdqldmpmeguuyepbsw.supabase.co/rest/v1/submissions?select=*&or=%28user_id.eq.a8979480-d757-4d33-a030-1172ef6219aa%2Csubmitter_email.eq.shanelong89%40gmail.com%29&order=created_at.desc 403 (Forbidden)
+(anonymous) @ index-BwLZtXkM.js:54
+(anonymous) @ index-BwLZtXkM.js:54
+await in (anonymous)
+(anonymous) @ index-BwLZtXkM.js:11
+then @ index-BwLZtXkM.js:11
+index-BwLZtXkM.js:54  HEAD https://qmjdqldmpmeguuyepbsw.supabase.co/rest/v1/submissions?select=*&or=%28user_id.eq.a8979480-d757-4d33-a030-1172ef6219aa%2Csubmitter_email.eq.shanelong89%40gmail.com%29 403 (Forbidden)
+(anonymous) @ index-BwLZtXkM.js:54
+(anonymous) @ index-BwLZtXkM.js:54
+await in (anonymous)
+(anonymous) @ index-BwLZtXkM.js:11
+then @ index-BwLZtXkM.js:11
