@@ -10,6 +10,7 @@ export function Submit() {
     category: 'Music',
     price: '',
     description: '',
+    ticket_url: '',
     submitter_name: '',
     submitter_email: '',
   });
@@ -34,6 +35,7 @@ export function Submit() {
         image: '',
         is_exclusive: false,
         district: formData.venue.split(',')[0] || '',
+        ticket_url: formData.ticket_url.trim() || null,
         submitter_name: formData.submitter_name,
         submitter_email: formData.submitter_email,
       });
@@ -49,6 +51,7 @@ export function Submit() {
           category: 'Music',
           price: '',
           description: '',
+          ticket_url: '',
           submitter_name: '',
           submitter_email: '',
         });
@@ -143,6 +146,17 @@ export function Submit() {
             onChange={handleChange}
             placeholder="e.g. The Peninsula Hotel, Tsim Sha Tsui"
             required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Ticket / RSVP link (optional)</label>
+          <input
+            type="url"
+            name="ticket_url"
+            value={formData.ticket_url}
+            onChange={handleChange}
+            placeholder="https://… leave blank if attendees should RSVP through CULTIVE"
           />
         </div>
 

@@ -28,6 +28,7 @@ const EMPTY_EVENT: Event = {
   description: '',
   is_exclusive: false,
   district: '',
+  ticket_url: '',
 };
 
 export function Admin() {
@@ -487,6 +488,18 @@ function EventsTab({
             ) : (
               <div className="image-preview-empty">No image yet — paste a URL above</div>
             )}
+          </div>
+          <div className="form-group">
+            <label>Ticket / RSVP link (optional)</label>
+            <input
+              type="url"
+              value={formData.ticket_url || ''}
+              onChange={(e) => setFormData({ ...formData, ticket_url: e.target.value })}
+              placeholder="https://… (external ticketing or RSVP page)"
+            />
+            <small style={{ color: 'var(--n-muted)' }}>
+              If set, the event page shows a "Buy Tickets" button that opens this link instead of the in-app RSVP.
+            </small>
           </div>
           <div className="form-group">
             <label>Description</label>

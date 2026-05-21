@@ -22,6 +22,19 @@ import { getEventById } from "@/lib/supabase";
 
 const HERO_H = 320;
 
+// Only allow http(s) URLs as external ticket links — blocks javascript:/data: payloads.
+function safeHttpUrl(raw: string | null | undefined): string {
+  const trimmed = (raw ?? "").trim();
+  if (!trimmed) return "";
+  try {
+    const u = new URL(trimmed);
+    if (u.protocol === "http:" || u.protocol === "https:") return u.toString();
+  } catch {
+    // not a valid URL
+  }
+  return "";
+}
+
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
@@ -73,7 +86,18 @@ export default function EventDetailScreen() {
 
   const isExclusive = event.is_exclusive || event.isExclusive;
 
+  const ticketUrl = safeHttpUrl(event.ticket_url);
+  const hasTicketUrl = ticketUrl.length > 0;
+  const isFree = /free/i.test(event.price || "");
+  const externalLabel = isFree ? "RSVP AT SOURCE" : "BUY TICKETS";
+
   const onRSVP = () => {
+    if (hasTicketUrl && !isExclusive) {
+      Linking.openURL(ticketUrl).catch(() =>
+        Alert.alert("Couldn't open link", ticketUrl),
+      );
+      return;
+    }
     if (isExclusive) {
       router.push("/auth" as any);
     } else {
@@ -232,7 +256,11 @@ export default function EventDetailScreen() {
           ]}
         >
           <Text style={[styles.primaryBtnText, { color: colors.background }]}>
-            {isExclusive ? "GET MEMBERSHIP" : "RSVP FREE"}
+            {isExclusive
+              ? "GET MEMBERSHIP"
+              : hasTicketUrl
+                ? externalLabel
+                : "RSVP FREE"}
           </Text>
         </Pressable>
       </View>

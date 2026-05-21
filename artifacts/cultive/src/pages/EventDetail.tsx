@@ -8,6 +8,19 @@ interface EventDetailProps {
   setIsAuthOpen?: (open: boolean) => void;
 }
 
+// Only allow http(s) URLs as external ticket links — blocks javascript:/data: payloads.
+function safeHttpUrl(raw: string | null | undefined): string {
+  const trimmed = (raw ?? '').trim();
+  if (!trimmed) return '';
+  try {
+    const u = new URL(trimmed);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString();
+  } catch {
+    // not a valid URL
+  }
+  return '';
+}
+
 export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -53,6 +66,10 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
   };
 
   const isExclusive = event.is_exclusive || event.isExclusive;
+  const ticketUrl = safeHttpUrl(event.ticket_url);
+  const hasTicketUrl = ticketUrl.length > 0;
+  const isFree = /free/i.test(event.price || '');
+  const externalLabel = isFree ? 'RSVP at source' : 'Buy Tickets';
 
   return (
     <div className="detail-page">
@@ -170,9 +187,20 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
-        <button className="cta-primary" onClick={handleRSVP}>
-          {isExclusive ? 'Get Membership' : 'RSVP Free'}
-        </button>
+        {hasTicketUrl && !isExclusive ? (
+          <a
+            className="cta-primary"
+            href={ticketUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {externalLabel} ↗
+          </a>
+        ) : (
+          <button className="cta-primary" onClick={handleRSVP}>
+            {isExclusive ? 'Get Membership' : 'RSVP Free'}
+          </button>
+        )}
       </div>
     </div>
   );

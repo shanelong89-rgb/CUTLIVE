@@ -32,6 +32,7 @@ export default function SubmitScreen() {
     time: "",
     venue: "",
     description: "",
+    ticket_url: "",
     submitter_name: "",
     submitter_email: "",
   });
@@ -70,6 +71,7 @@ export default function SubmitScreen() {
         image: "",
         is_exclusive: false,
         district: form.venue.split(",")[0] || "",
+        ticket_url: form.ticket_url.trim() || null,
         submitter_name: form.submitter_name,
         submitter_email: form.submitter_email,
       });
@@ -82,6 +84,7 @@ export default function SubmitScreen() {
         time: "",
         venue: "",
         description: "",
+        ticket_url: "",
         submitter_name: "",
         submitter_email: "",
       });
@@ -206,6 +209,15 @@ export default function SubmitScreen() {
         value={form.venue}
         onChangeText={(v) => onChange("venue", v)}
         placeholder="e.g. The Peninsula, Tsim Sha Tsui"
+      />
+
+      <Label>Ticket / RSVP link (optional)</Label>
+      <Input
+        value={form.ticket_url}
+        onChangeText={(v) => onChange("ticket_url", v)}
+        placeholder="https://… leave blank to RSVP through CULTIVE"
+        autoCapitalize="none"
+        keyboardType="url"
       />
 
       <Label>Description *</Label>
