@@ -67,10 +67,15 @@ function getDeploymentDomain() {
     return stripProtocol(process.env.EXPO_PUBLIC_DOMAIN);
   }
 
-  console.error(
-    "ERROR: No deployment domain found. Set REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, or EXPO_PUBLIC_DOMAIN",
+  // No domain configured (e.g. Vercel CI building the web app). The Expo Go
+  // static build only makes sense when hosted on a known Replit/Expo domain,
+  // so skip the build instead of failing the entire monorepo build.
+  console.log(
+    "[cultive-mobile] No deployment domain found " +
+      "(REPLIT_INTERNAL_APP_DOMAIN / REPLIT_DEV_DOMAIN / EXPO_PUBLIC_DOMAIN). " +
+      "Skipping Expo Go static build — this is expected on non-Replit CI.",
   );
-  process.exit(1);
+  process.exit(0);
 }
 
 function prepareDirectories(timestamp) {
