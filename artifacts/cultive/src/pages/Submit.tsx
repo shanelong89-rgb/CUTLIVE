@@ -36,10 +36,12 @@ export function Submit() {
   const { user, loading: authLoading } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
+  // ── Shared thank-you state ──
+  const [thankYouType, setThankYouType] = useState<null | 'instagram' | 'manual'>(null);
+
   // ── Instagram quick-submit ──
   const [igUrl, setIgUrl] = useState('');
   const [igSubmitting, setIgSubmitting] = useState(false);
-  const [igSubmitted, setIgSubmitted] = useState(false);
   const [igError, setIgError] = useState('');
 
   const handleInstagramSubmit = async () => {
@@ -49,9 +51,8 @@ export function Submit() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       await submitInstagramLink(igUrl.trim(), user?.id);
-      setIgSubmitted(true);
       setIgUrl('');
-      setTimeout(() => setIgSubmitted(false), 5000);
+      setThankYouType('instagram');
     } catch (err: unknown) {
       setIgError('Could not save link. Please try again.');
       console.error(err);
@@ -75,14 +76,12 @@ export function Submit() {
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
-  const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    
     try {
       await submitEvent({
         title: formData.title,
@@ -100,29 +99,31 @@ export function Submit() {
         submitter_name: formData.submitter_name,
         submitter_email: formData.submitter_email,
       });
-      
-      setSubmitted(true);
-      setTimeout(() => {
-        setSubmitted(false);
-        setFormData({
-          title: '',
-          date: '',
-          time: '',
-          venue: '',
-          category: 'Music',
-          price: '',
-          description: '',
-          ticket_url: '',
-          submitter_name: '',
-          submitter_email: '',
-        });
-        setFiles([]);
-      }, 3000);
+      setThankYouType('manual');
     } catch (error) {
       alert('Error submitting event. Please try again.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const resetForm = () => {
+    setThankYouType(null);
+    setFormData({
+      title: '',
+      date: '',
+      time: '',
+      venue: '',
+      category: 'Music',
+      price: '',
+      description: '',
+      ticket_url: '',
+      submitter_name: '',
+      submitter_email: '',
+    });
+    setSelectedTags([]);
+    setFiles([]);
+    setIgUrl('');
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -172,6 +173,36 @@ export function Submit() {
     );
   }
 
+  // ── Thank-you screen ──
+  if (thankYouType) {
+    const isIg = thankYouType === 'instagram';
+    return (
+      <div className="page">
+        <div className="submit-thankyou">
+          <div className="submit-thankyou-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h2 className="submit-thankyou-title">Submission received!</h2>
+          <p className="submit-thankyou-body">
+            {isIg
+              ? "We've got your Instagram link. Our team will extract the event details and publish it once reviewed — usually within 24 hours."
+              : "Thanks for the submission. Our team will review it and publish the event within 24 hours."}
+          </p>
+          <div className="submit-thankyou-actions">
+            <button className="submit-auth-btn-primary" onClick={resetForm}>
+              Submit another event
+            </button>
+            <a href="/" className="submit-auth-btn-secondary" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', padding: '14px', border: '1px solid var(--n-border)', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 600, color: 'var(--n-text)' }}>
+              Back to events
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page">
       <div className="page-header">
@@ -208,21 +239,12 @@ export function Submit() {
             {igSubmitting ? 'Sending…' : 'Submit'}
           </button>
         </div>
-        {igSubmitted && (
-          <p className="ig-success">✅ Link received! We'll extract the details and notify you when it's ready for review.</p>
-        )}
         {igError && <p className="ig-error">{igError}</p>}
       </div>
 
       <div className="submit-section-divider">
         <span>or fill out manually</span>
       </div>
-
-      {submitted && (
-        <div className="success-message">
-          ✅ Event submitted! We'll review and publish within 24 hours.
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="submit-form">
         <div className="form-group">
