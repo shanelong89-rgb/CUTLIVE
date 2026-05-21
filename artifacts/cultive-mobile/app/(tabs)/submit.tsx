@@ -38,6 +38,8 @@ export default function SubmitScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
 
+  const [userDefaults, setUserDefaults] = useState({ name: "", email: "" });
+
   const [form, setForm] = useState({
     title: "",
     category: "Music",
@@ -60,6 +62,7 @@ export default function SubmitScreen() {
         (user.user_metadata?.full_name as string | undefined) ||
         (user.user_metadata?.name as string | undefined) ||
         email.split("@")[0];
+      setUserDefaults({ name, email });
       setForm((prev) => ({
         ...prev,
         submitter_email: prev.submitter_email || email,
@@ -182,8 +185,8 @@ export default function SubmitScreen() {
         venue: "",
         description: "",
         ticket_url: "",
-        submitter_name: "",
-        submitter_email: "",
+        submitter_name: userDefaults.name,
+        submitter_email: userDefaults.email,
       });
       setTimeout(() => setSubmitted(false), 3000);
     } catch {
