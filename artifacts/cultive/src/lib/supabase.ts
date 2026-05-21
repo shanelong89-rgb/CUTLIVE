@@ -111,7 +111,7 @@ export async function submitInstagramLink(instagramUrl: string, userId?: string)
     instagram_url: instagramUrl,
     source_id: sourceId,
     submission_type: 'instagram',
-    status: 'pending',
+    status: 'pending_scrape',
     title: 'Pending scrape…',
     ...(userId ? { user_id: userId } : {}),
   };
