@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { categories } from "@/data/events";
+import { AVAILABLE_TAGS } from "@/data/events";
 import { useColors } from "@/hooks/useColors";
 import { getEvents, type Event } from "@/lib/supabase";
 
@@ -128,7 +128,7 @@ function getIssueDate(): string {
 export default function DiscoverScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [activeDate, setActiveDate] = useState("all");
 
   const { data: events = [], isLoading } = useQuery({
@@ -136,17 +136,23 @@ export default function DiscoverScreen() {
     queryFn: getEvents,
   });
 
+  const toggleTag = (id: string) =>
+    setActiveTags((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+
   const filtered = useMemo(() => {
     let list = events;
-    if (activeCategory !== "All") {
-      if (activeCategory === "Exclusive") {
-        list = events.filter((e) => e.is_exclusive || e.isExclusive);
-      } else {
-        list = events.filter((e) => e.category === activeCategory);
-      }
+    if (activeTags.length > 0) {
+      list = events.filter((e) => {
+        if (e.tags && e.tags.length > 0) {
+          return e.tags.some((t) => activeTags.includes(t));
+        }
+        return activeTags.includes((e.category ?? "").toLowerCase());
+      });
     }
     return sortUpcomingFirst(filterByDate(list, activeDate));
-  }, [events, activeCategory, activeDate]);
+  }, [events, activeTags, activeDate]);
 
   const isWeb = Platform.OS === "web";
   const webBottomPad = isWeb ? 84 : 100;
@@ -222,12 +228,44 @@ export default function DiscoverScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={[styles.chipRow, { paddingBottom: 16 }]}
             >
-              {categories.map((cat) => {
-                const active = activeCategory === cat;
+              {/* All resets selection */}
+              <Pressable
+                key="all"
+                onPress={() => setActiveTags([])}
+                style={[
+                  styles.catChip,
+                  {
+                    borderBottomColor:
+                      activeTags.length === 0
+                        ? colors.foreground
+                        : "transparent",
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.catChipText,
+                    {
+                      color:
+                        activeTags.length === 0
+                          ? colors.foreground
+                          : colors.mutedForeground,
+                      fontFamily:
+                        activeTags.length === 0
+                          ? "Inter_700Bold"
+                          : "Inter_500Medium",
+                    },
+                  ]}
+                >
+                  All
+                </Text>
+              </Pressable>
+              {AVAILABLE_TAGS.map((tag) => {
+                const active = activeTags.includes(tag.id);
                 return (
                   <Pressable
-                    key={cat}
-                    onPress={() => setActiveCategory(cat)}
+                    key={tag.id}
+                    onPress={() => toggleTag(tag.id)}
                     style={[
                       styles.catChip,
                       {
@@ -250,7 +288,7 @@ export default function DiscoverScreen() {
                         },
                       ]}
                     >
-                      {cat}
+                      {tag.label}
                     </Text>
                   </Pressable>
                 );
@@ -266,7 +304,7 @@ export default function DiscoverScreen() {
               <Text
                 style={[styles.sectionLabel, { color: colors.foreground }]}
               >
-                {activeCategory === "All" ? "All Events" : activeCategory}
+                {activeTags.length === 0 ? "All Events" : activeTags.map(t => AVAILABLE_TAGS.find(a => a.id === t)?.label ?? t).join(", ")}
               </Text>
               <Text
                 style={[styles.sectionLabel, { color: colors.mutedForeground }]}

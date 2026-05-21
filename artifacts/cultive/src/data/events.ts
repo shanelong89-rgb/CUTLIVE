@@ -215,3 +215,15 @@ export const mockEvents: Event[] = [
 ];
 
 export const categories = ['All', 'Music', 'Nightlife', 'Arts', 'Food', 'Wellness', 'Market', 'Workshops', 'Exclusive'];
+
+export const AVAILABLE_TAGS = [
+  { id: 'music',      label: 'Music' },
+  { id: 'electronic', label: 'Electronic' },
+  { id: 'nightlife',  label: 'Nightlife' },
+  { id: 'art',        label: 'Art' },
+  { id: 'market',     label: 'Market' },
+  { id: 'food',       label: 'Food' },
+  { id: 'wellness',   label: 'Wellness' },
+  { id: 'workshops',  label: 'Workshops' },
+  { id: 'community',  label: 'Community' },
+];

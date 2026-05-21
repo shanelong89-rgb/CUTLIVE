@@ -31,6 +31,7 @@ export type Event = {
   isExclusive?: boolean;
   district?: string;
   ticket_url?: string | null;
+  tags?: string[];
   created_at?: string;
   updated_at?: string;
 };
@@ -47,6 +48,7 @@ export type SubmissionInput = {
   is_exclusive?: boolean;
   district?: string;
   ticket_url?: string | null;
+  tags?: string[];
   submitter_name: string;
   submitter_email: string;
 };

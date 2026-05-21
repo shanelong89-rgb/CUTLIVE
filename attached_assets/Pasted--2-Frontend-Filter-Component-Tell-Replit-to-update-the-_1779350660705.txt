@@ -1,0 +1,137 @@
+...2. Frontend Filter Component
+
+Tell Replit to update the category filter to support multi-select:
+// filters/CategoryFilter.jsx or similar
+import { useState } from 'react';
+
+const AVAILABLE_TAGS = [
+  { id: 'music', label: 'Music' },
+  { id: 'electronic', label: 'Electronic' },
+  { id: 'nightlife', label: 'Nightlife' },
+  { id: 'art', label: 'Art' },
+  { id: 'market', label: 'Market' },
+  { id: 'food', label: 'Food' },
+  { id: 'wellness', label: 'Wellness' },
+  { id: 'workshops', label: 'Workshops' },
+  { id: 'community', label: 'Community' },
+];
+
+export function CategoryFilter({ selectedTags, onChange }) {
+  const toggleTag = (tagId) => {
+    if (selectedTags.includes(tagId)) {
+      onChange(selectedTags.filter(t => t !== tagId));
+    } else {
+      onChange([...selectedTags, tagId]);
+    }
+  };
+
+  return (
+    <div className="tag-filter">
+      <span className="label">Filter by:</span>
+      {AVAILABLE_TAGS.map(tag => (
+        <button
+          key={tag.id}
+          className={selectedTags.includes(tag.id) ? 'active' : ''}
+          onClick={() => toggleTag(tag.id)}
+        >
+          {tag.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+...---
+
+3. Update API Query
+
+Tell Replit to update the events fetching to filter by multiple tags:
+// lib/supabase.js or api.js
+
+export async function getEvents(selectedTags = []) {
+  let query = supabase
+    .from('events')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  // Filter by tags (events matching ANY selected tag)
+  if (selectedTags.length > 0) {
+    query = query.overlaps('tags', selectedTags);
+  }
+
+  const { data, error } = await query;
+  return { data, error };
+}
+...Key function: .overlaps('tags', selectedTags) — returns events where tags array overlaps with selectedTags.
+
+---
+
+4. Update Event List Component
+// EventsList.jsx
+import { useState } from 'react';
+import { CategoryFilter } from './filters/CategoryFilter';
+import { getEvents } from '../lib/supabase';
+
+export function EventsList() {
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    loadEvents();
+  }, [selectedTags]);
+
+  async function loadEvents() {
+    const { data } = await getEvents(selectedTags);
+    setEvents(data || []);
+  }
+
+  return (
+    <div>
+      <CategoryFilter 
+        selectedTags={selectedTags} 
+        onChange={setSelectedTags} 
+      />
+      
+      <div className="events-grid">
+        {events.map(event => (
+          <EventCard key={event.id} event={event} />
+        ))}
+      </div>
+    </div>
+  );
+}
+...---
+
+5. Display Tags on Event Cards
+// EventCard.jsx
+export function EventCard({ event }) {
+  return (
+    <div className="event-card">
+      <img src={event.image} alt={event.title} />
+      <h3>{event.title}</h3>
+      
+      {/* Show all tags */}
+      <div className="event-tags">
+        {event.tags?.map(tag => (
+          <span key={tag} className={`tag tag-${tag}`}>
+            {tag}
+          </span>
+        ))}
+      </div>
+      
+      <p>{event.date} • {event.venue}</p>
+    </div>
+  );
+}
+...---
+
+Summary for Replit:
+"Add multi-tag support to the event filters:
+ 1. Run the SQL to add tags column to events table
+ 2. Create a multi-select tag filter component with toggle buttons
+ 3. Update the Supabase query to use .overlaps('tags', selectedTags)
+ 4. Show tags as pills on each event card
+>  (1/2)
+
+
+Tags should include: music, electronic, nightlife, art, market, food, wellness, workshops, community"
+Want me to provide the CSS styling too, or help with anything else? (2/2)

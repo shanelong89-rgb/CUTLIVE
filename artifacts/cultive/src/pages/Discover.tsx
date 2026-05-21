@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { categories } from '../data/events';
+import { AVAILABLE_TAGS } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
 
 function formatTime(time?: string): string {
@@ -121,6 +121,13 @@ function EventRow({ event }: { event: Event }) {
           {event.category}{district ? ` · ${district}` : ''}
           {isExclusive && ' · Members Only'}
         </p>
+        {event.tags && event.tags.length > 0 && (
+          <div className="event-tag-pills">
+            {event.tags.map(t => (
+              <span key={t} className="event-tag-pill">{t}</span>
+            ))}
+          </div>
+        )}
         <p className="event-venue">{venueName}</p>
       </div>
     </Link>
@@ -128,7 +135,7 @@ function EventRow({ event }: { event: Event }) {
 }
 
 export function Discover() {
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [activeDateFilter, setActiveDateFilter] = useState('all');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,16 +153,17 @@ export function Discover() {
   }, []);
 
   const filteredEvents = useMemo(() => {
-    // First filter by category
     let filtered = events;
-    if (activeCategory !== 'All') {
-      if (activeCategory === 'Exclusive') {
-        filtered = events.filter(e => e.is_exclusive || e.isExclusive);
-      } else {
-        filtered = events.filter(e => e.category === activeCategory);
-      }
+    if (activeTags.length > 0) {
+      filtered = events.filter(e => {
+        if (e.tags && e.tags.length > 0) {
+          // Event has tags: show if any overlap with selected
+          return e.tags.some(t => activeTags.includes(t));
+        }
+        // Backward compat: event has no tags yet — match on category lowercase
+        return activeTags.includes((e.category ?? '').toLowerCase());
+      });
     }
-    // Then filter by date chip
     filtered = filterByDate(filtered, activeDateFilter);
 
     // Sort: upcoming first (soonest → latest), then undated, then past at the bottom
@@ -177,7 +185,7 @@ export function Discover() {
       return 0;
     });
     return decorated.map((d) => d.e);
-  }, [events, activeCategory, activeDateFilter]);
+  }, [events, activeTags, activeDateFilter]);
 
   return (
     <div>
@@ -212,15 +220,27 @@ export function Discover() {
           ))}
         </div>
 
-        {/* Category Filter */}
+        {/* Tag Filter — multi-select; clicking All resets */}
         <div className="category-strip">
-          {categories.map((cat) => (
+          <button
+            className={`category-chip ${activeTags.length === 0 ? 'active' : ''}`}
+            onClick={() => setActiveTags([])}
+          >
+            All
+          </button>
+          {AVAILABLE_TAGS.map(tag => (
             <button
-              key={cat}
-              className={`category-chip ${activeCategory === cat ? 'active' : ''}`}
-              onClick={() => setActiveCategory(cat)}
+              key={tag.id}
+              className={`category-chip ${activeTags.includes(tag.id) ? 'active' : ''}`}
+              onClick={() =>
+                setActiveTags(prev =>
+                  prev.includes(tag.id)
+                    ? prev.filter(t => t !== tag.id)
+                    : [...prev, tag.id]
+                )
+              }
             >
-              {cat}
+              {tag.label}
             </button>
           ))}
         </div>
@@ -229,7 +249,9 @@ export function Discover() {
       {/* Section Header */}
       <div className="section-header">
         <span className="section-label">
-          {activeCategory === 'All' ? 'All Events' : activeCategory}
+          {activeTags.length === 0
+            ? 'All Events'
+            : activeTags.map(t => AVAILABLE_TAGS.find(x => x.id === t)?.label ?? t).join(' · ')}
           {activeDateFilter !== 'all' && ` · ${dateFilters.find(d => d.id === activeDateFilter)?.label}`}
         </span>
         <span className="section-label">

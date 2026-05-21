@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { AVAILABLE_TAGS } from '../data/events';
 import {
   supabase,
   signIn,
@@ -29,6 +30,7 @@ const EMPTY_EVENT: Event = {
   is_exclusive: false,
   district: '',
   ticket_url: '',
+  tags: [],
 };
 
 export function Admin() {
@@ -409,6 +411,31 @@ function EventsTab({
                 <option>Market</option>
                 <option>Workshops</option>
               </select>
+            </div>
+          </div>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label>Tags</label>
+            <div className="tag-pill-row">
+              {AVAILABLE_TAGS.map(tag => {
+                const active = (formData.tags ?? []).includes(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    className={`tag-pill-btn ${active ? 'active' : ''}`}
+                    onClick={() =>
+                      setFormData(f => ({
+                        ...f,
+                        tags: active
+                          ? (f.tags ?? []).filter(t => t !== tag.id)
+                          : [...(f.tags ?? []), tag.id],
+                      }))
+                    }
+                  >
+                    {tag.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="form-row">

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { submitEvent } from '../lib/supabase';
+import { AVAILABLE_TAGS } from '../data/events';
 
 // Convert "YYYY-MM-DD" from <input type="date"> into the human-readable
 // format used elsewhere in the app (e.g. "Sat, Jun 7"). Parses as a local
@@ -42,6 +43,7 @@ export function Submit() {
     submitter_name: '',
     submitter_email: '',
   });
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -64,6 +66,7 @@ export function Submit() {
         is_exclusive: false,
         district: formData.venue.split(',')[0] || '',
         ticket_url: formData.ticket_url.trim() || null,
+        tags: selectedTags,
         submitter_name: formData.submitter_name,
         submitter_email: formData.submitter_email,
       });
@@ -152,6 +155,29 @@ export function Submit() {
               placeholder="e.g. Free, $100"
               required
             />
+          </div>
+        </div>
+
+        <div className="form-group" style={{ marginBottom: '16px' }}>
+          <label>Tags <span style={{ fontWeight: 400, color: 'var(--n-muted)' }}>(select all that apply)</span></label>
+          <div className="tag-pill-row">
+            {AVAILABLE_TAGS.map(tag => {
+              const active = selectedTags.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  className={`tag-pill-btn ${active ? 'active' : ''}`}
+                  onClick={() =>
+                    setSelectedTags(prev =>
+                      active ? prev.filter(t => t !== tag.id) : [...prev, tag.id]
+                    )
+                  }
+                >
+                  {tag.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 

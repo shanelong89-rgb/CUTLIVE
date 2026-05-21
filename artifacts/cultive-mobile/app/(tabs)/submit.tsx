@@ -19,6 +19,18 @@ import { submitEvent } from "@/lib/supabase";
 
 const CATEGORY_OPTIONS = ["Music", "Arts", "Nightlife", "Food", "Wellness", "Market", "Workshops"];
 
+const AVAILABLE_TAGS = [
+  { id: "music",      label: "Music" },
+  { id: "electronic", label: "Electronic" },
+  { id: "nightlife",  label: "Nightlife" },
+  { id: "art",        label: "Art" },
+  { id: "market",     label: "Market" },
+  { id: "food",       label: "Food" },
+  { id: "wellness",   label: "Wellness" },
+  { id: "workshops",  label: "Workshops" },
+  { id: "community",  label: "Community" },
+];
+
 export default function SubmitScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -36,6 +48,7 @@ export default function SubmitScreen() {
     submitter_name: "",
     submitter_email: "",
   });
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -72,10 +85,12 @@ export default function SubmitScreen() {
         is_exclusive: false,
         district: form.venue.split(",")[0] || "",
         ticket_url: form.ticket_url.trim() || null,
+        tags: selectedTags,
         submitter_name: form.submitter_name,
         submitter_email: form.submitter_email,
       });
       setSubmitted(true);
+      setSelectedTags([]);
       setForm({
         title: "",
         category: "Music",
@@ -177,6 +192,40 @@ export default function SubmitScreen() {
                 }}
               >
                 {c}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Label>Tags <Text style={{ fontWeight: "400", color: colors.mutedForeground }}>(select all that apply)</Text></Label>
+      <View style={styles.catRow}>
+        {AVAILABLE_TAGS.map((tag) => {
+          const active = selectedTags.includes(tag.id);
+          return (
+            <Pressable
+              key={tag.id}
+              onPress={() =>
+                setSelectedTags((prev) =>
+                  active ? prev.filter((t) => t !== tag.id) : [...prev, tag.id]
+                )
+              }
+              style={[
+                styles.catPill,
+                {
+                  borderColor: active ? colors.foreground : colors.border,
+                  backgroundColor: active ? colors.foreground : "transparent",
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color: active ? colors.background : colors.foreground,
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 12,
+                }}
+              >
+                {tag.label}
               </Text>
             </Pressable>
           );

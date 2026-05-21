@@ -20,6 +20,7 @@ export type Event = {
   isExclusive?: boolean;
   district?: string;
   ticket_url?: string | null;
+  tags?: string[];
   created_at?: string;
   updated_at?: string;
 };
@@ -37,6 +38,7 @@ export type Submission = {
   is_exclusive?: boolean;
   district?: string;
   ticket_url?: string | null;
+  tags?: string[];
   submitter_name: string;
   submitter_email: string;
   status: 'pending' | 'approved' | 'rejected';
@@ -234,6 +236,7 @@ export async function approveSubmission(sub: Submission) {
     is_exclusive: sub.is_exclusive || false,
     district: sub.district || (sub.venue?.split(',')[0] ?? ''),
     ticket_url: sub.ticket_url || null,
+    tags: sub.tags || [],
   });
   // 2. Mark submission as approved + link
   const { data, error } = await supabase

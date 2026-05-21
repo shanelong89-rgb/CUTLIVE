@@ -23,6 +23,7 @@ create table if not exists public.events (
   description   text,
   is_exclusive  boolean default false,
   district      text,
+  tags          text[],
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
 );
@@ -49,7 +50,8 @@ create table if not exists public.submissions (
                       check (status in ('pending', 'approved', 'rejected')),
   created_at          timestamptz default now(),
   reviewed_at         timestamptz,
-  published_event_id  text references public.events(id) on delete set null
+  published_event_id  text references public.events(id) on delete set null,
+  tags                text[]
 );
 
 create index if not exists submissions_status_idx on public.submissions (status, created_at desc);
