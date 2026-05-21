@@ -8,6 +8,48 @@ function formatTime(time?: string): string {
   return '';
 }
 
+// Parse freeform event date strings into a Date (best-effort).
+// Returns null if we can't make sense of it.
+function parseEventDate(raw: string, timeStr?: string): Date | null {
+  if (!raw) return null;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const s = raw.trim().toLowerCase();
+
+  let base: Date | null = null;
+  if (s.includes('today')) base = new Date(today);
+  else if (s.includes('tomorrow')) base = new Date(today.getTime() + 86400000);
+  else {
+    // Try native parse first (handles ISO and "May 24, 2026")
+    const direct = new Date(raw);
+    if (!isNaN(direct.getTime())) {
+      base = direct;
+    } else {
+      // Match "May 24" or "Sat, May 24" -> add current/next year
+      const m = raw.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
+      if (m) {
+        const guess = new Date(`${m[1]} ${m[2]}, ${now.getFullYear()}`);
+        if (!isNaN(guess.getTime())) {
+          if (guess.getTime() < today.getTime() - 86400000) {
+            guess.setFullYear(now.getFullYear() + 1);
+          }
+          base = guess;
+        }
+      }
+    }
+  }
+  if (!base) return null;
+
+  // Apply time if it looks like HH:MM (24h)
+  if (timeStr) {
+    const tm = timeStr.match(/(\d{1,2})[:\.](\d{2})/);
+    if (tm) {
+      base.setHours(parseInt(tm[1], 10), parseInt(tm[2], 10), 0, 0);
+    }
+  }
+  return base;
+}
+
 function getIssueDate(): string {
   const now = new Date();
   const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -113,8 +155,28 @@ export function Discover() {
         filtered = events.filter(e => e.category === activeCategory);
       }
     }
-    // Then filter by date
-    return filterByDate(filtered, activeDateFilter);
+    // Then filter by date chip
+    filtered = filterByDate(filtered, activeDateFilter);
+
+    // Sort: upcoming first (soonest → latest), then undated, then past at the bottom
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const decorated = filtered.map((e) => {
+      const parsed = parseEventDate(e.date, e.time);
+      const isPast = parsed ? parsed.getTime() < todayStart.getTime() : false;
+      return { e, parsed, isPast };
+    });
+    decorated.sort((a, b) => {
+      // Past events always last
+      if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
+      // Both have a parsed date → chronological
+      if (a.parsed && b.parsed) return a.parsed.getTime() - b.parsed.getTime();
+      // One parsed, one not → parsed first
+      if (a.parsed) return -1;
+      if (b.parsed) return 1;
+      return 0;
+    });
+    return decorated.map((d) => d.e);
   }, [events, activeCategory, activeDateFilter]);
 
   return (

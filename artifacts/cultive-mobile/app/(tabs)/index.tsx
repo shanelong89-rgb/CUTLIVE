@@ -52,6 +52,60 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
   });
 }
 
+function parseEventDate(raw: string, timeStr?: string): Date | null {
+  if (!raw) return null;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const s = raw.trim().toLowerCase();
+  let base: Date | null = null;
+  if (s.includes("today")) base = new Date(today);
+  else if (s.includes("tomorrow"))
+    base = new Date(today.getTime() + 86400000);
+  else {
+    const direct = new Date(raw);
+    if (!isNaN(direct.getTime())) base = direct;
+    else {
+      const m = raw.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
+      if (m) {
+        const guess = new Date(`${m[1]} ${m[2]}, ${now.getFullYear()}`);
+        if (!isNaN(guess.getTime())) {
+          if (guess.getTime() < today.getTime() - 86400000)
+            guess.setFullYear(now.getFullYear() + 1);
+          base = guess;
+        }
+      }
+    }
+  }
+  if (!base) return null;
+  if (timeStr) {
+    const tm = timeStr.match(/(\d{1,2})[:\.](\d{2})/);
+    if (tm) base.setHours(parseInt(tm[1], 10), parseInt(tm[2], 10), 0, 0);
+  }
+  return base;
+}
+
+function sortUpcomingFirst(list: Event[]): Event[] {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  return [...list]
+    .map((e) => {
+      const parsed = parseEventDate(e.date, e.time);
+      return {
+        e,
+        parsed,
+        isPast: parsed ? parsed.getTime() < todayStart.getTime() : false,
+      };
+    })
+    .sort((a, b) => {
+      if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
+      if (a.parsed && b.parsed) return a.parsed.getTime() - b.parsed.getTime();
+      if (a.parsed) return -1;
+      if (b.parsed) return 1;
+      return 0;
+    })
+    .map((d) => d.e);
+}
+
 function getIssueDate(): string {
   const now = new Date();
   const m = [
@@ -91,7 +145,7 @@ export default function DiscoverScreen() {
         list = events.filter((e) => e.category === activeCategory);
       }
     }
-    return filterByDate(list, activeDate);
+    return sortUpcomingFirst(filterByDate(list, activeDate));
   }, [events, activeCategory, activeDate]);
 
   const isWeb = Platform.OS === "web";
