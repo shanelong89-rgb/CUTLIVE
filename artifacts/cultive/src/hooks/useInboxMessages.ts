@@ -453,8 +453,11 @@ export function useInboxMessages() {
 
   useEffect(() => {
     if (!userId) return;
+    // Use a unique channel name each time so Supabase never returns a stale
+    // already-subscribed channel from its internal registry (which would throw
+    // "cannot add postgres_changes callbacks after subscribe()").
     const channel = supabase
-      .channel(`inbox-realtime-${userId}`)
+      .channel(`inbox-realtime-${userId}-${Date.now()}`)
       .on(
         'postgres_changes',
         {
