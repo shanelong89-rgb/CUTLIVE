@@ -114,7 +114,12 @@ function extractInstagramPostId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-export async function submitInstagramLink(instagramUrl: string, userId?: string) {
+export async function submitInstagramLink(
+  instagramUrl: string,
+  userId?: string,
+  submitterName?: string,
+  submitterEmail?: string,
+) {
   const sourceId = extractInstagramPostId(instagramUrl);
   // Always resolve the authenticated user so user_id is never omitted when
   // the caller forgets to pass it (e.g. the admin quick-submit path).
@@ -128,6 +133,8 @@ export async function submitInstagramLink(instagramUrl: string, userId?: string)
     status: 'pending_scrape',
     title: 'Pending scrape…',
     ...(resolvedUserId ? { user_id: resolvedUserId } : {}),
+    ...(submitterName ? { submitter_name: submitterName } : {}),
+    ...(submitterEmail ? { submitter_email: submitterEmail } : {}),
   };
   const { data, error } = await supabase
     .from('submissions')

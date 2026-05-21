@@ -248,6 +248,31 @@ export default function SubmitScreen() {
         </View>
       ) : null}
 
+      {!userDefaults.name && (
+        <>
+          <Label>Your Name *</Label>
+          <Input
+            value={form.submitter_name}
+            onChangeText={(v) => onChange("submitter_name", v)}
+            placeholder="Jane Smith"
+            autoCapitalize="words"
+          />
+        </>
+      )}
+
+      {!userDefaults.email && (
+        <>
+          <Label>Your Email *</Label>
+          <Input
+            value={form.submitter_email}
+            onChangeText={(v) => onChange("submitter_email", v)}
+            placeholder="we'll notify you when it's approved"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </>
+      )}
+
       <Label>Event Title *</Label>
       <Input
         value={form.title}
@@ -417,31 +442,6 @@ export default function SubmitScreen() {
       )}
 
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-      {!userDefaults.name && (
-        <>
-          <Label>Your Name *</Label>
-          <Input
-            value={form.submitter_name}
-            onChangeText={(v) => onChange("submitter_name", v)}
-            placeholder="Jane Smith"
-            autoCapitalize="words"
-          />
-        </>
-      )}
-
-      {!userDefaults.email && (
-        <>
-          <Label>Your Email *</Label>
-          <Input
-            value={form.submitter_email}
-            onChangeText={(v) => onChange("submitter_email", v)}
-            placeholder="payment goes here once approved"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </>
-      )}
 
       <Pressable
         onPress={onSubmit}

@@ -50,7 +50,7 @@ export function Submit() {
     setIgError('');
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      await submitInstagramLink(igUrl.trim(), user?.id);
+      await submitInstagramLink(igUrl.trim(), user?.id, formData.submitter_name || undefined, formData.submitter_email || undefined);
       setIgUrl('');
       setThankYouType('instagram');
     } catch (err: unknown) {
@@ -245,6 +245,31 @@ export function Submit() {
         {igError && <p className="ig-error">{igError}</p>}
       </div>
 
+      <div className="form-row" style={{ marginTop: '16px' }}>
+        <div className="form-group">
+          <label>Your Name *</label>
+          <input
+            type="text"
+            name="submitter_name"
+            value={formData.submitter_name}
+            onChange={handleChange}
+            placeholder="e.g. Jane Smith"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Your Email *</label>
+          <input
+            type="email"
+            name="submitter_email"
+            value={formData.submitter_email}
+            onChange={handleChange}
+            placeholder="we'll notify you when it's approved"
+            required
+          />
+        </div>
+      </div>
+
       <div className="submit-section-divider">
         <span>or fill out manually</span>
       </div>
@@ -386,32 +411,6 @@ export function Submit() {
             multiple
             onChange={handleFileChange}
             style={{ display: 'none'}}
-          />
-        </div>
-
-        <div className="form-divider" />
-
-        <div className="form-group">
-          <label>Your Name *</label>
-          <input
-            type="text"
-            name="submitter_name"
-            value={formData.submitter_name}
-            onChange={handleChange}
-            placeholder="e.g. Jane Smith"
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Your Email *</label>
-          <input
-            type="email"
-            name="submitter_email"
-            value={formData.submitter_email}
-            onChange={handleChange}
-            placeholder="we'll notify you here when it's approved"
-            required
           />
         </div>
 
