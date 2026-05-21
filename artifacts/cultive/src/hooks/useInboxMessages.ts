@@ -22,24 +22,71 @@ function parseEventDate(raw: string, timeStr?: string): Date | null {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const s = raw.trim().toLowerCase();
   let base: Date | null = null;
-  if (s.includes('today')) base = new Date(today);
-  else if (s.includes('tomorrow')) base = new Date(today.getTime() + 86400000);
-  else {
-    const direct = new Date(raw);
-    if (!isNaN(direct.getTime())) base = direct;
-    else {
-      const m = raw.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
-      if (m) {
-        const guess = new Date(`${m[1]} ${m[2]}, ${now.getFullYear()}`);
-        if (!isNaN(guess.getTime())) {
-          // Only roll to next year if > 14 days in the past — recent/ongoing events stay as-is
-          if (guess.getTime() < today.getTime() - 14 * 86400000)
-            guess.setFullYear(now.getFullYear() + 1);
-          base = guess;
+
+  if (s.includes('today')) {
+    base = new Date(today);
+  } else if (s.includes('tomorrow')) {
+    base = new Date(today.getTime() + 86400000);
+  } else {
+    // Extract explicit year if present, e.g. "2026" in "May 8-27, 2026"
+    const yearMatch = raw.match(/\b(20\d{2})\b/);
+    const explicitYear = yearMatch ? parseInt(yearMatch[1], 10) : null;
+
+    if (explicitYear) {
+      // String contains a year — bypass new Date(raw) entirely because V8 misparses
+      // range strings like "May 8-27, 2026" as 2027. Trust the extracted year.
+      const wdm = raw.match(/[A-Za-z]{3,}\s+(\d{1,2})\s+([A-Za-z]{3,})/);
+      const wmd = !wdm ? raw.match(/[A-Za-z]{3,}\s+([A-Za-z]{3,})\s+(\d{1,2})/) : null;
+      if (wdm) {
+        const attempt = new Date(`${wdm[2]} ${wdm[1]}, ${explicitYear}`);
+        if (!isNaN(attempt.getTime())) base = attempt;
+      } else if (wmd) {
+        const attempt = new Date(`${wmd[1]} ${wmd[2]}, ${explicitYear}`);
+        if (!isNaN(attempt.getTime())) base = attempt;
+      }
+      if (!base) {
+        // "Month DD..." e.g. "May 8-27, 2026" → extract "May 8"
+        const m = raw.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
+        if (m) {
+          const attempt = new Date(`${m[1]} ${m[2]}, ${explicitYear}`);
+          if (!isNaN(attempt.getTime())) base = attempt;
+        }
+      }
+    } else {
+      // No explicit year — handle weekday-prefixed formats first to avoid V8 quirk
+      // returning year ~2001 for strings like "Fri 13 Jun".
+      const wdm = raw.match(/[A-Za-z]{3,}\s+(\d{1,2})\s+([A-Za-z]{3,})/);
+      const wmd = !wdm ? raw.match(/[A-Za-z]{3,}\s+([A-Za-z]{3,})\s+(\d{1,2})/) : null;
+      if (wdm) {
+        const attempt = new Date(`${wdm[2]} ${wdm[1]}, ${now.getFullYear()}`);
+        if (!isNaN(attempt.getTime())) base = attempt;
+      } else if (wmd) {
+        const attempt = new Date(`${wmd[1]} ${wmd[2]}, ${now.getFullYear()}`);
+        if (!isNaN(attempt.getTime())) base = attempt;
+      }
+      if (!base) {
+        // Direct parse — only accept current or next year (rejects V8 year-2001 quirk)
+        const direct = new Date(raw);
+        if (!isNaN(direct.getTime())) {
+          const yr = direct.getFullYear();
+          if (yr === now.getFullYear() || yr === now.getFullYear() + 1) base = direct;
+        }
+      }
+      if (!base) {
+        // "Month DD" fallback with year rollover
+        const m = raw.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
+        if (m) {
+          const guess = new Date(`${m[1]} ${m[2]}, ${now.getFullYear()}`);
+          if (!isNaN(guess.getTime())) {
+            if (guess.getTime() < today.getTime() - 14 * 86400000)
+              guess.setFullYear(now.getFullYear() + 1);
+            base = guess;
+          }
         }
       }
     }
   }
+
   if (!base) return null;
   if (timeStr) {
     const tm = timeStr.match(/(\d{1,2})[:\.](\d{2})/);
@@ -155,7 +202,6 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
   const tomorrowEnd = new Date(tomorrowStart.getTime() + 86400000);
   // Allow events from the past 14 days — covers ongoing exhibitions and multi-day events
   const cutoff = new Date(todayStart.getTime() - 14 * 86400000);
-
   for (const ev of events) {
     const when = parseEventDate(ev.date, ev.time);
     if (!when) continue;
