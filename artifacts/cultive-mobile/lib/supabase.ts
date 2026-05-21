@@ -90,6 +90,36 @@ export async function getEventById(id: string): Promise<Event | null> {
   }
 }
 
+// Uploads an image (local URI) to the `submission-images` Supabase Storage bucket
+// and returns the public URL. The bucket must exist and be set to public in Supabase.
+export async function uploadSubmissionImage(
+  uri: string,
+  mimeType: string = "image/jpeg",
+): Promise<string> {
+  const ext = mimeType.includes("png") ? "png" : "jpg";
+  const path = `submissions/${Date.now().toString(36)}_${Math.random()
+    .toString(36)
+    .slice(2, 8)}.${ext}`;
+
+  const response = await fetch(uri);
+  const arrayBuffer = await response.arrayBuffer();
+
+  const { error } = await supabase.storage
+    .from("submission-images")
+    .upload(path, arrayBuffer, { contentType: mimeType, upsert: false });
+
+  if (error) {
+    console.warn("uploadSubmissionImage error:", error.message);
+    throw error;
+  }
+
+  const { data: urlData } = supabase.storage
+    .from("submission-images")
+    .getPublicUrl(path);
+
+  return urlData.publicUrl;
+}
+
 // Writes to the `submissions` table (admin reviews & publishes).
 export async function submitEvent(input: SubmissionInput) {
   const row = { id: genId("sub"), status: "pending" as const, ...input };

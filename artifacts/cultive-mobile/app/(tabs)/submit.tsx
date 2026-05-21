@@ -1,5 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -15,7 +17,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
-import { submitEvent, supabase } from "@/lib/supabase";
+import { submitEvent, supabase, uploadSubmissionImage } from "@/lib/supabase";
 
 const CATEGORY_OPTIONS = ["Music", "Arts", "Nightlife", "Food", "Wellness", "Market", "Workshops"];
 
@@ -65,9 +67,67 @@ export default function SubmitScreen() {
       }));
     });
   }, []);
+  const [pickedImageUri, setPickedImageUri] = useState<string | null>(null);
+  const [pickedImageMime, setPickedImageMime] = useState<string>("image/jpeg");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const pickImage = async () => {
+    if (Platform.OS === "web") {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 0.7,
+      });
+      if (!result.canceled && result.assets[0]) {
+        setPickedImageUri(result.assets[0].uri);
+        setPickedImageMime(result.assets[0].mimeType ?? "image/jpeg");
+      }
+      return;
+    }
+
+    Alert.alert("Add Event Photo", "Choose a source", [
+      {
+        text: "Camera",
+        onPress: async () => {
+          const { granted } = await ImagePicker.requestCameraPermissionsAsync();
+          if (!granted) {
+            Alert.alert("Permission needed", "Camera access is required to take a photo.");
+            return;
+          }
+          const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets[0]) {
+            setPickedImageUri(result.assets[0].uri);
+            setPickedImageMime(result.assets[0].mimeType ?? "image/jpeg");
+          }
+        },
+      },
+      {
+        text: "Photo Library",
+        onPress: async () => {
+          const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (!granted) {
+            Alert.alert("Permission needed", "Photo library access is required to select a photo.");
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images"],
+            allowsEditing: true,
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets[0]) {
+            setPickedImageUri(result.assets[0].uri);
+            setPickedImageMime(result.assets[0].mimeType ?? "image/jpeg");
+          }
+        },
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
 
   const onChange = (key: keyof typeof form, value: string) =>
     setForm((p) => ({ ...p, [key]: value }));
@@ -90,6 +150,10 @@ export default function SubmitScreen() {
       if (Platform.OS !== "web") {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
+      let imageUrl = "";
+      if (pickedImageUri) {
+        imageUrl = await uploadSubmissionImage(pickedImageUri, pickedImageMime);
+      }
       await submitEvent({
         title: form.title,
         date: form.date,
@@ -98,7 +162,7 @@ export default function SubmitScreen() {
         category: form.category,
         price: form.price,
         description: form.description,
-        image: "",
+        image: imageUrl,
         is_exclusive: false,
         district: form.venue.split(",")[0] || "",
         ticket_url: form.ticket_url.trim() || null,
@@ -108,6 +172,7 @@ export default function SubmitScreen() {
       });
       setSubmitted(true);
       setSelectedTags([]);
+      setPickedImageUri(null);
       setForm({
         title: "",
         category: "Music",
@@ -296,6 +361,47 @@ export default function SubmitScreen() {
         style={{ minHeight: 100, textAlignVertical: "top" }}
       />
 
+      <Label>
+        Event Photo{" "}
+        <Text style={{ fontWeight: "400", color: colors.mutedForeground }}>
+          (optional)
+        </Text>
+      </Label>
+      {pickedImageUri ? (
+        <View>
+          <Image
+            source={{ uri: pickedImageUri }}
+            style={[styles.imagePreview, { borderColor: colors.border }]}
+            contentFit="cover"
+          />
+          <Pressable
+            onPress={() => setPickedImageUri(null)}
+            style={[styles.removeImageBtn, { borderColor: colors.border, backgroundColor: colors.background }]}
+          >
+            <Feather name="x" size={14} color={colors.foreground} />
+            <Text style={[styles.removeImageText, { color: colors.foreground }]}>
+              Remove
+            </Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable
+          onPress={pickImage}
+          style={({ pressed }) => [
+            styles.imagePicker,
+            {
+              borderColor: colors.border,
+              backgroundColor: pressed ? colors.border : "transparent",
+            },
+          ]}
+        >
+          <Feather name="image" size={20} color={colors.mutedForeground} />
+          <Text style={[styles.imagePickerText, { color: colors.mutedForeground }]}>
+            Tap to add a photo
+          </Text>
+        </Pressable>
+      )}
+
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
       <Label>Your Name *</Label>
@@ -408,4 +514,38 @@ const styles = StyleSheet.create({
     backgroundColor: "#dcfce7",
   },
   successText: { fontFamily: "Inter_500Medium", fontSize: 13 },
+  imagePicker: {
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderRadius: 4,
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  imagePickerText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+  },
+  imagePreview: {
+    width: "100%",
+    height: 180,
+    borderRadius: 4,
+    borderWidth: 1,
+  },
+  removeImageBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+    borderWidth: 1,
+  },
+  removeImageText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+  },
 });
