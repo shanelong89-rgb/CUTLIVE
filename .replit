@@ -1,4 +1,4 @@
-modules = ["nodejs-24"]
+modules = ["nodejs-24", "javascript"]
 
 [deployment]
 router = "application"
@@ -23,8 +23,17 @@ timeoutMs = 20000
 localPort = 20588
 externalPort = 80
 
+[[ports]]
+localPort = 21357
+externalPort = 3000
+
 [userenv]
 
 [userenv.shared]
 VITE_SUPABASE_URL = "https://qmjdqldmpmeguuyepbsw.supabase.co"
 VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtamRxbGRtcG1lZ3V1eWVwYnN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzA0MjYsImV4cCI6MjA1NzMwNjQyNn0.ZiIC-9L3i2K5o2d8GqEzfzj8_FfXuKtH49kIKBC2_rc"
+EXPO_PUBLIC_SUPABASE_URL = "https://qmjdqldmpmeguuyepbsw.supabase.co"
+EXPO_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtamRxbGRtcG1lZ3V1eWVwYnN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzA0MjYsImV4cCI6MjA1NzMwNjQyNn0.ZiIC-9L3i2K5o2d8GqEzfzj8_FfXuKtH49kIKBC2_rc"
+
+[nix]
+channel = "stable-25_05"
