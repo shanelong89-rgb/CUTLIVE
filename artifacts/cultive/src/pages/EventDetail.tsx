@@ -145,20 +145,6 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
           </div>
         )}
 
-        <div className="detail-section">
-          <h3>What to expect</h3>
-          <ul style={{ 
-            color: 'var(--n-secondary)', 
-            lineHeight: 1.8, 
-            paddingLeft: '20px',
-            fontSize: '0.9rem'
-          }}>
-            <li>Curated experience by local experts</li>
-            <li>Small group for intimate setting</li>
-            <li>Perfect for meeting like-minded people</li>
-            <li>Photos and memories to take home</li>
-          </ul>
-        </div>
       </div>
 
       <div className="bottom-cta">

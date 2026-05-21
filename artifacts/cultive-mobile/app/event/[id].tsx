@@ -182,28 +182,6 @@ export default function EventDetailScreen() {
             {event.description}
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            What to expect
-          </Text>
-          {[
-            "Curated experience by local experts",
-            "Small group for an intimate setting",
-            "Perfect for meeting like-minded people",
-            "Photos and memories to take home",
-          ].map((b, i) => (
-            <View key={i} style={styles.bulletRow}>
-              <Text
-                style={[styles.bulletDot, { color: colors.mutedForeground }]}
-              >
-                ·
-              </Text>
-              <Text
-                style={[styles.body, { color: colors.mutedForeground, flex: 1 }]}
-              >
-                {b}
-              </Text>
-            </View>
-          ))}
         </View>
       </ScrollView>
 
