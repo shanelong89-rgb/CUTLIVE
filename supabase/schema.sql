@@ -46,6 +46,7 @@ create table if not exists public.submissions (
   district            text,
   submitter_name      text,
   submitter_email     text,
+  user_id             uuid references auth.users(id) on delete set null,
   status              text not null default 'pending'
                       check (status in ('pending', 'approved', 'rejected')),
   created_at          timestamptz default now(),
@@ -54,7 +55,8 @@ create table if not exists public.submissions (
   tags                text[]
 );
 
-create index if not exists submissions_status_idx on public.submissions (status, created_at desc);
+create index if not exists submissions_status_idx  on public.submissions (status, created_at desc);
+create index if not exists submissions_user_id_idx on public.submissions (user_id);
 
 -- ── PROFILES (1:1 with auth.users, holds is_admin flag) ─────
 create table if not exists public.profiles (
