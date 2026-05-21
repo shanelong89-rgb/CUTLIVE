@@ -3,6 +3,15 @@ import { Link } from 'react-router-dom';
 import { getEvents, type Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 
+function displayDate(raw?: string): string {
+  if (!raw) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (!m) return raw;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 export function Saved() {
   const { ids, remove, clear } = useSavedEvents();
   const [events, setEvents] = useState<Event[]>([]);
@@ -82,6 +91,7 @@ export function Saved() {
             return (
               <div key={event.id} className="event-row saved-row">
                 <Link to={`/event/${event.id}`} className="event-time">
+                  {event.date && <span className="event-date">{displayDate(event.date)}</span>}
                   <span>{event.time || '—'}</span>
                 </Link>
                 <Link to={`/event/${event.id}`} className="event-thumb">
