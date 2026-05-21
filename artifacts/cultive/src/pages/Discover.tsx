@@ -86,47 +86,80 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
   const results: Date[] = [];
   let lastMonth: number | null = null;
 
+  // Helper: optionally bump a date to next year if it's in the past
+  const maybeRoll = (d: Date) => {
+    if (!keepPast && d.getTime() < today.getTime() - 86400000)
+      d.setFullYear(now.getFullYear() + 1);
+    return d;
+  };
+
   for (const seg of segments) {
     const t = seg.trim();
+
+    // Range "Month D1-D2" — e.g. "May 8-27" or "May 8 - 27, 2026"
+    const rangeA = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\s*-\s*(\d{1,2})\b/);
+    if (rangeA) {
+      const yr = t.match(/\b(20\d{2})\b/)?.[1] ?? String(now.getFullYear());
+      const start = new Date(`${rangeA[1]} ${rangeA[2]}, ${yr}`);
+      const end   = new Date(`${rangeA[1]} ${rangeA[3]}, ${yr}`);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        // Only roll both dates if the END is also in the past
+        if (!keepPast && end.getTime() < today.getTime() - 86400000) {
+          start.setFullYear(Number(yr) + 1);
+          end.setFullYear(Number(yr) + 1);
+        }
+        lastMonth = start.getMonth();
+        results.push(start, end);
+        continue;
+      }
+    }
+
+    // Range "D1-D2 Month" — e.g. "8-27 May"
+    const rangeB = t.match(/\b(\d{1,2})\s*-\s*(\d{1,2})\s+([A-Za-z]{3,})\b/);
+    if (rangeB) {
+      const yr = t.match(/\b(20\d{2})\b/)?.[1] ?? String(now.getFullYear());
+      const start = new Date(`${rangeB[3]} ${rangeB[1]}, ${yr}`);
+      const end   = new Date(`${rangeB[3]} ${rangeB[2]}, ${yr}`);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        if (!keepPast && end.getTime() < today.getTime() - 86400000) {
+          start.setFullYear(Number(yr) + 1);
+          end.setFullYear(Number(yr) + 1);
+        }
+        lastMonth = start.getMonth();
+        results.push(start, end);
+        continue;
+      }
+    }
 
     // "Month Day" — e.g. "May 23" or "Sat, May 23"
     const mDay = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
     if (mDay) {
       const guess = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
       if (!isNaN(guess.getTime())) {
-        if (!keepPast && guess.getTime() < today.getTime() - 86400000)
-          guess.setFullYear(now.getFullYear() + 1);
         lastMonth = guess.getMonth();
-        results.push(guess);
+        results.push(maybeRoll(guess));
         continue;
       }
     }
 
-    // "Day Month" — e.g. "28 May" or "Thu 28 May" or "Thu, 28 May"
+    // "Day Month" — e.g. "28 May" or "Thu 28 May"
     const dMonth = t.match(/\b(\d{1,2})\s+([A-Za-z]{3,})\b/);
     if (dMonth) {
       const guess = new Date(`${dMonth[2]} ${dMonth[1]}, ${now.getFullYear()}`);
       if (!isNaN(guess.getTime())) {
-        if (!keepPast && guess.getTime() < today.getTime() - 86400000)
-          guess.setFullYear(now.getFullYear() + 1);
         lastMonth = guess.getMonth();
-        results.push(guess);
+        results.push(maybeRoll(guess));
         continue;
       }
     }
 
-    // Bare day number — reuse the last seen month (e.g. "& 30" after "May 23")
+    // Bare day number — reuse last seen month (e.g. "& 30" after "May 23")
     const bareDay = t.match(/\b(\d{1,2})\b/);
     if (bareDay && lastMonth !== null) {
       const day = parseInt(bareDay[1], 10);
       if (day >= 1 && day <= 31) {
         const d = new Date(now.getFullYear(), lastMonth, day);
-        if (!isNaN(d.getTime())) {
-          if (!keepPast && d.getTime() < today.getTime() - 86400000)
-            d.setFullYear(now.getFullYear() + 1);
-          results.push(d);
-          continue;
-        }
+        if (!isNaN(d.getTime())) { results.push(maybeRoll(d)); continue; }
       }
     }
 
@@ -287,17 +320,21 @@ export function Discover() {
     todayStart.setHours(0, 0, 0, 0);
     const todayTs = todayStart.getTime();
     const decorated = filtered.map((e) => {
-      // Use all parsed dates so day-first and multi-date events sort correctly
       const all = parseAllEventDates(e.date, true);
+      if (all.length === 0) return { e, parsed: null, isPast: false };
+      const minDate = all.reduce((a, b) => a.getTime() < b.getTime() ? a : b);
+      const maxDate = all.reduce((a, b) => a.getTime() > b.getTime() ? a : b);
+      // Ongoing: started in the past but hasn't ended yet — sort by start date so it floats up
+      const isOngoing = minDate.getTime() < todayTs && maxDate.getTime() >= todayTs;
+      if (isOngoing) return { e, parsed: minDate, isPast: false };
+      // Upcoming: soonest future date
       const upcoming = all.filter(d => d.getTime() >= todayTs);
-      // Prefer soonest upcoming; fall back to latest past occurrence
-      const parsed = upcoming.length > 0
-        ? upcoming.reduce((a, b) => a.getTime() < b.getTime() ? a : b)
-        : all.length > 0
-          ? all.reduce((a, b) => a.getTime() > b.getTime() ? a : b)
-          : null;
-      const isPast = parsed ? parsed.getTime() < todayTs : false;
-      return { e, parsed, isPast };
+      if (upcoming.length > 0) {
+        const parsed = upcoming.reduce((a, b) => a.getTime() < b.getTime() ? a : b);
+        return { e, parsed, isPast: false };
+      }
+      // All past: most recent occurrence
+      return { e, parsed: maxDate, isPast: true };
     });
     decorated.sort((a, b) => {
       // Past events always last
