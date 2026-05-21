@@ -43,10 +43,15 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     }
     let active = true;
     (async () => {
+      const filter = [
+        user.id ? `user_id.eq.${user.id}` : null,
+        user.email ? `submitter_email.eq.${user.email}` : null,
+      ].filter(Boolean).join(',');
+      if (!filter) { setSubmissionCount(0); return; }
       const { count } = await supabase
         .from('submissions')
         .select('*', { count: 'exact', head: true })
-        .eq('submitter_email', user.email ?? '');
+        .or(filter);
       if (active) setSubmissionCount(count ?? 0);
     })();
     return () => {

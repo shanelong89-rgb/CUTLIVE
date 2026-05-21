@@ -122,7 +122,13 @@ export async function uploadSubmissionImage(
 
 // Writes to the `submissions` table (admin reviews & publishes).
 export async function submitEvent(input: SubmissionInput) {
-  const row = { id: genId("sub"), status: "pending" as const, ...input };
+  const { data: { user } } = await supabase.auth.getUser();
+  const row = {
+    id: genId("sub"),
+    status: "pending" as const,
+    ...(user?.id ? { user_id: user.id } : {}),
+    ...input,
+  };
   const { data, error } = await supabase
     .from("submissions")
     .insert([row])
@@ -206,12 +212,17 @@ export async function removeSavedEventRemote(eventId: string): Promise<void> {
 export async function getMySubmissions(): Promise<Submission[]> {
   try {
     const { data: userData } = await supabase.auth.getUser();
-    const email = userData?.user?.email;
-    if (!email) return [];
+    const user = userData?.user;
+    if (!user) return [];
+    const filter = [
+      user.id ? `user_id.eq.${user.id}` : null,
+      user.email ? `submitter_email.eq.${user.email}` : null,
+    ].filter(Boolean).join(",");
+    if (!filter) return [];
     const { data, error } = await supabase
       .from("submissions")
       .select("*")
-      .eq("submitter_email", email)
+      .or(filter)
       .order("created_at", { ascending: false });
     if (error) return [];
     return (data || []) as Submission[];

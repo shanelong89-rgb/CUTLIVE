@@ -132,7 +132,13 @@ export async function submitInstagramLink(instagramUrl: string, userId?: string)
 }
 
 export async function submitEvent(input: SubmissionInput) {
-  const row = { id: genId('sub'), status: 'pending' as const, ...input };
+  const { data: { user } } = await supabase.auth.getUser();
+  const row = {
+    id: genId('sub'),
+    status: 'pending' as const,
+    ...(user?.id ? { user_id: user.id } : {}),
+    ...input,
+  };
   const { data, error } = await supabase
     .from('submissions')
     .insert([row])
@@ -235,12 +241,19 @@ export async function deleteEvent(id: string) {
 // ─── User-facing: my submissions (for inbox) ─────────────────
 export async function getMySubmissions(): Promise<Submission[]> {
   const { data: userData } = await supabase.auth.getUser();
-  const email = userData?.user?.email;
-  if (!email) return [];
+  const user = userData?.user;
+  if (!user) return [];
+  // Match by user_id (for submissions made while signed in) OR submitter_email
+  // (for submissions made before user_id was saved, or from older app versions).
+  const filter = [
+    user.id ? `user_id.eq.${user.id}` : null,
+    user.email ? `submitter_email.eq.${user.email}` : null,
+  ].filter(Boolean).join(',');
+  if (!filter) return [];
   const { data, error } = await supabase
     .from('submissions')
     .select('*')
-    .eq('submitter_email', email)
+    .or(filter)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data || []) as Submission[];

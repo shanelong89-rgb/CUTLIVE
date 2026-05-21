@@ -49,11 +49,16 @@ export default function AccountScreen() {
       const userEmail = data.session?.user.email ?? null;
       setEmail(userEmail);
       setDisplayName(extractDisplayName(data.session?.user));
-      if (userEmail) {
+      const userId = data.session?.user.id;
+      if (userId || userEmail) {
+        const filter = [
+          userId ? `user_id.eq.${userId}` : null,
+          userEmail ? `submitter_email.eq.${userEmail}` : null,
+        ].filter(Boolean).join(",");
         supabase
           .from("submissions")
           .select("*", { count: "exact", head: true })
-          .eq("submitter_email", userEmail)
+          .or(filter)
           .then(({ count }) => {
             if (mounted) setSubmissionCount(count ?? 0);
           });
@@ -61,13 +66,18 @@ export default function AccountScreen() {
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const userEmail = session?.user.email ?? null;
+      const userId = session?.user.id;
       setEmail(userEmail);
       setDisplayName(extractDisplayName(session?.user));
-      if (userEmail) {
+      if (userId || userEmail) {
+        const filter = [
+          userId ? `user_id.eq.${userId}` : null,
+          userEmail ? `submitter_email.eq.${userEmail}` : null,
+        ].filter(Boolean).join(",");
         supabase
           .from("submissions")
           .select("*", { count: "exact", head: true })
-          .eq("submitter_email", userEmail)
+          .or(filter)
           .then(({ count }) => setSubmissionCount(count ?? 0));
       } else {
         setSubmissionCount(null);
