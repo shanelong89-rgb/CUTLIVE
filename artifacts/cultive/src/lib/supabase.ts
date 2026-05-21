@@ -104,7 +104,7 @@ function extractInstagramPostId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-export async function submitInstagramLink(instagramUrl: string, _userId?: string) {
+export async function submitInstagramLink(instagramUrl: string, userId?: string) {
   const sourceId = extractInstagramPostId(instagramUrl);
   const row = {
     id: genId('sub'),
@@ -113,6 +113,7 @@ export async function submitInstagramLink(instagramUrl: string, _userId?: string
     submission_type: 'instagram',
     status: 'pending_scrape',
     title: 'Pending scrape…',
+    ...(userId ? { user_id: userId } : {}),
   };
   const { data, error } = await supabase
     .from('submissions')
