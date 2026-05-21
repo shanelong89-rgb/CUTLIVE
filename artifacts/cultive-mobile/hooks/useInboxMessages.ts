@@ -259,6 +259,7 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
 
 export function useInboxMessages() {
   const [signedIn, setSignedIn] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [signupAt, setSignupAt] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [savedEvents, setSavedEvents] = useState<Event[]>([]);
@@ -284,12 +285,14 @@ export function useInboxMessages() {
     const user = sessionData?.session?.user;
     if (!user) {
       setSignedIn(false);
+      setUserId(null);
       setSignupAt(null);
       setSubmissions([]);
       setLoading(false);
       return;
     }
     setSignedIn(true);
+    setUserId(user.id);
     setSignupAt(user.created_at || null);
     const subs = await getMySubmissions();
 
@@ -386,6 +389,7 @@ export function useInboxMessages() {
         load();
       } else {
         setSignedIn(false);
+        setUserId(null);
         setSignupAt(null);
         setSubmissions([]);
         setSavedEvents([]);
@@ -401,6 +405,36 @@ export function useInboxMessages() {
       sub.remove();
     };
   }, [load, loadReadIds, refreshSaved]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`inbox-realtime-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "submissions",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => { load(); },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user_read_items",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => { load(); },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, load]);
 
   const messages: InboxMessage[] = (() => {
     if (!signedIn) return [];
