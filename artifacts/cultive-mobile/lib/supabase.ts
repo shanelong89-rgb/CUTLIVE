@@ -126,8 +126,10 @@ export async function submitEvent(input: SubmissionInput) {
   const row = {
     id: genId("sub"),
     status: "pending" as const,
-    ...(user?.id ? { user_id: user.id } : {}),
     ...input,
+    // user_id is set last so the authenticated user always wins, even if
+    // input ever gains a user_id field in the future.
+    ...(user?.id ? { user_id: user.id } : {}),
   };
   const { data, error } = await supabase
     .from("submissions")

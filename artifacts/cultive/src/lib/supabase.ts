@@ -113,6 +113,10 @@ function extractInstagramPostId(url: string): string | null {
 
 export async function submitInstagramLink(instagramUrl: string, userId?: string) {
   const sourceId = extractInstagramPostId(instagramUrl);
+  // Always resolve the authenticated user so user_id is never omitted when
+  // the caller forgets to pass it (e.g. the admin quick-submit path).
+  const { data: { user } } = await supabase.auth.getUser();
+  const resolvedUserId = userId ?? user?.id ?? null;
   const row = {
     id: genId('sub'),
     instagram_url: instagramUrl,
@@ -120,7 +124,7 @@ export async function submitInstagramLink(instagramUrl: string, userId?: string)
     submission_type: 'instagram',
     status: 'pending_scrape',
     title: 'Pending scrape…',
-    ...(userId ? { user_id: userId } : {}),
+    ...(resolvedUserId ? { user_id: resolvedUserId } : {}),
   };
   const { data, error } = await supabase
     .from('submissions')
@@ -136,8 +140,10 @@ export async function submitEvent(input: SubmissionInput) {
   const row = {
     id: genId('sub'),
     status: 'pending' as const,
-    ...(user?.id ? { user_id: user.id } : {}),
     ...input,
+    // user_id is set last so the authenticated user always wins, even if
+    // input carries a stale or null user_id (SubmissionInput allows the field).
+    ...(user?.id ? { user_id: user.id } : {}),
   };
   const { data, error } = await supabase
     .from('submissions')

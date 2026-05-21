@@ -183,6 +183,28 @@ create policy "read_items_self"
   using  (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+-- ── AUTO-STAMP user_id ON SUBMISSION INSERT ──────────────────
+-- Ensures user_id is always set to auth.uid() when a signed-in user inserts
+-- a submission, even if the client omits it. Guest inserts leave it NULL.
+create or replace function public.stamp_submission_user_id()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null then
+    new.user_id := auth.uid();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists stamp_submission_user_id_trigger on public.submissions;
+create trigger stamp_submission_user_id_trigger
+  before insert on public.submissions
+  for each row execute function public.stamp_submission_user_id();
+
 -- ── USER SUBMISSIONS READ ACCESS ────────────────────────────
 -- Allow signed-in users to read their own submissions (needed for inbox).
 drop policy if exists "submissions_owner_read" on public.submissions;
