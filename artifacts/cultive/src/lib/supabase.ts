@@ -20,6 +20,7 @@ export type Event = {
   isExclusive?: boolean;
   district?: string;
   ticket_url?: string | null;
+  source_url?: string | null;
   tags?: string[];
   created_at?: string;
   updated_at?: string;
@@ -295,7 +296,8 @@ export async function approveSubmission(sub: Submission) {
     description: resolvedDesc,
     is_exclusive: sub.is_exclusive || false,
     district: sub.district || (sub.venue?.split(',')[0] ?? '') || str('extracted_district') || '',
-    ticket_url: sub.ticket_url || sub.instagram_url || null,
+    ticket_url: sub.ticket_url || null,
+    source_url: sub.instagram_url || null,
     tags: finalTags,
   });
   // 2. Mark submission as approved + link

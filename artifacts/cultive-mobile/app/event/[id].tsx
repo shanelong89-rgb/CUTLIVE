@@ -87,19 +87,20 @@ export default function EventDetailScreen() {
   const isExclusive = event.is_exclusive || event.isExclusive;
 
   const ticketUrl = safeHttpUrl(event.ticket_url);
+  const sourceUrl = safeHttpUrl(event.source_url);
   const hasTicketUrl = ticketUrl.length > 0;
+  const hasSourceUrl = sourceUrl.length > 0;
+  const hasExternalUrl = hasTicketUrl || hasSourceUrl;
+  const resolvedUrl = hasTicketUrl ? ticketUrl : sourceUrl;
   const isFree = /free/i.test(event.price || "");
-  const isInstagramUrl = ticketUrl.includes("instagram.com");
-  const externalLabel = isInstagramUrl
-    ? "VIEW ON INSTAGRAM"
-    : isFree
-    ? "RSVP AT SOURCE"
-    : "BUY TICKETS";
+  const externalLabel = hasTicketUrl
+    ? (isFree ? "RSVP AT SOURCE" : "BUY TICKETS")
+    : "VIEW ON INSTAGRAM";
 
   const onRSVP = () => {
-    if (hasTicketUrl && !isExclusive) {
-      Linking.openURL(ticketUrl).catch(() =>
-        Alert.alert("Couldn't open link", ticketUrl),
+    if (hasExternalUrl && !isExclusive) {
+      Linking.openURL(resolvedUrl).catch(() =>
+        Alert.alert("Couldn't open link", resolvedUrl),
       );
       return;
     }

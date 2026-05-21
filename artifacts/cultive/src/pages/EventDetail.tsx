@@ -76,14 +76,13 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
 
   const isExclusive = event.is_exclusive || event.isExclusive;
   const ticketUrl = safeHttpUrl(event.ticket_url);
+  const sourceUrl = safeHttpUrl(event.source_url);
   const hasTicketUrl = ticketUrl.length > 0;
+  const hasSourceUrl = sourceUrl.length > 0;
   const isFree = /free/i.test(event.price || '');
-  const isInstagramUrl = ticketUrl.includes('instagram.com');
-  const externalLabel = isInstagramUrl
-    ? 'View on Instagram'
-    : isFree
-    ? 'RSVP at source'
-    : 'Buy Tickets';
+  const externalLabel = hasTicketUrl
+    ? (isFree ? 'RSVP at source' : 'Buy Tickets')
+    : 'View on Instagram';
 
   return (
     <div className="detail-page">
@@ -201,10 +200,10 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
-        {hasTicketUrl && !isExclusive ? (
+        {(hasTicketUrl || hasSourceUrl) && !isExclusive ? (
           <a
             className="cta-primary"
-            href={ticketUrl}
+            href={hasTicketUrl ? ticketUrl : sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
           >
