@@ -172,7 +172,7 @@ html, body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
-  z-index: 1400;
+  z-index: 9998;
   animation: profile-fade-in 0.18s ease-out;
 }
 
@@ -184,7 +184,7 @@ html, body {
   width: 380px;
   max-width: 92vw;
   background: #fff;
-  z-index: 1500;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   box-shadow: -20px 0 60px rgba(0, 0, 0, 0.18);
