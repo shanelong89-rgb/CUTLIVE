@@ -407,13 +407,17 @@ export default function SubmitScreen() {
 
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-      <Label>Your Name *</Label>
-      <Input
-        value={form.submitter_name}
-        onChangeText={(v) => onChange("submitter_name", v)}
-        placeholder="Jane Smith"
-        autoCapitalize="words"
-      />
+      {!userDefaults.name && (
+        <>
+          <Label>Your Name *</Label>
+          <Input
+            value={form.submitter_name}
+            onChangeText={(v) => onChange("submitter_name", v)}
+            placeholder="Jane Smith"
+            autoCapitalize="words"
+          />
+        </>
+      )}
 
       {!userDefaults.email && (
         <>
