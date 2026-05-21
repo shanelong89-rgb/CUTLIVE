@@ -46,6 +46,7 @@ export type Submission = {
   source_id?: string | null;
   submission_type?: 'manual' | 'instagram';
   status: 'pending' | 'pending_scrape' | 'approved' | 'rejected';
+  scraped_data?: Record<string, unknown> | null;
   created_at: string;
   reviewed_at?: string | null;
   published_event_id?: string | null;
@@ -253,18 +254,22 @@ export async function adminListSubmissions(status?: 'pending' | 'approved' | 're
 }
 
 export async function approveSubmission(sub: Submission) {
-  // 1. Insert event derived from submission
+  // Fall back to scraped_data fields for Instagram submissions
+  const s = (sub.scraped_data ?? {}) as Record<string, unknown>;
+  const str = (key: string) => (typeof s[key] === 'string' ? (s[key] as string) : undefined);
+
+  // 1. Insert event derived from submission (prefer direct fields, fall back to scraped)
   const event = await createEvent({
-    title: sub.title,
-    date: sub.date,
-    time: sub.time || '',
-    venue: sub.venue,
-    image: sub.image || '',
-    category: sub.category,
-    price: sub.price || 'Free',
-    description: sub.description || '',
+    title: sub.title || str('extracted_title') || 'Untitled',
+    date: sub.date || str('extracted_date') || '',
+    time: sub.time || str('extracted_time') || '',
+    venue: sub.venue || str('extracted_venue') || '',
+    image: sub.image || str('extracted_image') || '',
+    category: sub.category || str('extracted_category') || 'Other',
+    price: sub.price || str('extracted_price') || 'Free',
+    description: sub.description || str('extracted_description') || '',
     is_exclusive: sub.is_exclusive || false,
-    district: sub.district || (sub.venue?.split(',')[0] ?? ''),
+    district: sub.district || (sub.venue?.split(',')[0] ?? '') || str('extracted_district') || '',
     ticket_url: sub.ticket_url || null,
     tags: sub.tags || [],
   });

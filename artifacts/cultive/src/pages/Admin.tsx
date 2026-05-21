@@ -710,71 +710,103 @@ function SubmissionsTab({
         <div className="submissions-list">
           {filtered.map(sub => (
             <div key={sub.id} className="submission-card">
-              <div className="submission-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <h3 style={{ margin: 0 }}>{sub.title || 'Untitled Event'}</h3>
-                  {/* Source type badge */}
-                  <span className={`sub-type-badge ${sub.submission_type === 'instagram' ? 'ig' : 'manual'}`}>
-                    {sub.submission_type === 'instagram' ? '📱 Instagram' : '✏️ Manual'}
-                  </span>
-                  {/* Needs-scrape badge */}
-                  {sub.status === 'pending_scrape' && (
-                    <span className="sub-scrape-badge">⏳ Needs scrape</span>
-                  )}
-                </div>
-                <span className="submission-date">
-                  {new Date(sub.created_at).toLocaleDateString()}
-                </span>
-              </div>
+              {(() => {
+                const isPendingScrape = sub.status === 'pending_scrape';
+                const scraped = (sub.scraped_data ?? {}) as Record<string, unknown>;
+                const hasScrapedData = Object.keys(scraped).length > 0;
+                const str = (k: string) => typeof scraped[k] === 'string' ? scraped[k] as string : undefined;
 
-              {sub.image ? (
-                <div className="submission-image">
-                  <img
-                    src={sub.image}
-                    alt={sub.title}
-                    loading="lazy"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                  />
-                </div>
-              ) : null}
+                const dispTitle  = sub.title  || str('extracted_title')  || 'Pending scrape…';
+                const dispDate   = sub.date   || str('extracted_date');
+                const dispTime   = sub.time   || str('extracted_time');
+                const dispVenue  = sub.venue  || str('extracted_venue');
+                const dispPrice  = sub.price  || str('extracted_price');
 
-              <div className="submission-details">
-                {sub.date && <p><strong>Date:</strong> {displayDate(sub.date)}{sub.time ? ` · ${sub.time}` : ''}</p>}
-                {sub.venue && <p><strong>Venue:</strong> {sub.venue}</p>}
-                {sub.category && <p><strong>Category:</strong> {sub.category}</p>}
-                {sub.price && <p><strong>Price:</strong> {sub.price}</p>}
-                {sub.description && <p style={{ marginTop: 8 }}>{sub.description}</p>}
+                return (
+                  <>
+                    <div className="submission-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <h3 style={{ margin: 0 }}>{dispTitle}</h3>
+                        <span className={`sub-type-badge ${sub.submission_type === 'instagram' ? 'ig' : 'manual'}`}>
+                          {sub.submission_type === 'instagram' ? '📱 Instagram' : '✏️ Manual'}
+                        </span>
+                        {isPendingScrape && (
+                          <span className="sub-scrape-badge">⏳ Needs scrape</span>
+                        )}
+                        {hasScrapedData && !isPendingScrape && (
+                          <span className="sub-scraped-badge">✅ Scraped</span>
+                        )}
+                      </div>
+                      <span className="submission-date">
+                        {new Date(sub.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
 
-                {/* Instagram source link */}
-                {sub.instagram_url && (
-                  <a
-                    href={sub.instagram_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="sub-ig-link"
-                  >
-                    ↗ View Instagram post
-                  </a>
-                )}
+                    {sub.image ? (
+                      <div className="submission-image">
+                        <img
+                          src={sub.image}
+                          alt={dispTitle}
+                          loading="lazy"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      </div>
+                    ) : null}
 
-                {(sub.submitter_name || sub.submitter_email) && (
-                  <p style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--n-muted)' }}>
-                    Submitted by{sub.submitter_name ? <strong> {sub.submitter_name}</strong> : null}
-                    {sub.submitter_email ? ` (${sub.submitter_email})` : ''}
-                  </p>
-                )}
-              </div>
+                    <div className="submission-details">
+                      {dispDate && <p><strong>Date:</strong> {displayDate(dispDate)}{dispTime ? ` · ${dispTime}` : ''}</p>}
+                      {dispVenue && <p><strong>Venue:</strong> {dispVenue}</p>}
+                      {sub.category && <p><strong>Category:</strong> {sub.category}</p>}
+                      {dispPrice && <p><strong>Price:</strong> {dispPrice}</p>}
+                      {sub.description && <p style={{ marginTop: 8 }}>{sub.description}</p>}
 
-              {filter === 'pending' && (
-                <div className="submission-actions">
-                  <button className="approve-btn" onClick={() => onApprove(sub)}>
-                    Approve & Publish
-                  </button>
-                  <button className="reject-btn" onClick={() => onReject(sub.id)}>
-                    Reject
-                  </button>
-                </div>
-              )}
+                      {/* Scraped data preview */}
+                      {hasScrapedData && (
+                        <details style={{ marginTop: 10 }}>
+                          <summary style={{ fontSize: '0.8rem', color: 'var(--n-muted)', cursor: 'pointer' }}>
+                            View scraped data
+                          </summary>
+                          <pre style={{ marginTop: 6, padding: '10px 12px', background: 'var(--n-bg-alt)', borderRadius: 4, fontSize: '0.75rem', overflowX: 'auto', whiteSpace: 'pre-wrap', color: 'var(--n-secondary)' }}>
+                            {JSON.stringify(scraped, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+
+                      {sub.instagram_url && (
+                        <a href={sub.instagram_url} target="_blank" rel="noopener noreferrer" className="sub-ig-link">
+                          ↗ View Instagram post
+                        </a>
+                      )}
+
+                      {(sub.submitter_name || sub.submitter_email) && (
+                        <p style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--n-muted)' }}>
+                          Submitted by{sub.submitter_name ? <strong> {sub.submitter_name}</strong> : null}
+                          {sub.submitter_email ? ` (${sub.submitter_email})` : ''}
+                        </p>
+                      )}
+                    </div>
+
+                    {filter === 'pending' && (
+                      <div className="submission-actions">
+                        {isPendingScrape ? (
+                          <span style={{ fontSize: '0.875rem', color: 'var(--n-muted)', fontStyle: 'italic' }}>
+                            Waiting for scrape…
+                          </span>
+                        ) : (
+                          <>
+                            <button className="approve-btn" onClick={() => onApprove(sub)}>
+                              Approve & Publish
+                            </button>
+                            <button className="reject-btn" onClick={() => onReject(sub.id)}>
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>

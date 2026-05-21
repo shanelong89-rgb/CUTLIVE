@@ -1,0 +1,128 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { Check, X, ExternalLink, RefreshCw } from 'lucide-react';
+
+interface Submission {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  venue: string;
+  category: string;
+  price: string;
+  description: string;
+  image: string;
+  instagram_url: string;
+  submission_type: 'instagram' | 'manual';
+  status: 'pending' | 'pending_scrape' | 'approved' | 'rejected';
+  submitter_name: string;
+  created_at: string;
+  published_event_id: string;
+  scraped_data: any;
+}
+
+export default function AdminSubmissions() {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+
+  // Fetch submissions on mount and when tab changes
+  useEffect(() => {
+    fetchSubmissions();
+  }, [activeTab]);
+
+  async function fetchSubmissions() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error) setSubmissions(data || []);
+    setLoading(false);
+  }
+
+  // Both 'pending' AND 'pending_scrape' count as pending
+  const pendingSubs = submissions.filter(s => 
+    s.status === 'pending' || s.status === 'pending_scrape'
+  );
+  const approvedSubs = submissions.filter(s => s.status === 'approved');
+  const rejectedSubs = submissions.filter(s => s.status === 'rejected');
+
+  const currentSubs = activeTab === 'pending' ? pendingSubs :
+                      activeTab === 'approved' ? approvedSubs :
+                      rejectedSubs;
+
+  // Approve submission - creates event from submission data
+  async function handleApprove(sub: Submission) {
+    const scraped = sub.scraped_data || {};
+    
+    const eventData = {
+      title: sub.title || scraped.extracted_title || 'Untitled',
+      date: sub.date || scraped.extracted_date,
+      time: sub.time || scraped.extracted_time,
+      venue: sub.venue || scraped.extracted_venue,
+      category: sub.category || 'music',
+      price: sub.price || scraped.extracted_price,
+      description: sub.description || scraped.extracted_description,
+      image: sub.image,
+      district: sub.district,
+      is_exclusive: sub.is_exclusive || false,
+      ticket_url: sub.ticket_url,
+      tags: sub.tags || ['music'],
+      metadata: { 
+        source: sub.submission_type,
+        source_url: sub.instagram_url,
+        submitter_id: sub.user_id
+      }
+    };
+
+    const { data: event, error } = await supabase
+      .from('events')
+      .insert(eventData)
+      .select()
+      .single();
+
+    if (event) {
+      await supabase
+        .from('submissions')
+        .update({
+          status: 'approved',
+          published_event_id: event.id,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', sub.id);
+
+      fetchSubmissions();
+    }
+  }
+
+  // Reject submission
+  async function handleReject(id: string) {
+    await supabase
+      .from('submissions')
+      .update({ 
+        status: 'rejected', 
+        reviewed_at: new Date().toISOString() 
+      })
+      .eq('id', id);
+    fetchSubmissions();
+  }
+
+  return (
+    <div className="flex h-screen bg-[#fafafa]">
+      {/* Sidebar */}
+      <aside className="w-64 bg-[#0a0a0a] text-white flex flex-col">
+        <div className="p-6">
+          <h1 className="text-2xl font-bold tracking-tight">CULTIVE</h1>
+          <p className="text-gray-500 text-sm mt-1">ADMIN</p>
+        </div>
+
+        <nav className="flex-1 px-3">
+          <a href="/admin" className="block px-4 py-3 text-gray-400 hover:text-white rounded-lg">
+            Dashboard
+          </a>
+          <a href="/admin/events" className="block px-4 py-3 text-gray-400 hover:text-white rounded-lg">
+            Events
+          </a>
+          <a href="/admin/submissions" className="block px-4 py-3 bg-[#1f1f2e] text-white rounded-lg">

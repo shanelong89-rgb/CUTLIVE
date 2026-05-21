@@ -2892,6 +2892,16 @@ h1, h2, h3 {
   letter-spacing: 0.04em;
 }
 
+.sub-scraped-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #dcfce7;
+  color: #16a34a;
+  letter-spacing: 0.04em;
+}
+
 .sub-ig-link {
   display: inline-block;
   margin-top: 10px;
