@@ -4,6 +4,12 @@
 -- Idempotent: safe to re-run.
 -- ============================================================
 
+-- ── RESET (drops any legacy tables with incompatible types) ─
+-- The profiles table is preserved so existing auth users keep
+-- their admin flag. Events + submissions are recreated fresh.
+drop table if exists public.submissions cascade;
+drop table if exists public.events      cascade;
+
 -- ── EVENTS ──────────────────────────────────────────────────
 create table if not exists public.events (
   id            text primary key,
