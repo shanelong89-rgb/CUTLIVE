@@ -1,69 +1,198 @@
+import { useEffect, useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { signOut, supabase } from '../lib/supabase';
+
 interface AccountProps {
   setIsAuthOpen?: (open: boolean) => void;
 }
 
-export function Account({ setIsAuthOpen }: AccountProps) {
-  const isLoggedIn = false; // Mock auth state
+function initialsFor(email?: string | null) {
+  if (!email) return '·';
+  const name = email.split('@')[0];
+  const parts = name.split(/[._-]/).filter(Boolean);
+  const a = (parts[0]?.[0] ?? name[0] ?? '·').toUpperCase();
+  const b = (parts[1]?.[0] ?? '').toUpperCase();
+  return (a + b).slice(0, 2);
+}
 
-  const menuItems = [
-    { icon: '👤', label: 'Edit Profile' },
-    { icon: '👑', label: 'Membership' },
-    { icon: '💳', label: 'Payment Methods' },
-    { icon: '📋', label: 'My Submissions' },
-    { icon: '👥', label: 'Invite Friends' },
-    { icon: '⚙️', label: 'Settings' },
-    { icon: '💚', label: 'Help & Support' },
+function formatDate(s?: string) {
+  if (!s) return '—';
+  try {
+    return new Date(s).toLocaleDateString(undefined, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return s;
+  }
+}
+
+export function Account({ setIsAuthOpen }: AccountProps) {
+  const { user, isAdmin, loading } = useAuth();
+  const [submissionCount, setSubmissionCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setSubmissionCount(null);
+      return;
+    }
+    let active = true;
+    (async () => {
+      const { count } = await supabase
+        .from('submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('submitter_email', user.email ?? '');
+      if (active) setSubmissionCount(count ?? 0);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  // ── Signed-out state ────────────────────────────────────────
+  if (!loading && !user) {
+    return (
+      <div className="account-page">
+        <div className="account-signed-out">
+          <span className="account-eyebrow">— GUEST —</span>
+          <h1 className="account-display-name">No Account</h1>
+          <p className="account-tagline">
+            Sign in to bookmark events, submit your own, and unlock members-only
+            access across Hong Kong.
+          </p>
+          <button
+            className="account-cta"
+            onClick={() => setIsAuthOpen?.(true)}
+          >
+            Sign In / Sign Up
+          </button>
+          <p className="account-foot-note">
+            CULTIVE · 文化活 · v1.0 · Made in Hong Kong
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading || !user) {
+    return (
+      <div className="account-page">
+        <p className="account-tagline" style={{ textAlign: 'center', paddingTop: 80 }}>
+          Loading…
+        </p>
+      </div>
+    );
+  }
+
+  const email = user.email ?? '';
+  const handle = email.split('@')[0];
+  const joined = formatDate(user.created_at);
+
+  const menuItems: { label: string; href?: string; meta?: string }[] = [
+    { label: 'My Tickets', href: '/tickets', meta: '0 active' },
+    {
+      label: 'My Submissions',
+      href: '/submit',
+      meta: submissionCount === null ? '—' : `${submissionCount} submitted`,
+    },
+    { label: 'Inbox', href: '/inbox', meta: '0 new' },
+    { label: 'Discover Events', href: '/' },
+    ...(isAdmin ? [{ label: 'Admin Console', href: '/admin', meta: 'Editor' }] : []),
   ];
 
   return (
     <div className="account-page">
-      <div className="account-header">
-        <div className="account-avatar">
-          {isLoggedIn ? '😎' : '👤'}
+      {/* Identity block */}
+      <header className="account-identity">
+        <span className="account-eyebrow">— MEMBER PROFILE —</span>
+        <div className="account-monogram">{initialsFor(email)}</div>
+        <h1 className="account-display-name">{handle}</h1>
+        <p className="account-tagline">{email}</p>
+        <div className="account-badge-row">
+          {isAdmin && <span className="account-badge filled">ADMIN</span>}
+          <span className="account-badge">Member since {joined}</span>
         </div>
-        <h1 className="account-name">{isLoggedIn ? 'Jane Smith' : 'Guest User'}</h1>
-        <p className="account-status">
-          {isLoggedIn ? 'Premium Member' : 'Sign in to access exclusive events'}
-        </p>
-        
-        {!isLoggedIn && (
-          <button
-            onClick={() => setIsAuthOpen?.(true)}
-            style={{
-              marginTop: '24px',
-              padding: '14px 36px',
-              background: 'var(--n-text)',
-              border: 'none',
-              borderRadius: '4px',
-              color: 'var(--n-bg)',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              transition: 'opacity 0.15s',
-            }}
-          >
-            Sign In / Sign Up
-          </button>
-        )}
+      </header>
+
+      {/* Stat strip */}
+      <section className="account-stat-strip">
+        <div className="account-stat-cell">
+          <span className="account-stat-num">
+            {submissionCount === null ? '—' : submissionCount}
+          </span>
+          <span className="account-stat-label">Submissions</span>
+        </div>
+        <div className="account-stat-cell">
+          <span className="account-stat-num">0</span>
+          <span className="account-stat-label">Tickets</span>
+        </div>
+        <div className="account-stat-cell">
+          <span className="account-stat-num">0</span>
+          <span className="account-stat-label">Saved</span>
+        </div>
+      </section>
+
+      {/* Section label */}
+      <div className="account-section-head">
+        <span className="account-section-label">— NAVIGATION —</span>
       </div>
 
-      <div className="account-menu">
-        {menuItems.map((item, index) => (
-          <button
-            key={index}
-            className="account-menu-item"
+      {/* Numbered editorial menu rows */}
+      <nav className="account-rows">
+        {menuItems.map((item, idx) => (
+          <a
+            key={item.label}
+            href={item.href ?? '#'}
+            className="account-row"
           >
-            <span className="account-menu-icon">{item.icon}</span>
-            <span>{item.label}</span>
-            <span className="account-menu-arrow">›</span>
-          </button>
+            <span className="account-row-num">
+              {String(idx + 1).padStart(2, '0')}
+            </span>
+            <span className="account-row-label">{item.label}</span>
+            {item.meta && <span className="account-row-meta">{item.meta}</span>}
+            <span className="account-row-arrow">—→</span>
+          </a>
         ))}
+      </nav>
+
+      {/* Account meta */}
+      <div className="account-section-head">
+        <span className="account-section-label">— ACCOUNT DETAILS —</span>
+      </div>
+      <div className="account-meta-grid">
+        <div className="account-meta-cell">
+          <span className="account-meta-key">Email</span>
+          <span className="account-meta-val">{email}</span>
+        </div>
+        <div className="account-meta-cell">
+          <span className="account-meta-key">User ID</span>
+          <span className="account-meta-val mono">{user.id.slice(0, 8)}…</span>
+        </div>
+        <div className="account-meta-cell">
+          <span className="account-meta-key">Joined</span>
+          <span className="account-meta-val">{joined}</span>
+        </div>
+        <div className="account-meta-cell">
+          <span className="account-meta-key">Provider</span>
+          <span className="account-meta-val">
+            {(user.app_metadata?.provider as string) ?? 'email'}
+          </span>
+        </div>
       </div>
 
-      <p className="account-footer">
-        CULTIVE v1.0.0 · Made with ❤️ in Hong Kong
+      {/* Sign out */}
+      <button
+        className="account-signout"
+        onClick={async () => {
+          await signOut();
+        }}
+      >
+        Sign Out
+      </button>
+
+      <p className="account-foot-note">
+        CULTIVE · 文化活 · v1.0 · Made in Hong Kong
       </p>
     </div>
   );
