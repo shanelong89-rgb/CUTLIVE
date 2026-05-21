@@ -1590,6 +1590,34 @@ h1, h2, h3 {
 }
 
 /* =====================================================
+   ADMIN: SIDEBAR FOOTER (back to site + sign out)
+   ===================================================== */
+.admin-sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-back-home {
+  display: block;
+  text-align: center;
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--n-muted, #666);
+  text-decoration: none;
+  border: 1px solid var(--n-border, rgba(0, 0, 0, 0.12));
+  border-radius: 4px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.admin-back-home:hover {
+  color: var(--n-fg, #111);
+  border-color: var(--n-fg, #111);
+  background: var(--n-bg-alt, #f6f6f4);
+}
+
+/* =====================================================
    EVENT DETAIL: FULL IMAGE PREVIEW
    ===================================================== */
 .detail-full-image-link {

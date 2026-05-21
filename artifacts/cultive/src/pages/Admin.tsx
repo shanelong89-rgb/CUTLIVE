@@ -275,9 +275,12 @@ export function Admin() {
             Submissions ({submissions.filter(s => s.status === 'pending').length})
           </button>
         </nav>
-        <button className="admin-logout" onClick={handleLogout}>
-          Sign Out
-        </button>
+        <div className="admin-sidebar-footer">
+          <Link to="/" className="admin-back-home">← Back to site</Link>
+          <button className="admin-logout" onClick={handleLogout}>
+            Sign Out
+          </button>
+        </div>
       </aside>
 
       <main className="admin-main">
