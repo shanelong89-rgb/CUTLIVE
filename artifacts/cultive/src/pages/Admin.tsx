@@ -43,6 +43,7 @@ const EMPTY_EVENT: Event = {
   rsvp_enabled: false,
   district: '',
   ticket_url: '',
+  source_url: '',
   tags: [],
 };
 
@@ -574,6 +575,18 @@ function EventsTab({
             />
             <small style={{ color: 'var(--n-muted)' }}>
               If set, the event page shows a "Buy Tickets" button that opens this link instead of the in-app RSVP.
+            </small>
+          </div>
+          <div className="form-group">
+            <label>Source / Instagram link (optional)</label>
+            <input
+              type="url"
+              value={formData.source_url || ''}
+              onChange={(e) => setFormData({ ...formData, source_url: e.target.value })}
+              placeholder="https://www.instagram.com/p/… or event source URL"
+            />
+            <small style={{ color: 'var(--n-muted)' }}>
+              Shows a "View on Instagram" (or "View at source") button on the event page.
             </small>
           </div>
           <div className="form-group">
