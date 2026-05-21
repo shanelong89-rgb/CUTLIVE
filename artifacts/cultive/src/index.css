@@ -779,6 +779,15 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
+.event-row--past {
+  opacity: 0.35;
+  pointer-events: auto;
+}
+
+.event-row--past:hover {
+  opacity: 0.55;
+}
+
 /* =====================================================
    MOBILE TAB BAR (Hidden on Desktop)
    ===================================================== */

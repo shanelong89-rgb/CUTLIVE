@@ -240,14 +240,14 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
 }
 
 // Event Row Component - Editorial grid style
-function EventRow({ event }: { event: Event }) {
+function EventRow({ event, isPast = false }: { event: Event; isPast?: boolean }) {
   const title = event.title;
   const district = event.district || event.venue.split(',')[0] || '';
   const venueName = event.venue;
   const isExclusive = event.is_exclusive || event.isExclusive;
 
   return (
-    <Link to={`/event/${event.id}`} className="event-row">
+    <Link to={`/event/${event.id}`} className={`event-row${isPast ? ' event-row--past' : ''}`}>
       {/* Date + Time Column */}
       <div className="event-time">
         {event.date && <span className="event-date">{displayDate(event.date)}</span>}
@@ -355,7 +355,11 @@ export function Discover() {
       if (b.parsed) return 1;
       return 0;
     });
-    return decorated.map((d) => d.e);
+    // Hide events more than 14 days past (kept in DB for future recaps)
+    const cutoff = todayTs - 14 * 86400000;
+    return decorated
+      .filter(d => !d.isPast || !d.parsed || d.parsed.getTime() >= cutoff)
+      .map(d => ({ e: d.e, isPast: d.isPast }));
   }, [events, activeTags, activeDateFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE));
@@ -445,8 +449,8 @@ export function Discover() {
             Loading events...
           </div>
         ) : pagedEvents.length > 0 ? (
-          pagedEvents.map((event) => (
-            <EventRow key={event.id} event={event} />
+          pagedEvents.map(({ e, isPast }) => (
+            <EventRow key={e.id} event={e} isPast={isPast} />
           ))
         ) : (
           <div style={{ 
