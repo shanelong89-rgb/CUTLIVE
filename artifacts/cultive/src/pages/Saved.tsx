@@ -4,13 +4,28 @@ import { getEvents, type Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 import { googleCalendarUrl, downloadICS } from '../lib/calendar';
 
-function displayDate(raw?: string): string {
-  if (!raw) return '';
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
-  if (!m) return raw;
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  if (isNaN(d.getTime())) return raw;
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+function displayDateRange(date?: string, dateEnd?: string | null): string {
+  if (!date) return '';
+  const parseYMD = (s: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
+    if (!m) return null;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const start = parseYMD(date);
+  if (!dateEnd) {
+    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return date;
+  }
+  const end = parseYMD(dateEnd);
+  if (!start || !end) {
+    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return date;
+  }
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()} – ${end.getDate()}`;
+  }
+  return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 }
 
 function CalendarDropdown({ event, onClose }: { event: Event; onClose: () => void }) {
@@ -132,7 +147,7 @@ export function Saved() {
             return (
               <div key={event.id} className="event-row saved-row">
                 <Link to={`/event/${event.id}`} className="event-time">
-                  {event.date && <span className="event-date">{displayDate(event.date)}</span>}
+                  {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end)}</span>}
                   <span>{event.time || '—'}</span>
                 </Link>
                 <Link to={`/event/${event.id}`} className="event-thumb">

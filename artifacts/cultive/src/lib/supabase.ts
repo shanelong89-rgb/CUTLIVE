@@ -21,6 +21,7 @@ export type Event = {
   district?: string;
   ticket_url?: string | null;
   source_url?: string | null;
+  date_end?: string | null;
   rsvp_enabled?: boolean;
   tags?: string[];
   submitted_by?: string | null;
@@ -41,6 +42,7 @@ export type Submission = {
   is_exclusive?: boolean;
   district?: string;
   ticket_url?: string | null;
+  date_end?: string | null;
   tags?: string[];
   submitter_name?: string;
   submitter_email?: string;
@@ -366,6 +368,7 @@ export async function approveSubmission(sub: Submission) {
     district: sub.district || (sub.venue?.split(',')[0] ?? '') || str('extracted_district') || '',
     ticket_url: sub.ticket_url || null,
     source_url: sub.instagram_url || null,
+    date_end: sub.date_end || null,
     tags: finalTags,
     submitted_by: sub.submitter_name || null,
   });

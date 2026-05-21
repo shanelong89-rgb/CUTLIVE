@@ -65,6 +65,7 @@ export function Submit() {
   const [formData, setFormData] = useState({
     title: '',
     date: '',
+    date_end: '',
     time: '',
     venue: '',
     category: 'Music',
@@ -86,6 +87,7 @@ export function Submit() {
       await submitEvent({
         title: formData.title,
         date: formatDate(formData.date),
+        date_end: formData.date_end || null,
         time: formatTime(formData.time),
         venue: formData.venue,
         category: formData.category,
@@ -112,6 +114,7 @@ export function Submit() {
     setFormData({
       title: '',
       date: '',
+      date_end: '',
       time: '',
       venue: '',
       category: 'Music',
@@ -311,8 +314,19 @@ export function Submit() {
 
         <div className="form-row">
           <div className="form-group">
-            <label>Date *</label>
+            <label>Start Date *</label>
             <input type="date" name="date" value={formData.date} onChange={handleChange} required />
+          </div>
+
+          <div className="form-group">
+            <label>End Date <span style={{ fontWeight: 'normal', opacity: 0.6 }}>(optional)</span></label>
+            <input
+              type="date"
+              name="date_end"
+              value={formData.date_end}
+              onChange={handleChange}
+              min={formData.date || undefined}
+            />
           </div>
 
           <div className="form-group">

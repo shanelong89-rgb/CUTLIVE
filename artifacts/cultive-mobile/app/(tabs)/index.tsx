@@ -274,8 +274,24 @@ function sortUpcomingFirst(list: Event[]): Event[] {
     .map((d) => d.e);
 }
 
-function displayDate(raw: string): string {
+function displayDate(raw: string, rawEnd?: string | null): string {
   if (!raw) return "";
+
+  // If both dates are YYYY-MM-DD, render a range
+  if (rawEnd) {
+    const isoS = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+    const isoE = /^(\d{4})-(\d{2})-(\d{2})$/.exec(rawEnd.trim());
+    if (isoS && isoE) {
+      const s = new Date(Number(isoS[1]), Number(isoS[2]) - 1, Number(isoS[3]));
+      const e = new Date(Number(isoE[1]), Number(isoE[2]) - 1, Number(isoE[3]));
+      const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
+        return `${mo[s.getMonth()]} ${s.getDate()} – ${e.getDate()}`;
+      }
+      return `${mo[s.getMonth()]} ${s.getDate()} – ${mo[e.getMonth()]} ${e.getDate()}`;
+    }
+  }
+
   const s = raw.trim().toLowerCase();
   if (s.includes("today")) return "Today";
   if (s.includes("tomorrow")) return "Tomorrow";
@@ -576,7 +592,7 @@ function EventRow({
       <View style={styles.timeCol}>
         {event.date ? (
           <Text style={[styles.dateText, { color: colors.foreground }]}>
-            {displayDate(event.date)}
+            {displayDate(event.date, event.date_end)}
           </Text>
         ) : null}
         <Text style={[styles.timeText, { color: colors.mutedForeground }]}>

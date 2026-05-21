@@ -190,7 +190,17 @@ export default function SavedScreen() {
                   style={[styles.rowMeta, { color: colors.mutedForeground }]}
                   numberOfLines={1}
                 >
-                  {item.category} · {item.date}
+                  {item.category} · {item.date_end ? (() => {
+                    const isoS = /^(\d{4})-(\d{2})-(\d{2})$/.exec((item.date || '').trim());
+                    const isoE = /^(\d{4})-(\d{2})-(\d{2})$/.exec(item.date_end.trim());
+                    if (isoS && isoE) {
+                      const s = new Date(+isoS[1], +isoS[2]-1, +isoS[3]);
+                      const e = new Date(+isoE[1], +isoE[2]-1, +isoE[3]);
+                      const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                      return s.getMonth() === e.getMonth() ? `${mo[s.getMonth()]} ${s.getDate()} – ${e.getDate()}` : `${mo[s.getMonth()]} ${s.getDate()} – ${mo[e.getMonth()]} ${e.getDate()}`;
+                    }
+                    return item.date;
+                  })() : item.date}
                 </Text>
                 <Text
                   style={[styles.rowVenue, { color: colors.mutedForeground }]}

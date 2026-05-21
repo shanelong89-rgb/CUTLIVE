@@ -45,6 +45,7 @@ export default function SubmitScreen() {
     category: "Music",
     price: "",
     date: "",
+    date_end: "",
     time: "",
     venue: "",
     description: "",
@@ -161,6 +162,7 @@ export default function SubmitScreen() {
       await submitEvent({
         title: form.title,
         date: form.date,
+        date_end: form.date_end || null,
         time: form.time,
         venue: form.venue,
         category: form.category,
@@ -182,6 +184,7 @@ export default function SubmitScreen() {
         category: "Music",
         price: "",
         date: "",
+        date_end: "",
         time: "",
         venue: "",
         description: "",
@@ -325,11 +328,18 @@ export default function SubmitScreen() {
         placeholder="e.g. Free, $100"
       />
 
-      <Label>Date *</Label>
+      <Label>Start Date *</Label>
       <Input
         value={form.date}
         onChangeText={(v) => onChange("date", v)}
         placeholder="e.g. Sat, Jun 7"
+      />
+
+      <Label>End Date <Text style={{ fontWeight: "400", opacity: 0.6 }}>(optional, for multi-day events)</Text></Label>
+      <Input
+        value={form.date_end}
+        onChangeText={(v) => onChange("date_end", v)}
+        placeholder="e.g. Sun, Jun 27"
       />
 
       <Label>Time *</Label>

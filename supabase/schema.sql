@@ -36,6 +36,7 @@ create table if not exists public.events (
   submitted_by  text,
   ticket_url    text,
   source_url    text,
+  date_end      text,
   rsvp_enabled  boolean default false,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
@@ -70,6 +71,7 @@ create table if not exists public.submissions (
   source_id           text,
   submission_type     text check (submission_type in ('manual', 'instagram')),
   ticket_url          text,
+  date_end            text,
   scraped_data        jsonb
 );
 

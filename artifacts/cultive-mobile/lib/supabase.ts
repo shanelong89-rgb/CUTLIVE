@@ -32,6 +32,7 @@ export type Event = {
   district?: string;
   ticket_url?: string | null;
   source_url?: string | null;
+  date_end?: string | null;
   rsvp_enabled?: boolean;
   tags?: string[];
   submitted_by?: string | null;
@@ -51,6 +52,7 @@ export type SubmissionInput = {
   is_exclusive?: boolean;
   district?: string;
   ticket_url?: string | null;
+  date_end?: string | null;
   tags?: string[];
   submitter_name: string;
   submitter_email: string;

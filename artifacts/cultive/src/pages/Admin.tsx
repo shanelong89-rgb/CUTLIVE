@@ -20,19 +20,35 @@ import {
   type Submission,
 } from '../lib/supabase';
 
-function displayDate(raw?: string): string {
-  if (!raw) return '';
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
-  if (!m) return raw;
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  if (isNaN(d.getTime())) return raw;
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+function displayDateRange(date?: string, dateEnd?: string | null): string {
+  if (!date) return '';
+  const parseYMD = (s: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
+    if (!m) return null;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const start = parseYMD(date);
+  if (!dateEnd) {
+    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return date;
+  }
+  const end = parseYMD(dateEnd);
+  if (!start || !end) {
+    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return date;
+  }
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()} – ${end.getDate()}`;
+  }
+  return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 }
 
 const EMPTY_EVENT: Event = {
   id: '',
   title: '',
   date: '',
+  date_end: '',
   time: '',
   venue: '',
   image: '',
@@ -489,12 +505,21 @@ function EventsTab({
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label>Date</label>
+              <label>Start Date</label>
               <input
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 required
+              />
+            </div>
+            <div className="form-group">
+              <label>End Date <span style={{ fontWeight: 'normal', opacity: 0.6 }}>(optional)</span></label>
+              <input
+                type="date"
+                value={formData.date_end ?? ''}
+                onChange={(e) => setFormData({ ...formData, date_end: e.target.value })}
+                min={formData.date || undefined}
               />
             </div>
             <div className="form-group">
@@ -702,7 +727,7 @@ function EventsTab({
                 <strong>{event.title}</strong>
                 <small>{event.venue}</small>
               </div>
-              <span>{displayDate(event.date)}</span>
+              <span>{displayDateRange(event.date, event.date_end)}</span>
               <span className="category-badge">{event.category}</span>
               <span className="status-badge published">Published</span>
               <div className="actions">
@@ -835,7 +860,7 @@ function SubmissionsTab({
                     ) : null}
 
                     <div className="submission-details">
-                      {dispDate && <p><strong>Date:</strong> {displayDate(dispDate)}{dispTime ? ` · ${dispTime}` : ''}</p>}
+                      {dispDate && <p><strong>Date:</strong> {displayDateRange(dispDate)}{dispTime ? ` · ${dispTime}` : ''}</p>}
                       {dispVenue && <p><strong>Venue:</strong> {dispVenue}</p>}
                       {sub.category && <p><strong>Category:</strong> {sub.category}</p>}
                       {dispPrice && <p><strong>Price:</strong> {dispPrice}</p>}
