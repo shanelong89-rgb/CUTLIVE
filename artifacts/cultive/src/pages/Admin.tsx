@@ -463,6 +463,27 @@ function EventsTab({
               onChange={(e) => setFormData({ ...formData, image: e.target.value })}
               placeholder="https://…"
             />
+            {formData.image ? (
+              <div className="image-preview">
+                <img
+                  src={formData.image}
+                  alt="Preview"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    (e.currentTarget.nextElementSibling as HTMLElement)!.style.display = 'flex';
+                  }}
+                  onLoad={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = 'block';
+                    (e.currentTarget.nextElementSibling as HTMLElement)!.style.display = 'none';
+                  }}
+                />
+                <div className="image-preview-fallback" style={{ display: 'none' }}>
+                  Image failed to load
+                </div>
+              </div>
+            ) : (
+              <div className="image-preview-empty">No image yet — paste a URL above</div>
+            )}
           </div>
           <div className="form-group">
             <label>Description</label>
@@ -584,6 +605,18 @@ function SubmissionsTab({
                   {new Date(sub.created_at).toLocaleDateString()}
                 </span>
               </div>
+              {sub.image ? (
+                <div className="submission-image">
+                  <img
+                    src={sub.image}
+                    alt={sub.title}
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              ) : null}
               <div className="submission-details">
                 <p><strong>Date:</strong> {sub.date}{sub.time ? ` · ${sub.time}` : ''}</p>
                 <p><strong>Venue:</strong> {sub.venue}</p>

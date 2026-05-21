@@ -1590,6 +1590,59 @@ h1, h2, h3 {
 }
 
 /* =====================================================
+   ADMIN: IMAGE PREVIEW
+   ===================================================== */
+.image-preview {
+  margin-top: 12px;
+  border: 1px solid var(--n-border, rgba(0, 0, 0, 0.12));
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--n-bg-alt, #f6f6f4);
+  max-width: 420px;
+}
+.image-preview img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+}
+.image-preview-fallback {
+  padding: 24px;
+  text-align: center;
+  color: #b91c1c;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  align-items: center;
+  justify-content: center;
+}
+.image-preview-empty {
+  margin-top: 10px;
+  padding: 18px;
+  border: 1px dashed var(--n-border, rgba(0, 0, 0, 0.16));
+  border-radius: 6px;
+  color: var(--n-muted, #666);
+  font-size: 0.8rem;
+  text-align: center;
+  letter-spacing: 0.02em;
+  max-width: 420px;
+}
+
+.submission-image {
+  margin: 12px 0 16px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--n-bg-alt, #f6f6f4);
+  max-width: 360px;
+  border: 1px solid var(--n-border, rgba(0, 0, 0, 0.08));
+}
+.submission-image img {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+}
+
+/* =====================================================
    SAVED PAGE & SAVE BUTTON
    ===================================================== */
 .cta-save {
