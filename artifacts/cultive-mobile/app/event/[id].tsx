@@ -93,9 +93,12 @@ export default function EventDetailScreen() {
   const hasExternalUrl = hasTicketUrl || hasSourceUrl;
   const resolvedUrl = hasTicketUrl ? ticketUrl : sourceUrl;
   const isFree = /free/i.test(event.price || "");
+  const isSourceIG = sourceUrl.includes("instagram.com");
   const externalLabel = hasTicketUrl
     ? (isFree ? "RSVP AT SOURCE" : "BUY TICKETS")
-    : "VIEW ON INSTAGRAM";
+    : isSourceIG
+    ? "VIEW ON INSTAGRAM"
+    : "VIEW AT SOURCE";
 
   const onRSVP = () => {
     if (hasExternalUrl && !isExclusive) {
