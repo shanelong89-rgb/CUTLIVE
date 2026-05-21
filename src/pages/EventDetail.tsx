@@ -100,7 +100,31 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
 
         <div className="detail-section">
           <h3>About this event</h3>
-          <p>{event.description}</p>
+          <p style={{ whiteSpace: 'pre-line' }}>
+            {event.description?.split('\n').map((line: string, idx: number) => {
+              // Check for markdown image: ![alt](url)
+              const imageMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+              if (imageMatch) {
+                return (
+                  <img 
+                    key={idx}
+                    src={imageMatch[2]} 
+                    alt={imageMatch[1]}
+                    style={{ 
+                      width: '100%', 
+                      marginTop: '16px',
+                      marginBottom: '16px',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      display: 'block'
+                    }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                );
+              }
+              return <span key={idx}>{line}<br/></span>;
+            })}
+          </p>
         </div>
 
         <div className="detail-section">

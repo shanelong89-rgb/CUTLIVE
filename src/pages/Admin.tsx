@@ -475,6 +475,40 @@ function SubmissionsTab({
                 <p><strong>Venue:</strong> {sub.venue}</p>
                 <p><strong>Category:</strong> {sub.category}</p>
                 <p><strong>Submitted by:</strong> {sub.submitter_name} ({sub.submitter_email})</p>
+                {/* Show flyer images embedded in description */}
+                {(() => {
+                  const desc = (sub as any).description || '';
+                  const imageMatches = desc.match(/!\[[^\]]*\]\(([^)]+)\)/g) || [];
+                  if (imageMatches.length === 0) return null;
+                  return (
+                    <div style={{ marginTop: '12px' }}>
+                      <p><strong>Flyer/Images:</strong></p>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                        {imageMatches.map((match: string, idx: number) => {
+                          const urlMatch = match.match(/!\[[^\]]*\]\(([^)]+)\)/);
+                          const url = urlMatch ? urlMatch[1] : '';
+                          return (
+                            <img 
+                              key={idx}
+                              src={url}
+                              alt={`Flyer ${idx + 1}`}
+                              style={{ 
+                                width: '100px', 
+                                height: '130px', 
+                                objectFit: 'cover',
+                                borderRadius: '6px',
+                                border: '1px solid #e5e7eb',
+                                cursor: 'pointer'
+                              }}
+                              onClick={() => window.open(url, '_blank')}
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="submission-actions">
                 <button className="approve-btn" onClick={() => onApprove(sub.id)}>
