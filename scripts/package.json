@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "setup-storage": "tsx ./src/setup-supabase-storage.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.0"
   },
   "devDependencies": {
     "@types/node": "catalog:",

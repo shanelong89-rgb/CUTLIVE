@@ -38,7 +38,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- **Supabase Storage bucket required**: The mobile app uploads event photos to a bucket called `submission-images`. This bucket must exist and be set to **public** in your Supabase project before image upload works. Create it once via the Supabase Dashboard (Storage → New bucket → name `submission-images` → toggle Public ON), or run `pnpm --filter @workspace/scripts run setup-storage` with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set. See `supabase/schema.sql` for full instructions.
 
 ## Pointers
 

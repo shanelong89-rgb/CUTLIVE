@@ -195,3 +195,23 @@ create policy "submissions_owner_read"
 -- ── HOW TO MAKE YOURSELF ADMIN ──────────────────────────────
 -- After signing up via the app's auth modal once, run:
 --   update public.profiles set is_admin = true where email = 'YOU@EXAMPLE.COM';
+
+-- ── STORAGE BUCKET SETUP ─────────────────────────────────────
+-- The mobile app uploads event photos to a Supabase Storage bucket called
+-- `submission-images`. This bucket must be created manually (once) before
+-- image upload will work.
+--
+-- Option A — Dashboard UI (easiest):
+--   1. Open your Supabase project → Storage → New bucket
+--   2. Name: submission-images
+--   3. Toggle "Public bucket" ON (so uploaded image URLs are publicly readable)
+--   4. Save
+--
+-- Option B — Script (idempotent, safe to re-run):
+--   SUPABASE_URL=<url> SUPABASE_SERVICE_ROLE_KEY=<key> \
+--     pnpm --filter @workspace/scripts run setup-storage
+--
+-- Required bucket settings:
+--   public:            true   (image URLs must be readable without auth)
+--   allowed MIME types: image/jpeg, image/jpg, image/png, image/webp, image/heic
+--   max file size:     10 MB
