@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getMySubmissions, onAuthStateChange, supabase, type Submission } from '../lib/supabase';
+import { getMySubmissions, supabase, type Submission } from '../lib/supabase';
 
 const READ_KEY = 'cultive:read-messages';
 
@@ -114,7 +114,7 @@ export function useInboxMessages() {
 
   useEffect(() => {
     load();
-    const sub = onAuthStateChange(() => load());
+    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
     return () => sub.subscription.unsubscribe();
   }, [load]);
 
