@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../hooks/useAuth';
 import { signOut, supabase } from '../lib/supabase';
 
@@ -76,7 +77,7 @@ export function ProfileMenu() {
         <span className="profile-avatar">{initialsFor(email)}</span>
       </button>
 
-      {open && (
+      {open && createPortal(
         <>
           <div
             className="profile-sidebar-backdrop"
@@ -183,7 +184,8 @@ export function ProfileMenu() {
               <p className="profile-sidebar-version">CULTIVE · 文化活 · v1.0</p>
             </footer>
           </aside>
-        </>
+        </>,
+        document.body
       )}
     </>
   );
