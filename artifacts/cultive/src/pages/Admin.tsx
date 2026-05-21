@@ -15,6 +15,7 @@ import {
   approveSubmission,
   rejectSubmission,
   submitInstagramLink,
+  sendSubmissionPushNotification,
   type Event,
   type Submission,
 } from '../lib/supabase';
@@ -161,6 +162,14 @@ export function Admin() {
       const { event, submission } = await approveSubmission(sub);
       setEvents(prev => [event, ...prev]);
       setSubmissions(prev => prev.map(s => (s.id === sub.id ? submission : s)));
+      if (sub.submitter_email) {
+        sendSubmissionPushNotification({
+          submitterEmail: sub.submitter_email,
+          submissionTitle: sub.title,
+          status: 'approved',
+          publishedEventId: event.id,
+        });
+      }
     } catch (e: any) {
       alert(e?.message ?? 'Failed to approve.');
     }
@@ -170,6 +179,13 @@ export function Admin() {
     try {
       const updated = await rejectSubmission(id);
       setSubmissions(prev => prev.map(s => (s.id === id ? updated : s)));
+      if (updated.submitter_email) {
+        sendSubmissionPushNotification({
+          submitterEmail: updated.submitter_email,
+          submissionTitle: updated.title,
+          status: 'rejected',
+        });
+      }
     } catch (e: any) {
       alert(e?.message ?? 'Failed to reject.');
     }

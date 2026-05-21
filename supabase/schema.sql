@@ -192,6 +192,31 @@ create policy "submissions_owner_read"
     or public.is_admin()
   );
 
+-- ── PUSH TOKENS ─────────────────────────────────────────────
+-- Stores Expo push tokens for mobile users, keyed by email.
+-- The mobile app upserts the token on sign-in; the admin web app
+-- reads it when approving or rejecting a submission.
+create table if not exists public.push_tokens (
+  email       text primary key,
+  token       text not null,
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.push_tokens enable row level security;
+
+-- A user can upsert their own row (matched by their auth email)
+drop policy if exists "push_tokens_self_upsert" on public.push_tokens;
+create policy "push_tokens_self_upsert"
+  on public.push_tokens for all
+  using (email = (select email from auth.users where id = auth.uid()))
+  with check (email = (select email from auth.users where id = auth.uid()));
+
+-- Admins can read all tokens (needed to look up a submitter's token)
+drop policy if exists "push_tokens_admin_read" on public.push_tokens;
+create policy "push_tokens_admin_read"
+  on public.push_tokens for select
+  using (public.is_admin());
+
 -- ── HOW TO MAKE YOURSELF ADMIN ──────────────────────────────
 -- After signing up via the app's auth modal once, run:
 --   update public.profiles set is_admin = true where email = 'YOU@EXAMPLE.COM';

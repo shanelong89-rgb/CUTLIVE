@@ -372,6 +372,54 @@ export async function rejectSubmission(id: string) {
   return data as Submission;
 }
 
+// ─── Admin: push notifications ───────────────────────────────
+/**
+ * After approving or rejecting a submission, look up the submitter's Expo
+ * push token and deliver a notification via the Expo Push API.
+ * Fails silently — the review action itself is already complete.
+ */
+export async function sendSubmissionPushNotification(opts: {
+  submitterEmail: string;
+  submissionTitle: string;
+  status: 'approved' | 'rejected';
+  publishedEventId?: string | null;
+}): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from('push_tokens')
+      .select('token')
+      .eq('email', opts.submitterEmail)
+      .single();
+    if (error || !data?.token) return;
+
+    const isApproved = opts.status === 'approved';
+    const title = isApproved
+      ? `"${opts.submissionTitle}" was approved`
+      : `"${opts.submissionTitle}" wasn't approved`;
+    const body = isApproved
+      ? 'Your event is now live on CULTIVE. Tap to view it.'
+      : 'Thanks for submitting — this one didn\'t make it through editorial review.';
+
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: data.token,
+        title,
+        body,
+        data: { screen: 'inbox' },
+        sound: 'default',
+      }),
+    });
+  } catch {
+    // Non-fatal — notification delivery is best-effort
+  }
+}
+
 // ─── Admin: role check ───────────────────────────────────────
 // Hardcoded admin emails (always granted access, no SQL required)
 const ADMIN_EMAILS = ['shanelong@gmail.com'];

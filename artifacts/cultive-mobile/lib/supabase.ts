@@ -291,3 +291,17 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }
+
+export async function upsertPushToken(
+  email: string,
+  token: string,
+): Promise<void> {
+  try {
+    await supabase.from("push_tokens").upsert(
+      { email, token, updated_at: new Date().toISOString() },
+      { onConflict: "email" },
+    );
+  } catch {
+    // Non-fatal — app works fine without push tokens stored
+  }
+}

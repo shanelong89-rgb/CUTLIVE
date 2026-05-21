@@ -2,6 +2,7 @@ import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 import { parseEventDate } from "./calendar";
+import { upsertPushToken } from "./supabase";
 import type { Event } from "./supabase";
 
 // Show notifications when app is in foreground too
@@ -23,6 +24,33 @@ async function requestPermission(): Promise<boolean> {
     return status === "granted";
   } catch {
     return false;
+  }
+}
+
+/**
+ * Registers the device for remote push notifications and persists the Expo
+ * push token to Supabase so the admin web app can look it up by email.
+ * Call this after the user signs in.
+ */
+export async function registerAndStorePushToken(
+  email: string,
+): Promise<string | null> {
+  if (Platform.OS === "web") return null;
+  try {
+    const { status: existing } = await Notifications.getPermissionsAsync();
+    let finalStatus = existing;
+    if (existing !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") return null;
+
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const token = tokenData.data;
+    await upsertPushToken(email, token);
+    return token;
+  } catch {
+    return null;
   }
 }
 
