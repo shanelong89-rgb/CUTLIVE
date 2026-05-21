@@ -68,7 +68,9 @@ create table if not exists public.submissions (
   tags                text[],
   instagram_url       text,
   source_id           text,
-  submission_type     text check (submission_type in ('manual', 'instagram'))
+  submission_type     text check (submission_type in ('manual', 'instagram')),
+  ticket_url          text,
+  scraped_data        jsonb
 );
 
 create index if not exists submissions_status_idx  on public.submissions (status, created_at desc);

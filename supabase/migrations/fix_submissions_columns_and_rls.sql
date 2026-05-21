@@ -9,7 +9,9 @@
 alter table public.submissions
   add column if not exists instagram_url   text,
   add column if not exists source_id       text,
-  add column if not exists submission_type text;
+  add column if not exists submission_type text,
+  add column if not exists ticket_url      text,
+  add column if not exists scraped_data    jsonb;
 
 -- 2. Fix the status check constraint to include 'pending_scrape'
 --    (drop the old one by name then recreate)
