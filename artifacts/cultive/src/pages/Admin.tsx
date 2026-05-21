@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { AVAILABLE_TAGS } from '../data/events';
+
 import {
   supabase,
   signIn,
@@ -16,6 +17,15 @@ import {
   type Event,
   type Submission,
 } from '../lib/supabase';
+
+function displayDate(raw?: string): string {
+  if (!raw) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (!m) return raw;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
 
 const EMPTY_EVENT: Event = {
   id: '',
@@ -588,7 +598,7 @@ function EventsTab({
                 <strong>{event.title}</strong>
                 <small>{event.venue}</small>
               </div>
-              <span>{event.date}</span>
+              <span>{displayDate(event.date)}</span>
               <span className="category-badge">{event.category}</span>
               <span className="status-badge published">Published</span>
               <div className="actions">
@@ -663,7 +673,7 @@ function SubmissionsTab({
                 </div>
               ) : null}
               <div className="submission-details">
-                <p><strong>Date:</strong> {sub.date}{sub.time ? ` · ${sub.time}` : ''}</p>
+                <p><strong>Date:</strong> {displayDate(sub.date)}{sub.time ? ` · ${sub.time}` : ''}</p>
                 <p><strong>Venue:</strong> {sub.venue}</p>
                 <p><strong>Category:</strong> {sub.category}</p>
                 {sub.price && <p><strong>Price:</strong> {sub.price}</p>}
