@@ -415,14 +415,18 @@ export default function SubmitScreen() {
         autoCapitalize="words"
       />
 
-      <Label>Your Email *</Label>
-      <Input
-        value={form.submitter_email}
-        onChangeText={(v) => onChange("submitter_email", v)}
-        placeholder="payment goes here once approved"
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+      {!userDefaults.email && (
+        <>
+          <Label>Your Email *</Label>
+          <Input
+            value={form.submitter_email}
+            onChangeText={(v) => onChange("submitter_email", v)}
+            placeholder="payment goes here once approved"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </>
+      )}
 
       <Pressable
         onPress={onSubmit}
