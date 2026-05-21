@@ -17,12 +17,23 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useSavedEvents } from "@/hooks/useSavedEvents";
 import { addEventToCalendar } from "@/lib/calendar";
-import { getEvents, type Event } from "@/lib/supabase";
+import { getEvents, supabase, type Event } from "@/lib/supabase";
 
 export default function SavedScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { ids, count, remove, clear } = useSavedEvents();
+  const [signedIn, setSignedIn] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSignedIn(!!data.session?.user);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSignedIn(!!session?.user);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
   const [addingCalId, setAddingCalId] = useState<string | null>(null);
 
   const { data: allEvents = [], isLoading } = useQuery({
@@ -52,6 +63,30 @@ export default function SavedScreen() {
     } finally {
       setAddingCalId(null);
     }
+  }
+
+  if (signedIn === false) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={[styles.header, { paddingTop: insets.top + 16, borderBottomColor: colors.border }]}>
+          <Text style={[styles.eyebrow, { color: colors.mutedForeground }]}>SAVED</Text>
+          <Text style={[styles.title, { color: colors.foreground }]}>Your List</Text>
+        </View>
+        <View style={styles.empty}>
+          <Feather name="bookmark" size={36} color={colors.mutedForeground} />
+          <Text style={[styles.emptyTitle, { color: colors.foreground }]}>Sign in to save events</Text>
+          <Text style={[styles.emptyBody, { color: colors.mutedForeground }]}>
+            Create a free account to bookmark events and access them from any device.
+          </Text>
+          <Pressable
+            onPress={() => router.push("/auth" as any)}
+            style={[styles.cta, { backgroundColor: colors.foreground }]}
+          >
+            <Text style={[styles.ctaText, { color: colors.background }]}>SIGN IN / SIGN UP</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   }
 
   return (
