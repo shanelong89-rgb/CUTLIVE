@@ -286,7 +286,7 @@ function EventRow({ event }: { event: Event }) {
   );
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 export function Discover() {
   const [activeTags, setActiveTags] = useState<string[]>([]);
