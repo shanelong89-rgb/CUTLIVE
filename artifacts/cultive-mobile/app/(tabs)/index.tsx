@@ -183,8 +183,23 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
     const dates = parseAllEventDates(event.date);
     if (dates.length === 0) return false;
 
-    const inRange = (start: Date, end: Date) =>
-      dates.some((d) => d.getTime() >= start.getTime() && d.getTime() < end.getTime());
+    // Use date_end so ongoing multi-day events match the active filter
+    const endOverride = (() => {
+      if (!event.date_end) return null;
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((event.date_end ?? "").trim());
+      if (!m) return null;
+      const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      return isNaN(d.getTime()) ? null : d;
+    })();
+
+    const inRange = (start: Date, end: Date) => {
+      if (dates.some((d) => d.getTime() >= start.getTime() && d.getTime() < end.getTime())) return true;
+      if (endOverride) {
+        const eventStart = dates.reduce((a, b) => (a.getTime() < b.getTime() ? a : b));
+        return eventStart.getTime() < end.getTime() && endOverride.getTime() >= start.getTime();
+      }
+      return false;
+    };
 
     switch (dateFilter) {
       case "today":
@@ -197,9 +212,12 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
         return inRange(todayStart, weekEnd);
       case "month": {
         const allDates = parseAllEventDates(event.date, true);
-        return allDates.some(
-          (d) => d.getTime() >= monthStart.getTime() && d.getTime() < monthEnd.getTime()
-        );
+        if (allDates.some((d) => d.getTime() >= monthStart.getTime() && d.getTime() < monthEnd.getTime())) return true;
+        if (endOverride) {
+          const eventStart = allDates.length > 0 ? allDates.reduce((a, b) => a.getTime() < b.getTime() ? a : b) : null;
+          return !!eventStart && eventStart.getTime() < monthEnd.getTime() && endOverride.getTime() >= monthStart.getTime();
+        }
+        return false;
       }
       default:
         return true;
@@ -252,9 +270,18 @@ function sortUpcomingFirst(list: Event[]): Event[] {
   return [...list]
     .map((e) => {
       const all = parseAllEventDates(e.date, true);
+      // Use date_end as authoritative end so multi-day events aren't marked
+      // past until after the end date, not the start date.
+      const endOverride = (() => {
+        if (!e.date_end) return null;
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date_end.trim());
+        if (!m) return null;
+        const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+        return isNaN(d.getTime()) ? null : d;
+      })();
       if (all.length === 0) return { e, parsed: null as Date | null, isPast: false };
       const minDate = all.reduce((a, b) => (a.getTime() < b.getTime() ? a : b));
-      const maxDate = all.reduce((a, b) => (a.getTime() > b.getTime() ? a : b));
+      const maxDate = endOverride ?? all.reduce((a, b) => (a.getTime() > b.getTime() ? a : b));
       const isOngoing = minDate.getTime() < todayTs && maxDate.getTime() >= todayTs;
       if (isOngoing) return { e, parsed: minDate as Date | null, isPast: false };
       const upcoming = all.filter((d) => d.getTime() >= todayTs);
