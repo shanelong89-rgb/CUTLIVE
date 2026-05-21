@@ -7,6 +7,7 @@ import { Inbox } from './pages/Inbox';
 import { Account } from './pages/Account';
 import { EventDetail } from './pages/EventDetail';
 import { Admin } from './pages/Admin';
+import { Saved } from './pages/Saved';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
@@ -28,6 +29,7 @@ function App() {
         <Route path="/tickets" element={<Tickets />} />
         <Route path="/submit" element={<Submit />} />
         <Route path="/inbox" element={<Inbox />} />
+        <Route path="/saved" element={<Saved />} />
         <Route path="/account" element={<Account setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/admin/*" element={<Admin />} />
       </Routes>
@@ -46,6 +48,7 @@ function WebNav({ setIsAuthOpen }: { setIsAuthOpen: (open: boolean) => void }) {
   const { user, isAdmin, loading } = useAuth();
   const navItems = [
     { path: '/', label: 'Discover' },
+    { path: '/saved', label: 'Saved' },
     { path: '/tickets', label: 'Tickets' },
     { path: '/submit', label: 'Submit Event' },
     { path: '/inbox', label: 'Inbox' },

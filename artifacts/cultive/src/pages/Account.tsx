@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { signOut, supabase } from '../lib/supabase';
+import { useSavedEvents } from '../hooks/useSavedEvents';
 
 interface AccountProps {
   setIsAuthOpen?: (open: boolean) => void;
@@ -30,6 +31,7 @@ function formatDate(s?: string) {
 
 export function Account({ setIsAuthOpen }: AccountProps) {
   const { user, isAdmin, loading } = useAuth();
+  const { count: savedCount } = useSavedEvents();
   const [submissionCount, setSubmissionCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -90,6 +92,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
   const joined = formatDate(user.created_at);
 
   const menuItems: { label: string; href?: string; meta?: string }[] = [
+    { label: 'Saved Events', href: '/saved', meta: `${savedCount} saved` },
     { label: 'My Tickets', href: '/tickets', meta: '0 active' },
     {
       label: 'My Submissions',
@@ -128,7 +131,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
           <span className="account-stat-label">Tickets</span>
         </div>
         <div className="account-stat-cell">
-          <span className="account-stat-num">0</span>
+          <span className="account-stat-num">{savedCount}</span>
           <span className="account-stat-label">Saved</span>
         </div>
       </section>

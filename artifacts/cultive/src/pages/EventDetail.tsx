@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getEventById } from '../lib/supabase';
 import type { Event } from '../lib/supabase';
+import { useSavedEvents } from '../hooks/useSavedEvents';
 
 interface EventDetailProps {
   setIsAuthOpen?: (open: boolean) => void;
@@ -12,6 +13,8 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
   const navigate = useNavigate();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isSaved, toggle } = useSavedEvents();
+  const saved = id ? isSaved(id) : false;
 
   useEffect(() => {
     async function fetchEvent() {
@@ -145,6 +148,16 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
 
       <div className="bottom-cta">
         <button className="cta-secondary" onClick={() => navigate(-1)}>Back</button>
+        <button
+          className={`cta-save ${saved ? 'is-saved' : ''}`}
+          onClick={() => id && toggle(id)}
+          aria-label={saved ? 'Remove from saved' : 'Save event'}
+          title={saved ? 'Saved · tap to remove' : 'Save for later'}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
         <button className="cta-primary" onClick={handleRSVP}>
           {isExclusive ? 'Get Membership' : 'RSVP Free'}
         </button>

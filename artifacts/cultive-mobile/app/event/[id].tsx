@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
+import { useSavedEvents } from "@/hooks/useSavedEvents";
 import { getEventById } from "@/lib/supabase";
 
 const HERO_H = 320;
@@ -24,6 +25,8 @@ export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { isSaved, toggle } = useSavedEvents();
+  const saved = id ? isSaved(String(id)) : false;
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["event", id],
@@ -110,6 +113,27 @@ export default function EventDetailScreen() {
           hitSlop={8}
         >
           <Feather name="chevron-left" size={20} color={colors.foreground} />
+        </Pressable>
+
+        <Pressable
+          onPress={() => id && toggle(String(id))}
+          style={[
+            styles.closeBtn,
+            {
+              top: insets.top + (isWeb ? 67 : 12),
+              left: undefined,
+              right: 16,
+              backgroundColor: saved ? colors.foreground : colors.background,
+              borderColor: saved ? colors.foreground : colors.border,
+            },
+          ]}
+          hitSlop={8}
+        >
+          <Feather
+            name="bookmark"
+            size={18}
+            color={saved ? colors.background : colors.foreground}
+          />
         </Pressable>
 
         <View style={styles.content}>

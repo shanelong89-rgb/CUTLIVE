@@ -1590,6 +1590,106 @@ h1, h2, h3 {
 }
 
 /* =====================================================
+   SAVED PAGE & SAVE BUTTON
+   ===================================================== */
+.cta-save {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--n-border, rgba(0, 0, 0, 0.14));
+  border-radius: 4px;
+  color: var(--n-text, #000);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.cta-save:hover {
+  background: var(--n-bg-alt, rgba(0, 0, 0, 0.04));
+}
+.cta-save.is-saved {
+  background: var(--n-text, #000);
+  color: var(--n-bg, #fff);
+  border-color: var(--n-text, #000);
+}
+
+.saved-row {
+  position: relative;
+}
+.saved-remove {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--n-border, rgba(0, 0, 0, 0.12));
+  color: var(--n-muted, #666);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  z-index: 2;
+}
+.saved-remove:hover {
+  background: #b91c1c;
+  color: #fff;
+  border-color: #b91c1c;
+}
+
+.saved-empty {
+  padding: 80px 24px;
+  text-align: center;
+  color: var(--n-muted, #666);
+}
+.saved-empty-eyebrow {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  margin-bottom: 20px;
+  color: var(--n-muted, #666);
+}
+.saved-empty-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--n-text, #000);
+}
+.saved-empty-body {
+  max-width: 360px;
+  margin: 0 auto 32px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.saved-empty-cta {
+  display: inline-block;
+  padding: 14px 36px;
+  background: var(--n-text, #000);
+  color: var(--n-bg, #fff);
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.saved-empty-cta:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+/* =====================================================
    PLACEHOLDER & UTILITY
    ===================================================== */
 .placeholder-page {

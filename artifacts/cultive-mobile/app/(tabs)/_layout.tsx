@@ -16,6 +16,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "newspaper", selected: "newspaper.fill" }} />
         <Label>Discover</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="saved">
+        <Icon sf={{ default: "bookmark", selected: "bookmark.fill" }} />
+        <Label>Saved</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="tickets">
         <Icon sf={{ default: "ticket", selected: "ticket.fill" }} />
         <Label>Tickets</Label>
@@ -93,10 +97,17 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="saved"
+        options={{
+          title: "Saved",
+          tabBarIcon: ({ color }) => icon("bookmark", "bookmark", color),
+        }}
+      />
+      <Tabs.Screen
         name="tickets"
         options={{
           title: "Tickets",
-          tabBarIcon: ({ color }) => icon("bookmark", "ticket", color),
+          tabBarIcon: ({ color }) => icon("award", "ticket", color),
         }}
       />
       <Tabs.Screen
