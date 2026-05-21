@@ -345,7 +345,7 @@ html, body {
 }
 .profile-nav-row {
   display: grid;
-  grid-template-columns: 32px 1fr 20px;
+  grid-template-columns: 32px 1fr auto;
   align-items: center;
   gap: 12px;
   padding: 14px 0;
@@ -369,6 +369,7 @@ html, body {
   font-size: 1rem;
   color: rgba(0, 0, 0, 0.3);
   text-align: right;
+  white-space: nowrap;
 }
 
 /* Footer */
