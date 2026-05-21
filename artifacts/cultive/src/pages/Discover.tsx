@@ -62,8 +62,9 @@ function parseEventDate(raw: string, timeStr?: string): Date | null {
 }
 
 // Parse ALL dates out of a multi-date string like "Sat, May 23 & Sat, May 30"
-// or "May 23 & 30". Returns every date found so filters can match any of them.
-function parseAllEventDates(raw: string): Date[] {
+// or "May 23 & 30". keepPast=true retains dates before today (used by month
+// filter so the full calendar month is visible, not just future dates).
+function parseAllEventDates(raw: string, keepPast = false): Date[] {
   if (!raw) return [];
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -93,7 +94,8 @@ function parseAllEventDates(raw: string): Date[] {
     if (mDay) {
       const guess = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
       if (!isNaN(guess.getTime())) {
-        if (guess.getTime() < today.getTime() - 86400000) guess.setFullYear(now.getFullYear() + 1);
+        if (!keepPast && guess.getTime() < today.getTime() - 86400000)
+          guess.setFullYear(now.getFullYear() + 1);
         lastMonth = guess.getMonth();
         results.push(guess);
         continue;
@@ -107,7 +109,8 @@ function parseAllEventDates(raw: string): Date[] {
       if (day >= 1 && day <= 31) {
         const d = new Date(now.getFullYear(), lastMonth, day);
         if (!isNaN(d.getTime())) {
-          if (d.getTime() < today.getTime() - 86400000) d.setFullYear(now.getFullYear() + 1);
+          if (!keepPast && d.getTime() < today.getTime() - 86400000)
+            d.setFullYear(now.getFullYear() + 1);
           results.push(d);
           continue;
         }
@@ -180,8 +183,10 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
         return inRange(weekendStart, weekendEnd);
       case 'week':
         return inRange(todayStart, weekEnd);
-      case 'month':
-        return inRange(monthStart, monthEnd);
+      case 'month': {
+        const allDates = parseAllEventDates(event.date, true);
+        return allDates.some(d => d.getTime() >= monthStart.getTime() && d.getTime() < monthEnd.getTime());
+      }
       default:
         return true;
     }

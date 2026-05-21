@@ -26,7 +26,7 @@ const dateFilters = [
   { id: "week", label: "This Week" },
 ];
 
-function parseAllEventDates(raw: string): Date[] {
+function parseAllEventDates(raw: string, keepPast = false): Date[] {
   if (!raw) return [];
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -52,7 +52,7 @@ function parseAllEventDates(raw: string): Date[] {
     if (mDay) {
       const guess = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
       if (!isNaN(guess.getTime())) {
-        if (guess.getTime() < today.getTime() - 86400000)
+        if (!keepPast && guess.getTime() < today.getTime() - 86400000)
           guess.setFullYear(now.getFullYear() + 1);
         lastMonth = guess.getMonth();
         results.push(guess);
@@ -65,7 +65,7 @@ function parseAllEventDates(raw: string): Date[] {
       if (day >= 1 && day <= 31) {
         const d = new Date(now.getFullYear(), lastMonth, day);
         if (!isNaN(d.getTime())) {
-          if (d.getTime() < today.getTime() - 86400000)
+          if (!keepPast && d.getTime() < today.getTime() - 86400000)
             d.setFullYear(now.getFullYear() + 1);
           results.push(d);
           continue;
@@ -119,8 +119,12 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
         return inRange(weekendStart, weekendEnd);
       case "week":
         return inRange(todayStart, weekEnd);
-      case "month":
-        return inRange(monthStart, monthEnd);
+      case "month": {
+        const allDates = parseAllEventDates(event.date, true);
+        return allDates.some(
+          (d) => d.getTime() >= monthStart.getTime() && d.getTime() < monthEnd.getTime()
+        );
+      }
       default:
         return true;
     }
