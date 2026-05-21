@@ -429,7 +429,7 @@ export function Discover() {
           {activeDateFilter !== 'all' && ` · ${dateFilters.find(d => d.id === activeDateFilter)?.label}`}
         </span>
         <span className="section-label">
-          {loading ? 'Loading…' : `${filteredEvents.length} events · pg ${currentPage}/${totalPages}`}
+          {loading ? 'Loading…' : totalPages > 1 ? `${filteredEvents.length} events · pg ${currentPage}/${totalPages}` : `${filteredEvents.length} events`}
         </span>
       </div>
 
