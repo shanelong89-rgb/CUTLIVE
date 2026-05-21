@@ -274,18 +274,29 @@ function displayDate(raw: string): string {
     }
   }
 
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
   // "Month Day" like "May 23" or "Sat, May 23"
+  // Guard: only match if the word is actually a month name (not a weekday like "Fri")
   const mDay = raw.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\b/);
-  if (mDay) {
+  if (mDay && MONTH_NAME_RE.test(mDay[1])) {
     const d = new Date(`${mDay[1]} ${mDay[2]}, ${now.getFullYear()}`);
     if (!isNaN(d.getTime())) {
-      const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
       return `${days[d.getDay()]} ${d.getDate()} ${mDay[1].slice(0,3)}`;
     }
   }
 
+  // "Day Month" like "22 May" or "Fri 22 May" (weekday prefix is ignored)
+  const dMonth = raw.match(/\b(\d{1,2})\s+([A-Za-z]{3,})\b/);
+  if (dMonth && MONTH_NAME_RE.test(dMonth[2])) {
+    const d = new Date(`${dMonth[2]} ${dMonth[1]}, ${now.getFullYear()}`);
+    if (!isNaN(d.getTime())) {
+      return `${days[d.getDay()]} ${d.getDate()} ${dMonth[2].slice(0,3)}`;
+    }
+  }
+
   // Fallback: return raw trimmed
-  return raw.length > 10 ? raw.slice(0, 10) : raw;
+  return raw.length > 12 ? raw.slice(0, 12) : raw;
 }
 
 function getIssueDate(): string {

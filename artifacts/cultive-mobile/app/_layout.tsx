@@ -92,7 +92,15 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
-      router.replace("/welcome" as any);
+      // Skip the welcome animation for returning signed-in users — go straight to tabs.
+      // Only show the welcome screen (with sign-in prompt) to unauthenticated users.
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session?.user) {
+          router.replace("/(tabs)" as any);
+        } else {
+          router.replace("/welcome" as any);
+        }
+      });
     }
   }, [fontsLoaded, fontError]);
 

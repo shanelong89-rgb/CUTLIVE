@@ -5,6 +5,8 @@ import { parseEventDate } from "./calendar";
 import { upsertPushToken } from "./supabase";
 import type { Event } from "./supabase";
 
+const CHANNEL_ID = "cultive-reminders";
+
 // Show notifications when app is in foreground too
 Notifications.setNotificationHandler({
   handleNotification: async () =>
@@ -15,9 +17,20 @@ Notifications.setNotificationHandler({
     }) as Notifications.NotificationBehavior,
 });
 
+// Android 8+ requires a notification channel before any local notification works.
+async function ensureAndroidChannel(): Promise<void> {
+  if (Platform.OS !== "android") return;
+  await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
+    name: "Event Reminders",
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
+  });
+}
+
 async function requestPermission(): Promise<boolean> {
-  if (Platform.OS !== "ios") return false;
+  if (Platform.OS === "web") return false;
   try {
+    await ensureAndroidChannel();
     const { status: existing } = await Notifications.getPermissionsAsync();
     if (existing === "granted") return true;
     const { status } = await Notifications.requestPermissionsAsync();
@@ -37,6 +50,7 @@ export async function registerAndStorePushToken(
 ): Promise<string | null> {
   if (Platform.OS === "web") return null;
   try {
+    await ensureAndroidChannel();
     const { status: existing } = await Notifications.getPermissionsAsync();
     let finalStatus = existing;
     if (existing !== "granted") {
@@ -60,14 +74,17 @@ async function scheduleIfFuture(
   targetDate: Date,
 ): Promise<void> {
   const secondsUntil = Math.floor((targetDate.getTime() - Date.now()) / 1000);
-  if (secondsUntil < 60) return; // don't bother if under a minute away
-  // Cancel any existing notification with this ID first
+  if (secondsUntil < 60) return;
   await Notifications.cancelScheduledNotificationAsync(identifier).catch(
     () => {},
   );
   await Notifications.scheduleNotificationAsync({
     identifier,
-    content,
+    content: {
+      ...content,
+      // Android requires every notification to declare its channel
+      ...(Platform.OS === "android" ? { channelId: CHANNEL_ID } : {}),
+    },
     trigger: {
       seconds: secondsUntil,
       repeats: false,
@@ -76,7 +93,7 @@ async function scheduleIfFuture(
 }
 
 export async function scheduleEventNotifications(event: Event): Promise<void> {
-  if (Platform.OS !== "ios") return;
+  if (Platform.OS === "web") return;
   const granted = await requestPermission();
   if (!granted) return;
 
@@ -125,7 +142,7 @@ export async function scheduleEventNotifications(event: Event): Promise<void> {
 }
 
 export async function cancelEventNotifications(eventId: string): Promise<void> {
-  if (Platform.OS !== "ios") return;
+  if (Platform.OS === "web") return;
   await Notifications.cancelScheduledNotificationAsync(
     `cultive-tomorrow-${eventId}`,
   ).catch(() => {});
