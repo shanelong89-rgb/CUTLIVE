@@ -8,7 +8,7 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
-import { useInboxMessages } from "@/hooks/useInboxMessages";
+import { useInbox } from "@/contexts/InboxContext";
 
 function NativeTabLayout({ unreadCount }: { unreadCount: number }) {
   return (
@@ -143,7 +143,7 @@ function ClassicTabLayout({ unreadCount }: { unreadCount: number }) {
 }
 
 export default function TabLayout() {
-  const { unreadCount } = useInboxMessages();
+  const { unreadCount } = useInbox();
 
   if (isLiquidGlassAvailable()) {
     return <NativeTabLayout unreadCount={unreadCount} />;

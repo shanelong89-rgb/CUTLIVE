@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useInbox } from "@/contexts/InboxContext";
 import { useColors } from "@/hooks/useColors";
-import { useInboxMessages } from "@/hooks/useInboxMessages";
 
 export default function InboxScreen() {
   const colors = useColors();
@@ -28,7 +28,7 @@ export default function InboxScreen() {
     refresh,
     markRead,
     markAllRead,
-  } = useInboxMessages();
+  } = useInbox();
 
   return (
     <ScrollView

@@ -12,20 +12,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useInbox } from "@/contexts/InboxContext";
 import { useColors } from "@/hooks/useColors";
-import { useInboxMessages } from "@/hooks/useInboxMessages";
 import { signOut, supabase } from "@/lib/supabase";
 
 const ADMIN_EMAILS = ["shanelong@gmail.com"];
 
 const MENU_ITEMS: { label: string; route?: string }[] = [
-  { label: "Edit Profile" },
-  { label: "Membership" },
-  { label: "Payment Methods" },
-  { label: "My Submissions" },
-  { label: "Invite Friends" },
-  { label: "Settings" },
-  { label: "Help & Support" },
+  { label: "My Submissions", route: "/my-submissions" },
 ];
 
 export default function AccountScreen() {
@@ -35,7 +29,7 @@ export default function AccountScreen() {
   const [email, setEmail] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [submissionCount, setSubmissionCount] = useState<number | null>(null);
-  const { unreadCount } = useInboxMessages();
+  const { unreadCount } = useInbox();
 
   const extractDisplayName = (user: { user_metadata?: Record<string, any>; email?: string | null } | null | undefined): string | null => {
     if (!user) return null;
@@ -237,11 +231,7 @@ export default function AccountScreen() {
           return (
             <Pressable
               key={i}
-              onPress={
-                isSubmissions
-                  ? () => router.push("/my-submissions" as any)
-                  : undefined
-              }
+              onPress={item.route ? () => router.push(item.route as any) : undefined}
               style={({ pressed }) => [
                 styles.menuItem,
                 { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },

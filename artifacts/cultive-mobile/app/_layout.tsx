@@ -16,6 +16,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { InboxProvider } from "@/contexts/InboxContext";
 import { registerAndStorePushToken } from "@/lib/notifications";
 import { supabase } from "@/lib/supabase";
 
@@ -97,7 +98,9 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView>
             <KeyboardProvider>
-              <RootLayoutNav />
+              <InboxProvider>
+                <RootLayoutNav />
+              </InboxProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>
