@@ -199,7 +199,7 @@ function submissionToMessage(s: Submission): InboxMessage {
       unread: false,
       createdAt: reviewed,
       kind: 'submission-approved',
-      linkTo: s.published_event_id ? `/event/${s.published_event_id}` : undefined,
+      linkTo: s.published_event_id ? `/event/${s.published_event_id}` : '/account',
     };
   }
   if (status === 'rejected') {
@@ -211,6 +211,7 @@ function submissionToMessage(s: Submission): InboxMessage {
       unread: false,
       createdAt: reviewed,
       kind: 'submission-rejected',
+      linkTo: '/account',
     };
   }
   return {
@@ -221,6 +222,7 @@ function submissionToMessage(s: Submission): InboxMessage {
     unread: false,
     createdAt: s.created_at,
     kind: 'submission-pending',
+    linkTo: '/account',
   };
 }
 

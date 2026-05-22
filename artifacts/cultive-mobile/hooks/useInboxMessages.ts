@@ -125,7 +125,7 @@ function submissionToMessage(s: Submission): InboxMessage {
       kind: "submission-approved",
       linkTo: s.published_event_id
         ? `/event/${s.published_event_id}`
-        : undefined,
+        : "/my-submissions",
     };
   }
   if (status === "rejected") {
@@ -138,6 +138,7 @@ function submissionToMessage(s: Submission): InboxMessage {
       unread: false,
       createdAt: reviewed,
       kind: "submission-rejected",
+      linkTo: "/my-submissions",
     };
   }
   return {
@@ -149,6 +150,7 @@ function submissionToMessage(s: Submission): InboxMessage {
     unread: false,
     createdAt: s.created_at,
     kind: "submission-pending",
+    linkTo: "/my-submissions",
   };
 }
 
