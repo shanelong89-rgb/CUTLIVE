@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { submitEvent, submitInstagramLink, supabase } from '../lib/supabase';
 import { AVAILABLE_TAGS } from '../data/events';
 import { useAuth } from '../hooks/useAuth';
@@ -50,7 +50,12 @@ export function Submit() {
     setIgError('');
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      await submitInstagramLink(igUrl.trim(), user?.id, formData.submitter_name || undefined, formData.submitter_email || undefined);
+      await submitInstagramLink(
+        igUrl.trim(),
+        user?.id,
+        formData.submitter_name || user?.user_metadata?.full_name || user?.user_metadata?.name || undefined,
+        formData.submitter_email || user?.email || undefined,
+      );
       setIgUrl('');
       setThankYouType('instagram');
     } catch (err: unknown) {
@@ -75,6 +80,17 @@ export function Submit() {
     submitter_name: '',
     submitter_email: '',
   });
+
+  // Pre-populate email (and name if available) from the logged-in user's account
+  useEffect(() => {
+    if (!user) return;
+    setFormData(prev => ({
+      ...prev,
+      submitter_email: prev.submitter_email || user.email || '',
+      submitter_name: prev.submitter_name || user.user_metadata?.full_name || user.user_metadata?.name || '',
+    }));
+  }, [user]);
+
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
