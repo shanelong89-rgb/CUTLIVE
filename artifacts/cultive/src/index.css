@@ -2536,7 +2536,27 @@ h1, h2, h3 {
   /* Lift the bottom CTA bar above the mobile tab bar */
   .bottom-cta {
     bottom: 80px;
-    padding-bottom: 16px;
+    padding: 10px 5vw 10px;
+    gap: 10px;
+  }
+
+  /* Compact, equal-height buttons on mobile */
+  .cta-primary {
+    padding: 0 20px;
+    height: 44px;
+    font-size: 0.8rem;
+    flex: 1;
+  }
+
+  .cta-secondary {
+    padding: 0 16px;
+    height: 44px;
+    font-size: 0.8rem;
+  }
+
+  .cta-save {
+    width: 44px;
+    height: 44px;
   }
   
   /* Mobile forms */
