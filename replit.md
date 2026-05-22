@@ -39,6 +39,10 @@ _Populate as you build — explicit user instructions worth remembering across s
 ## Gotchas
 
 - **Supabase Storage bucket required**: The mobile app uploads event photos to a bucket called `submission-images`. This bucket must exist and be set to **public** in your Supabase project before image upload works. Create it once via the Supabase Dashboard (Storage → New bucket → name `submission-images` → toggle Public ON), or run `pnpm --filter @workspace/scripts run setup-storage` with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set. See `supabase/schema.sql` for full instructions.
+- **Manual Supabase migrations** — the following were run directly in the Supabase SQL Editor and are not applied automatically:
+  - `supabase/migrations/add_date_end_to_events_and_submissions.sql` — adds `date_end text` to both tables
+  - `supabase/migrations/add_metadata_to_events_and_submissions.sql` — adds `metadata jsonb` to both tables
+  - `supabase/migrations/prevent_auto_approve_on_enrich.sql` — DB trigger that keeps enriched submissions in `pending` instead of auto-approving them
 
 ## Pointers
 

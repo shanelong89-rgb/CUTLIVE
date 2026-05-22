@@ -38,6 +38,7 @@ create table if not exists public.events (
   source_url    text,
   date_end      text,
   rsvp_enabled  boolean default false,
+  metadata      jsonb default '{}'::jsonb,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
 );
@@ -72,7 +73,8 @@ create table if not exists public.submissions (
   submission_type     text check (submission_type in ('manual', 'instagram')),
   ticket_url          text,
   date_end            text,
-  scraped_data        jsonb
+  scraped_data        jsonb,
+  metadata            jsonb default '{}'::jsonb
 );
 
 create index if not exists submissions_status_idx  on public.submissions (status, created_at desc);
