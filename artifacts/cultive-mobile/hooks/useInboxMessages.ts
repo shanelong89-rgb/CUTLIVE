@@ -351,7 +351,14 @@ export function useInboxMessages() {
         JSON.stringify(Array.from(currentReadIds)),
       );
     }
-    setReadIds(new Set(currentReadIds));
+    // Merge with current state so a concurrent markAllRead is never undone.
+    // keysToUnread are intentionally re-removed (status-change logic).
+    setReadIds((prev) => {
+      const merged = new Set(currentReadIds);
+      for (const k of prev) merged.add(k);
+      for (const k of keysToUnread) merged.delete(k);
+      return merged;
+    });
 
     if (keysToUnread.length > 0) {
       deleteReadItemsRemote(keysToUnread).catch(() => {});

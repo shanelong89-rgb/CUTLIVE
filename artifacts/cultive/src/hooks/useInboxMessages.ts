@@ -4,6 +4,7 @@ import { deleteReadItemsRemote, getEvents, getMySubmissions, listReadItemKeysRem
 const READ_KEY = 'cultive:read-messages';
 const SAVED_KEY = 'cultive:saved-events';
 const SAVED_EVENT_NAME = 'cultive:saved-events-changed';
+const READ_CHANGED_EVENT = 'cultive:read-messages-changed';
 const SUBMISSION_STATUSES_KEY = 'cultive:submission-statuses';
 
 function readSavedIds(): string[] {
@@ -140,6 +141,7 @@ function readReadIds(): Set<string> {
 function writeReadIds(set: Set<string>) {
   try {
     localStorage.setItem(READ_KEY, JSON.stringify(Array.from(set)));
+    window.dispatchEvent(new Event(READ_CHANGED_EVENT));
   } catch {
     // ignore
   }
@@ -392,7 +394,14 @@ export function useInboxMessages() {
 
     writeSubmissionStatuses(newStatuses);
     writeReadIds(currentReadIds);
-    setReadIds(new Set(currentReadIds));
+    // Merge with current state so a concurrent markAllRead is never undone.
+    // keysToUnread are intentionally re-removed (status-change logic).
+    setReadIds((prev) => {
+      const merged = new Set(currentReadIds);
+      for (const k of prev) merged.add(k);
+      for (const k of keysToUnread) merged.delete(k);
+      return merged;
+    });
     if (keysToUnread.length > 0) {
       deleteReadItemsRemote(keysToUnread).catch(() => {});
     }
@@ -452,6 +461,15 @@ export function useInboxMessages() {
     load();
     return () => sub.subscription.unsubscribe();
   }, [load]);
+
+  // Keep readIds in sync across multiple hook instances on the same page
+  // (e.g. App.tsx badge + Inbox.tsx messages). writeReadIds dispatches this
+  // event so every instance picks up the change immediately.
+  useEffect(() => {
+    const handler = () => setReadIds(readReadIds());
+    window.addEventListener(READ_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(READ_CHANGED_EVENT, handler);
+  }, []);
 
   // Keep ref current so the realtime callback always calls the latest load
   // without needing it in the effect dependency array (which would re-subscribe
