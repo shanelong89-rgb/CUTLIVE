@@ -816,13 +816,33 @@ function SubmissionsTab({
                 const isPendingScrape = sub.status === 'pending_scrape';
                 const scraped = (sub.scraped_data ?? {}) as Record<string, unknown>;
                 const hasScrapedData = Object.keys(scraped).length > 0;
-                const str = (k: string) => typeof scraped[k] === 'string' ? scraped[k] as string : undefined;
+                const str = (...keys: string[]) => {
+                  for (const k of keys) {
+                    const v = scraped[k];
+                    if (typeof v === 'string' && v.trim()) return v as string;
+                  }
+                  return undefined;
+                };
+                const arr = (...keys: string[]): string[] => {
+                  for (const k of keys) {
+                    const v = scraped[k];
+                    if (Array.isArray(v) && v.length > 0) return v as string[];
+                  }
+                  return [];
+                };
 
-                const dispTitle  = sub.title  || str('extracted_title')  || 'Pending scrape…';
-                const dispDate   = sub.date   || str('extracted_date');
-                const dispTime   = sub.time   || str('extracted_time');
-                const dispVenue  = sub.venue  || str('extracted_venue');
-                const dispPrice  = sub.price  || str('extracted_price');
+                const dispTitle       = sub.title       || str('extracted_title', 'title')           || 'Pending scrape…';
+                const dispDate        = sub.date        || str('extracted_date', 'date');
+                const dispDateEnd     = sub.date_end    || str('extracted_date_end', 'date_end');
+                const dispTime        = sub.time        || str('extracted_time', 'time');
+                const dispVenue       = sub.venue       || str('extracted_venue', 'venue', 'location');
+                const dispPrice       = sub.price       || str('extracted_price', 'price');
+                const dispDescription = sub.description || str('extracted_description', 'description', 'caption', 'body');
+                const dispImage       = sub.image       || str('image', 'image_url', 'extracted_image', 'photo', 'photo_url', 'thumbnail', 'cover_image');
+                const dispCategory    = sub.category    || str('extracted_category', 'category');
+                const dispDistrict    = sub.district    || str('extracted_district', 'district', 'area');
+                const dispTicketUrl   = sub.ticket_url  || str('ticket_url', 'extracted_ticket_url', 'link');
+                const dispTags        = (sub.tags && sub.tags.length > 0) ? sub.tags : arr('tags', 'extracted_tags');
 
                 return (
                   <>
@@ -844,14 +864,14 @@ function SubmissionsTab({
                       </span>
                     </div>
 
-                    {sub.image ? (
+                    {dispImage ? (
                       <div
                         className="submission-image"
-                        onClick={() => setLightboxUrl(sub.image!)}
+                        onClick={() => setLightboxUrl(dispImage!)}
                         title="Click to view full size"
                       >
                         <img
-                          src={sub.image}
+                          src={dispImage}
                           alt={dispTitle}
                           loading="lazy"
                           onError={(e) => { (e.currentTarget as HTMLImageElement).parentElement!.style.display = 'none'; }}
@@ -860,22 +880,21 @@ function SubmissionsTab({
                     ) : null}
 
                     <div className="submission-details">
-                      {dispDate && <p><strong>Date:</strong> {displayDateRange(dispDate)}{dispTime ? ` · ${dispTime}` : ''}</p>}
+                      {dispDate && <p><strong>Date:</strong> {displayDateRange(dispDate, dispDateEnd)}{dispTime ? ` · ${dispTime}` : ''}</p>}
                       {dispVenue && <p><strong>Venue:</strong> {dispVenue}</p>}
-                      {sub.category && <p><strong>Category:</strong> {sub.category}</p>}
+                      {dispCategory && <p><strong>Category:</strong> {dispCategory}</p>}
+                      {dispDistrict && <p><strong>District:</strong> {dispDistrict}</p>}
                       {dispPrice && <p><strong>Price:</strong> {dispPrice}</p>}
-                      {sub.description && <p style={{ marginTop: 8 }}>{sub.description}</p>}
-
-                      {/* Scraped data preview */}
-                      {hasScrapedData && (
-                        <details style={{ marginTop: 10 }}>
-                          <summary style={{ fontSize: '0.8rem', color: 'var(--n-muted)', cursor: 'pointer' }}>
-                            View scraped data
-                          </summary>
-                          <pre style={{ marginTop: 6, padding: '10px 12px', background: 'var(--n-bg-alt)', borderRadius: 4, fontSize: '0.75rem', overflowX: 'auto', whiteSpace: 'pre-wrap', color: 'var(--n-secondary)' }}>
-                            {JSON.stringify(scraped, null, 2)}
-                          </pre>
-                        </details>
+                      {dispTags.length > 0 && (
+                        <p><strong>Tags:</strong> {dispTags.join(', ')}</p>
+                      )}
+                      {dispDescription && <p style={{ marginTop: 8 }}>{dispDescription}</p>}
+                      {dispTicketUrl && (
+                        <p style={{ marginTop: 4 }}>
+                          <a href={dispTicketUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--n-accent)', fontSize: '0.88rem' }}>
+                            ↗ Ticket / Event link
+                          </a>
+                        </p>
                       )}
 
                       {sub.instagram_url && (
@@ -889,6 +908,18 @@ function SubmissionsTab({
                           Submitted by{sub.submitter_name ? <strong> {sub.submitter_name}</strong> : null}
                           {sub.submitter_email ? ` (${sub.submitter_email})` : ''}
                         </p>
+                      )}
+
+                      {/* Raw scraped data — collapsed, for debugging */}
+                      {hasScrapedData && (
+                        <details style={{ marginTop: 10 }}>
+                          <summary style={{ fontSize: '0.8rem', color: 'var(--n-muted)', cursor: 'pointer' }}>
+                            Raw scraped data
+                          </summary>
+                          <pre style={{ marginTop: 6, padding: '10px 12px', background: 'var(--n-bg-alt)', borderRadius: 4, fontSize: '0.75rem', overflowX: 'auto', whiteSpace: 'pre-wrap', color: 'var(--n-secondary)' }}>
+                            {JSON.stringify(scraped, null, 2)}
+                          </pre>
+                        </details>
                       )}
                     </div>
 
