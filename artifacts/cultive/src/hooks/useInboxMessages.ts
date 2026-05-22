@@ -194,12 +194,14 @@ function submissionToMessage(s: Submission): InboxMessage {
     return {
       id: `sub-approved-${s.id}`,
       title: `"${s.title}" was approved`,
-      preview: 'Your event is now live on CULTIVE. Tap to view it.',
+      preview: s.published_event_id
+        ? 'Your event is now live on CULTIVE. Tap to view it.'
+        : 'Your event is now live on CULTIVE. Find it on the Discover page.',
       time: relativeTime(reviewed),
       unread: false,
       createdAt: reviewed,
       kind: 'submission-approved',
-      linkTo: s.published_event_id ? `/event/${s.published_event_id}` : '/account',
+      linkTo: s.published_event_id ? `/event/${s.published_event_id}` : '/',
     };
   }
   if (status === 'rejected') {

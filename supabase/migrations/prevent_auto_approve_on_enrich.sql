@@ -1,12 +1,18 @@
--- Prevent enrichment from auto-approving submissions.
--- When Hermes (or any process) sets status = 'approved' on a row that was
--- previously 'pending_scrape', redirect it to 'pending' instead so that an
--- admin must review and approve manually.
+-- Prevent Hermes (or any external process) from auto-approving submissions.
+--
+-- Key distinction: when our admin UI approves a submission it always sets
+-- published_event_id at the same time. Hermes never sets published_event_id.
+-- So we only block the transition when published_event_id is NOT being set —
+-- that's the Hermes case. Admin approvals (which always include
+-- published_event_id) pass through untouched.
 
 create or replace function public.prevent_auto_approve_enriched()
 returns trigger language plpgsql as $$
 begin
-  if OLD.status = 'pending_scrape' and NEW.status = 'approved' then
+  if OLD.status = 'pending_scrape'
+     and NEW.status = 'approved'
+     and NEW.published_event_id is null
+  then
     NEW.status := 'pending';
   end if;
   return NEW;
