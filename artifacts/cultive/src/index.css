@@ -2522,7 +2522,7 @@ h1, h2, h3 {
   }
   
   .detail-content {
-    padding: 28px 5vw;
+    padding: 28px 5vw 180px;
   }
   
   .detail-title {
@@ -2531,6 +2531,12 @@ h1, h2, h3 {
   
   .detail-meta {
     grid-template-columns: 1fr;
+  }
+
+  /* Lift the bottom CTA bar above the mobile tab bar */
+  .bottom-cta {
+    bottom: 80px;
+    padding-bottom: 16px;
   }
   
   /* Mobile forms */
