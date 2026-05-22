@@ -2542,16 +2542,25 @@ h1, h2, h3 {
 
   /* Compact, equal-height buttons on mobile */
   .cta-primary {
-    padding: 0 20px;
+    padding: 0 14px;
     height: 44px;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.2;
   }
 
   .cta-secondary {
-    padding: 0 16px;
+    padding: 0 14px;
     height: 44px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .cta-save {
