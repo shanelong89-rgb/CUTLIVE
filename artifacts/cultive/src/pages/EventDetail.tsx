@@ -4,6 +4,10 @@ import { getEventById } from '../lib/supabase';
 import type { Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 
+function isHtml(str: string): boolean {
+  return /<[a-z][\s\S]*>/i.test(str);
+}
+
 function displayDateRange(date?: string, dateEnd?: string | null): string {
   if (!date) return '';
   const parseYMD = (s: string) => {
@@ -164,31 +168,16 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
 
         <div className="detail-section">
           <h3>About this event</h3>
-          <p style={{ whiteSpace: 'pre-line' }}>
-            {event.description?.split('\n').map((line: string, idx: number) => {
-              // Check for markdown image: ![alt](url)
-              const imageMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
-              if (imageMatch) {
-                return (
-                  <img 
-                    key={idx}
-                    src={imageMatch[2]} 
-                    alt={imageMatch[1]}
-                    style={{ 
-                      width: '100%', 
-                      marginTop: '16px',
-                      marginBottom: '16px',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      display: 'block'
-                    }}
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                );
-              }
-              return <span key={idx}>{line}<br/></span>;
-            })}
-          </p>
+          {event.description ? (
+            isHtml(event.description) ? (
+              <div
+                className="detail-rich-text"
+                dangerouslySetInnerHTML={{ __html: event.description }}
+              />
+            ) : (
+              <p style={{ whiteSpace: 'pre-line' }}>{event.description}</p>
+            )
+          ) : null}
         </div>
 
         {event.submitted_by && (

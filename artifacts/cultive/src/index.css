@@ -3065,6 +3065,152 @@ h1, h2, h3 {
   font-size: 0.9rem;
 }
 
+/* =====================================================
+   RICH TEXT EDITOR (Tiptap — Admin description field)
+   ===================================================== */
+.rte-wrapper {
+  border: 1px solid var(--n-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--n-bg);
+  transition: border-color 0.15s;
+}
+
+.rte-wrapper:focus-within {
+  border-color: var(--n-text);
+}
+
+.rte-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--n-border);
+  background: var(--n-bg-alt, #f8f8f8);
+  flex-wrap: wrap;
+}
+
+.rte-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--n-text);
+  transition: background 0.12s, color 0.12s;
+  font-family: var(--font-body);
+  line-height: 1;
+}
+
+.rte-btn:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.rte-btn-active {
+  background: var(--n-text);
+  color: var(--n-bg);
+}
+
+.rte-btn-active:hover {
+  background: var(--n-text);
+  opacity: 0.85;
+}
+
+.rte-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--n-border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.rte-content {
+  padding: 12px 14px;
+  min-height: 140px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--n-text);
+  outline: none;
+}
+
+.rte-content .tiptap {
+  outline: none;
+  min-height: 120px;
+}
+
+.rte-content .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--n-muted);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+.rte-content .tiptap p { margin: 0 0 8px; }
+.rte-content .tiptap p:last-child { margin-bottom: 0; }
+.rte-content .tiptap h2 { font-size: 1.1rem; font-weight: 700; margin: 16px 0 6px; }
+.rte-content .tiptap h3 { font-size: 0.95rem; font-weight: 700; margin: 14px 0 4px; }
+.rte-content .tiptap ul,
+.rte-content .tiptap ol { margin: 0 0 8px; padding-left: 20px; }
+.rte-content .tiptap li { margin-bottom: 4px; }
+.rte-content .tiptap a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.rte-content .tiptap a:hover { opacity: 0.7; }
+.rte-content .tiptap blockquote {
+  border-left: 3px solid var(--n-border);
+  margin: 0 0 8px;
+  padding-left: 12px;
+  color: var(--n-muted);
+}
+.rte-content .tiptap code {
+  background: rgba(0,0,0,0.06);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+.rte-content .tiptap strong { font-weight: 700; }
+.rte-content .tiptap em { font-style: italic; }
+.rte-content .tiptap s { text-decoration: line-through; }
+
+/* =====================================================
+   RICH TEXT OUTPUT (Event Detail page)
+   ===================================================== */
+.detail-rich-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--n-text);
+}
+.detail-rich-text p { margin: 0 0 10px; }
+.detail-rich-text p:last-child { margin-bottom: 0; }
+.detail-rich-text h2 { font-size: 1.1rem; font-weight: 700; margin: 18px 0 6px; }
+.detail-rich-text h3 { font-size: 0.95rem; font-weight: 700; margin: 14px 0 4px; }
+.detail-rich-text ul,
+.detail-rich-text ol { margin: 0 0 10px; padding-left: 20px; }
+.detail-rich-text li { margin-bottom: 4px; }
+.detail-rich-text a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.detail-rich-text a:hover { opacity: 0.7; }
+.detail-rich-text blockquote {
+  border-left: 3px solid var(--n-border);
+  margin: 0 0 10px;
+  padding-left: 14px;
+  color: var(--n-muted);
+  font-style: italic;
+}
+.detail-rich-text code {
+  background: rgba(0,0,0,0.05);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+.detail-rich-text strong { font-weight: 700; }
+.detail-rich-text em { font-style: italic; }
+
 .cancel-btn:hover {
   border-color: var(--n-text);
 }

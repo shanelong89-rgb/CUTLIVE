@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { AVAILABLE_TAGS } from '../data/events';
+import { RichTextEditor } from '../components/RichTextEditor';
 
 import {
   supabase,
@@ -617,10 +618,10 @@ function EventsTab({
           </div>
           <div className="form-group">
             <label>Description</label>
-            <textarea
+            <RichTextEditor
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
+              onChange={(html) => setFormData({ ...formData, description: html })}
+              placeholder="Describe the event — bold, italic, links and lists supported…"
             />
           </div>
           <div className="form-group">
