@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.replit.cultivemobile",
+      "appleTeamId": "QU9S49M4Y6",
       "infoPlist": {
         "NSCalendarsUsageDescription": "CULTIVE saves events to your calendar so you don't miss them.",
         "NSCalendarsFullAccessUsageDescription": "CULTIVE saves events to your calendar so you don't miss them.",

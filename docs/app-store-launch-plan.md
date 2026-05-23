@@ -94,20 +94,20 @@ On your Vercel project (the cultive.city web app), add a file at exactly this pa
 public/.well-known/apple-app-site-association
 ```
 
-Content (replace `TEAMID` with your Apple Team ID from developer.apple.com):
+Content:
 ```json
 {
   "applinks": {
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.city.cultive.app",
+        "appID": "QU9S49M4Y6.city.cultive.app",
         "paths": ["*"]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["TEAMID.city.cultive.app"]
+    "apps": ["QU9S49M4Y6.city.cultive.app"]
   }
 }
 ```
@@ -145,16 +145,11 @@ eas credentials
 
 ## Step 5 — Apple Developer & Google Play accounts
 
-You need paid accounts to submit:
-- **Apple**: developer.apple.com — $99/year. Gives you a Team ID and lets you submit to the App Store.
-- **Google**: play.google.com/console — one-time $25. Lets you submit to the Play Store.
-
-Once you have these, add your Apple Team ID to `app.json`:
-```json
-"ios": {
-  "appleTeamId": "YOURTEAMID"
-}
-```
+- **Apple** ✓ — Account active. Credentials on file:
+  - Team ID: `QU9S49M4Y6`
+  - Developer ID: `c2388d89-44db-427a-aea3-7d2e58225073`
+  - `appleTeamId` already added to `app.json`
+- **Google** — play.google.com/console, one-time $25 fee if not already set up.
 
 ---
 
@@ -203,12 +198,12 @@ If they match, the backend is fully cohesive.
 
 ## Summary — order of operations
 
-1. Update bundle ID in `app.json` to `city.cultive.app`
-2. Create your Apple Developer account (if you don't have one)
-3. Get your Apple Team ID, add it to `app.json`
+1. Update bundle ID in `app.json` to `city.cultive.app` (still using `com.replit.cultivemobile`)
+2. ~~Create your Apple Developer account~~ ✓ Done — Team ID `QU9S49M4Y6`
+3. ~~Get your Apple Team ID, add it to `app.json`~~ ✓ Done
 4. Run `eas build:configure` to generate `eas.json`
-5. Add Supabase env vars to EAS secrets
-6. Add the AASA file to your Vercel web project for Universal Links
+5. Add Supabase env vars to EAS secrets (expo.dev dashboard)
+6. Add the AASA file to your Vercel web project for Universal Links (use `QU9S49M4Y6.city.cultive.app`)
 7. Run your first EAS production build
 8. Get the Android signing SHA256 from `eas credentials`, add to `assetlinks.json`
 9. Submit to App Store Connect and Play Store via `eas submit`
