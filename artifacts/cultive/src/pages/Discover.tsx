@@ -4,8 +4,36 @@ import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_NORMALIZE } from '../data/events'
 import { getEvents, type Event } from '../lib/supabase';
 
 function formatTime(time?: string): string {
-  if (time) return time;
-  return '';
+  if (!time) return '';
+  // Handle ranges like "17:00 - 19:00" or "5:00 PM - 7:00 PM"
+  if (time.includes('-') || time.toLowerCase().includes(' to ')) {
+    const sep = time.includes(' to ') ? ' to ' : '-';
+    const parts = time.split(new RegExp(`\\s*${sep === '-' ? '-' : 'to'}\\s*`, 'i'));
+    if (parts.length === 2) {
+      const a = formatTime(parts[0].trim());
+      const b = formatTime(parts[1].trim());
+      if (a && b) return `${a} – ${b}`;
+    }
+  }
+  const s = time.trim();
+  // Already has am/pm — normalise capitalisation only
+  const ampm = /^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i.exec(s);
+  if (ampm) {
+    const h = parseInt(ampm[1], 10);
+    const min = ampm[2] ? `:${ampm[2]}` : '';
+    return `${h}${min} ${ampm[3].toUpperCase()}`;
+  }
+  // 24-hour HH:MM
+  const hhmm = /^(\d{1,2}):(\d{2})$/.exec(s);
+  if (hhmm) {
+    let h = parseInt(hhmm[1], 10);
+    const min = hhmm[2];
+    const period = h >= 12 ? 'PM' : 'AM';
+    if (h === 0) h = 12;
+    else if (h > 12) h -= 12;
+    return `${h}:${min} ${period}`;
+  }
+  return s;
 }
 
 // Converts any common time string to minutes since midnight for sorting.

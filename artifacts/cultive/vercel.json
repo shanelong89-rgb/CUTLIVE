@@ -20,7 +20,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|WhatsApp|TelegramBot|Discordbot|Applebot|ia_archiver|Pinterest|redditbot|Slurp|bingbot|Googlebot).*"
+          "value": "(?i).*(twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|whatsapp|telegrambot|discordbot|applebot|ia_archiver|pinterest|redditbot|slurp|bingbot|googlebot).*"
         }
       ],
       "destination": "/api/event/:id"
