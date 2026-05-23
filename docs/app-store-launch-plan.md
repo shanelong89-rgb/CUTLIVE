@@ -6,12 +6,61 @@ Everything needed to get the mobile app into the App Store / Play Store, properl
 
 ## What's already working
 
-- Web app is live and deployed at cultive.city (via Vercel)
+### Core infrastructure
+- Web app is live at cultive.city (Vercel)
 - Web and mobile both point to the same Supabase project (`qmjdqldmpmeguuyepbsw`)
-- Auth, saved events, submissions, inbox, and push notifications are all shared via the same DB
+- Auth, saved events, submissions, inbox, and push notifications share the same DB
 - Sessions persist across app restarts (AsyncStorage)
-- Admin email fixed in mobile to match web: `shanelong89@gmail.com`
-- expo-router origin updated to `https://cultive.city`
+- Admin emails fixed to match web: `shanelong89@gmail.com`, `shanelong@gmail.com`
+- `expo-router` origin set to `https://cultive.city`
+
+### Events & discovery
+- Events list with search and tag/category filtering
+- Event detail screen (title, description, venue, date, time, price, photo)
+- Saved events with full cloud sync (`saved_events` table, real-time on mobile)
+- In-memory events cache + React Query `staleTime: 5min` — reduces Supabase reads on every tab switch
+
+### Inbox
+All four card types are working on both web and mobile:
+- **Submission pending** — shows when a submission is awaiting review
+- **Submission approved** — unread badge reappears when status changes; links to event
+- **Submission rejected** — with reason; links to My Submissions
+- **Saved event reminders** — four escalating states:
+  - "Reminder: [title]" — generic upcoming (days away)
+  - "Tomorrow: [title]" — with time, venue, price + Maps link
+  - "Starting in Xh: [title]" — within 2 hours, with Maps link
+  - "Happening now: [title]" — single-day event, with Maps link
+  - "On now: [title] · Nd left" — multi-day exhibitions/markets, shows hours + venue + days remaining
+- Date parsing handles all formats: ISO (`2026-05-23`), month-name (`May 8, 2026`), range (`May 8–27, 2026`), relative (`today`, `tomorrow`), and weekday-prefixed (`Fri 13 Jun`)
+- Multi-day events use `date_end` so they stay visible for the full run, not just 14 days after start
+- Self-triggered `load()` loop suppressed via 3s cooldown on `user_read_items` realtime events
+- Push notification deep-link handler wired in `_layout.tsx` — tapping a push opens the right inbox card
+
+### Submissions
+- Submit screen with image upload to Supabase Storage (`submission-images` bucket, public)
+- My Submissions screen — lists all user submissions with status badges (pending / approved / rejected)
+- Submission count on Account screen reflects actual count by session email
+
+### Admin
+- Admin screen accessible to admin emails only
+- Can approve / reject submissions from mobile
+
+---
+
+## What's still to do before App Store
+
+### Code / functionality
+- [ ] **Cross-app inbox read/unread sync** — when a user marks all read on web, it should propagate to mobile on next refresh (and vice versa). Currently, `user_read_items` deletions (un-reads from status changes) aren't pushed to Supabase, so after a status flip the "unread" state can drift between devices. Fix: `deleteReadItemsRemote` helper + port status-change unread logic to web hook.
+- [ ] **Auto-fill submitter email/name** on mobile submit form — pre-populate from active Supabase session so submission count is always tied to the right account.
+
+### App Store setup
+- [ ] **Update bundle ID** in `app.json` from `com.replit.cultivemobile` → `city.cultive.app`
+- [ ] **EAS setup** — run `eas build:configure` to generate `eas.json`
+- [ ] **EAS secrets** — add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` in expo.dev dashboard
+- [ ] **Universal Links** — AASA file on Vercel + `associatedDomains` in `app.json`
+- [ ] **First EAS production build** — `eas build --platform ios --profile production`
+- [ ] **Android signing** — get SHA256 from `eas credentials`, add to `assetlinks.json`
+- [ ] **Submit** — `eas submit --platform ios` / `eas submit --platform android`
 
 ---
 
@@ -29,13 +78,13 @@ The current bundle IDs are placeholders (`com.replit.cultivemobile`). Before sub
 }
 ```
 
-Use `city.cultive.app` — it mirrors your domain in reverse (standard convention). Or any other identifier you want, as long as it's consistent across iOS and Android and not already taken on the App Store.
+Use `city.cultive.app` — mirrors your domain in reverse (standard convention).
 
 ---
 
 ## Step 2 — Set up EAS (Expo Application Services)
 
-EAS is the official way to build and submit Expo apps to the stores. Without it you cannot submit to the App Store or Play Store.
+EAS is the official way to build and submit Expo apps to the stores.
 
 **Run once in your terminal:**
 ```bash
@@ -69,17 +118,14 @@ eas build:configure   # creates eas.json
 
 ## Step 3 — Environment variables for production builds
 
-The mobile app reads Supabase credentials from env vars. For EAS builds these must be set in the EAS dashboard, not in a `.env` file (which is git-ignored and not included in builds).
+The mobile app reads Supabase credentials from env vars. For EAS builds these must be set in the EAS dashboard, not in a `.env` file.
 
 **Go to**: expo.dev → your project → Secrets → Add
 
-Set these two secrets:
 ```
 EXPO_PUBLIC_SUPABASE_URL       = https://qmjdqldmpmeguuyepbsw.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY  = <your anon key from Supabase dashboard>
 ```
-
-Find the anon key: Supabase Dashboard → Project Settings → API → `anon` `public` key.
 
 ---
 
@@ -89,7 +135,7 @@ This lets links like `cultive.city/event/abc123` open directly in the installed 
 
 ### 4a — Add the AASA file to your web domain
 
-On your Vercel project (the cultive.city web app), add a file at exactly this path:
+On your Vercel project, add a file at exactly this path:
 ```
 public/.well-known/apple-app-site-association
 ```
@@ -111,8 +157,6 @@ Content:
   }
 }
 ```
-
-Vercel will serve it at `https://cultive.city/.well-known/apple-app-site-association` — Apple requires this to be accessible without a redirect.
 
 ### 4b — Enable Associated Domains in app.json
 
@@ -136,10 +180,7 @@ Create `public/.well-known/assetlinks.json` on your web domain:
   }
 }]
 ```
-The SHA256 fingerprint comes from your EAS build keystore — EAS generates it for you. You can get it after your first production build with:
-```bash
-eas credentials
-```
+The SHA256 fingerprint comes from your EAS build keystore — get it after your first production build with `eas credentials`.
 
 ---
 
@@ -155,14 +196,12 @@ eas credentials
 
 ## Step 6 — Build and submit
 
-After EAS is configured and accounts are set up:
-
 ```bash
-# iOS production build (submits to App Store Connect)
+# iOS production build + submit to App Store Connect
 eas build --platform ios --profile production
 eas submit --platform ios
 
-# Android production build (submits to Play Store)
+# Android production build + submit to Play Store
 eas build --platform android --profile production
 eas submit --platform android
 ```
@@ -171,39 +210,42 @@ eas submit --platform android
 
 ## Step 7 — Cohesion checklist (web ↔ mobile)
 
-These are already wired correctly — just confirm before launch:
-
 | Feature | Web | Mobile | Status |
 |---|---|---|---|
 | Supabase project | `qmjdqldmpmeguuyepbsw` | `qmjdqldmpmeguuyepbsw` | Same ✓ |
 | Auth provider | Supabase email/password | Supabase email/password | Same ✓ |
 | Session storage | localStorage | AsyncStorage | Platform-appropriate ✓ |
 | Saved events sync | `saved_events` table | `saved_events` table | Same ✓ |
+| Events cache | 2-layer (in-memory + localStorage, 10min TTL) | In-memory + React Query 5min staleTime | Platform-appropriate ✓ |
 | Submission flow | `submissions` table, status enum | `submissions` table, status enum | Same ✓ |
-| Inbox (read state) | `user_read_items` table | `user_read_items` table | Same ✓ |
-| Push notifications | n/a (web) | Expo Push via `push_tokens` table | Mobile-only, correct ✓ |
-| Admin email | `shanelong89@gmail.com` | `shanelong89@gmail.com` | Fixed ✓ |
-| expo-router origin | n/a | `https://cultive.city` | Fixed ✓ |
+| My Submissions screen | `/my-submissions` page | `app/my-submissions.tsx` | Both ✓ |
+| Inbox — submission cards | Pending / Approved / Rejected | Pending / Approved / Rejected | Same ✓ |
+| Inbox — saved reminders | All 5 types (generic, tomorrow, soon, now, multi-day) | All 5 types | Same ✓ |
+| Inbox — Maps links | Tomorrow + now/soon cards | Tomorrow + now/soon cards | Same ✓ |
+| Inbox — read state | `user_read_items` table + localStorage | `user_read_items` table + AsyncStorage | Same ✓ |
+| Inbox — self-loop fix | 3s cooldown on realtime write events | 3s cooldown on realtime write events | Same ✓ |
+| Push notifications | n/a (web) | Expo Push via `push_tokens` table | Mobile-only ✓ |
+| Push deep-link | n/a | Handled in `_layout.tsx` | Mobile-only ✓ |
+| Admin access | Admin page (`/admin`) | Admin screen (`app/admin.tsx`) | Both ✓ |
 
-### One thing to check manually
+### Cross-device check (do before launch)
 
-On web, sign in and confirm events, submissions, and inbox all load. Then sign in with the **same account** on mobile and confirm:
+Sign in on web → confirm events, submissions, and inbox load. Then sign in with the **same account** on mobile and confirm:
 - Saved events match
-- Inbox shows the same submissions
-- Submission count on the account screen matches
-
-If they match, the backend is fully cohesive.
+- Inbox shows the same submissions with same read state
+- Submission count on Account screen matches
 
 ---
 
 ## Summary — order of operations
 
-1. Update bundle ID in `app.json` to `city.cultive.app` (still using `com.replit.cultivemobile`)
-2. ~~Create your Apple Developer account~~ ✓ Done — Team ID `QU9S49M4Y6`
-3. ~~Get your Apple Team ID, add it to `app.json`~~ ✓ Done
-4. Run `eas build:configure` to generate `eas.json`
-5. Add Supabase env vars to EAS secrets (expo.dev dashboard)
-6. Add the AASA file to your Vercel web project for Universal Links (use `QU9S49M4Y6.city.cultive.app`)
-7. Run your first EAS production build
-8. Get the Android signing SHA256 from `eas credentials`, add to `assetlinks.json`
-9. Submit to App Store Connect and Play Store via `eas submit`
+1. Fix remaining code items: cross-app inbox read sync, auto-fill submit email
+2. Update bundle ID in `app.json` → `city.cultive.app` (still `com.replit.cultivemobile`)
+3. ~~Create Apple Developer account~~ ✓ Done — Team ID `QU9S49M4Y6`
+4. ~~Add `appleTeamId` to `app.json`~~ ✓ Done
+5. Run `eas build:configure` to generate `eas.json`
+6. Add Supabase env vars to EAS secrets (expo.dev dashboard)
+7. Add the AASA file to Vercel project for Universal Links
+8. Run first EAS production build
+9. Get Android signing SHA256 from `eas credentials`, add to `assetlinks.json`
+10. Submit to App Store Connect and Play Store via `eas submit`
