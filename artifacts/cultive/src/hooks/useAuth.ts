@@ -30,9 +30,23 @@ export function useAuth() {
       apply(s);
     });
 
+    // Mobile Safari throttles timers when the tab is backgrounded, so the
+    // auto-refresh token timer never fires while the user is in another app.
+    // When they return, force a session refresh immediately so they stay
+    // logged in instead of seeing the sign-in screen.
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().then(({ data }) => {
+          if (mounted) apply(data.session);
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
