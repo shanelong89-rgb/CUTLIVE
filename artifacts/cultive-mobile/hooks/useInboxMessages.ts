@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DeviceEventEmitter } from "react-native";
 
 import { parseEventDate } from "@/lib/calendar";
@@ -219,7 +219,8 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
         mapsUrl,
       });
     } else if (when >= tomorrowStart && when < tomorrowEnd) {
-      // Happening tomorrow — heads-up with key details
+      // Happening tomorrow — heads-up with key details + Maps shortcut to plan ahead
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || "") + " Hong Kong")}`;
       const previewParts = [
         ev.time || null,
         ev.venue || null,
@@ -238,6 +239,7 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
         createdAt: new Date(now.getTime() - 120000).toISOString(),
         kind: "saved-reminder-tomorrow",
         linkTo: `/event/${ev.id}`,
+        mapsUrl,
       });
     } else {
       // Generic upcoming reminder — sort by imminence: 5min per day away so
@@ -265,6 +267,8 @@ export function useInboxMessages() {
   const [signedIn, setSignedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [signupAt, setSignupAt] = useState<string | null>(null);
+  // Cooldown ref: suppress self-triggered reloads when we write to user_read_items
+  const lastReadWriteRef = useRef(0);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [savedEvents, setSavedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -447,7 +451,8 @@ export function useInboxMessages() {
           table: "user_read_items",
           filter: `user_id=eq.${userId}`,
         },
-        () => { load(); },
+        // Suppress the self-triggered reload from our own markRead / markAllRead upserts.
+        () => { if (Date.now() - lastReadWriteRef.current < 3000) return; load(); },
       )
       .subscribe();
     return () => {
@@ -486,6 +491,7 @@ export function useInboxMessages() {
       next.add(id);
       setReadIds(next);
       persistReadIds(next);
+      lastReadWriteRef.current = Date.now();
       markReadItemsRemote([id]).catch(() => {});
     },
     [readIds, persistReadIds],
@@ -496,6 +502,7 @@ export function useInboxMessages() {
     messages.forEach((m) => next.add(m.id));
     setReadIds(next);
     persistReadIds(next);
+    lastReadWriteRef.current = Date.now();
     markReadItemsRemote(messages.map((m) => m.id)).catch(() => {});
   }, [readIds, messages, persistReadIds]);
 

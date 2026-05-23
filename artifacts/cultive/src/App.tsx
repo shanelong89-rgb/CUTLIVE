@@ -9,6 +9,7 @@ import { EventDetail } from './pages/EventDetail';
 import { Admin } from './pages/Admin';
 import { Saved } from './pages/Saved';
 import { ResetPassword } from './pages/ResetPassword';
+import { MySubmissions } from './pages/MySubmissions';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
@@ -47,6 +48,7 @@ function App() {
         <Route path="/saved" element={<Saved />} />
         <Route path="/account" element={<Account setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/my-submissions" element={<MySubmissions />} />
         <Route path="/admin/*" element={<Admin />} />
       </Routes>
 

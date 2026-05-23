@@ -101,6 +101,7 @@ export default function InboxScreen() {
       ) : (
         messages.map((msg) => {
           const isSoon = msg.kind === "saved-reminder-soon";
+          const hasMaps = !!msg.mapsUrl && (msg.kind === "saved-reminder-soon" || msg.kind === "saved-reminder-tomorrow");
           return (
             <Pressable
               key={msg.id}
@@ -163,7 +164,7 @@ export default function InboxScreen() {
               >
                 {msg.preview}
               </Text>
-              {isSoon && msg.mapsUrl ? (
+              {hasMaps ? (
                 <Pressable
                   onPress={(e) => {
                     e.stopPropagation?.();

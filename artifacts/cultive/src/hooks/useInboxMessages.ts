@@ -215,7 +215,7 @@ function submissionToMessage(s: Submission): InboxMessage {
       unread: false,
       createdAt: reviewed,
       kind: 'submission-rejected',
-      linkTo: '/account',
+      linkTo: '/my-submissions',
     };
   }
   return {
@@ -226,7 +226,7 @@ function submissionToMessage(s: Submission): InboxMessage {
     unread: false,
     createdAt: s.created_at,
     kind: 'submission-pending',
-    linkTo: '/account',
+    linkTo: '/my-submissions',
   };
 }
 
@@ -287,7 +287,8 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
         mapsUrl,
       });
     } else if (when >= tomorrowStart && when < tomorrowEnd) {
-      // Happening tomorrow — give them a heads-up with the key details
+      // Happening tomorrow — heads-up with key details + Maps shortcut to plan ahead
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || '') + ' Hong Kong')}`;
       const previewParts = [
         ev.time || null,
         ev.venue || null,
@@ -303,6 +304,7 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
         createdAt: new Date(now.getTime() - 120000).toISOString(),
         kind: 'saved-reminder-tomorrow',
         linkTo: `/event/${ev.id}`,
+        mapsUrl,
       });
     } else {
       // Generic upcoming reminder — sort by imminence: 5min per day away so
@@ -326,6 +328,10 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
 export function useInboxMessages() {
   const [signedIn, setSignedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  // Timestamp of the last time we wrote to user_read_items ourselves.
+  // Used to suppress the self-triggered realtime reload that fires after
+  // markRead / markAllRead upserts — a 3-second cooldown is enough.
+  const lastReadWriteRef = useRef(0);
   const [signupAt, setSignupAt] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [savedEvents, setSavedEvents] = useState<Event[]>([]);
@@ -509,7 +515,10 @@ export function useInboxMessages() {
           table: 'user_read_items',
           filter: `user_id=eq.${userId}`,
         },
-        () => { loadRef.current(); },
+        // Suppress the self-triggered reload that fires after our own markRead /
+        // markAllRead upserts. If the event arrived within 3 seconds of our last
+        // write it's almost certainly our own — skip the full reload.
+        () => { if (Date.now() - lastReadWriteRef.current < 3000) return; loadRef.current(); },
       )
       .subscribe();
     return () => {
@@ -547,6 +556,7 @@ export function useInboxMessages() {
       next.add(id);
       writeReadIds(next);
       setReadIds(next);
+      lastReadWriteRef.current = Date.now();
       markReadItemsRemote([id]).catch(() => {});
     },
     [readIds],
@@ -557,6 +567,7 @@ export function useInboxMessages() {
     messages.forEach((m) => next.add(m.id));
     writeReadIds(next);
     setReadIds(next);
+    lastReadWriteRef.current = Date.now();
     markReadItemsRemote(messages.map((m) => m.id)).catch(() => {});
   }, [readIds, messages]);
 
