@@ -167,35 +167,68 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrowStart = new Date(todayStart.getTime() + 86400000);
   const tomorrowEnd = new Date(tomorrowStart.getTime() + 86400000);
-  // Allow events from the past 14 days — covers ongoing exhibitions and multi-day events
   const cutoff = new Date(todayStart.getTime() - 14 * 86400000);
 
   for (const ev of events) {
-    const when = parseEventDate(ev.date, ev.time);
-    if (!when) continue;
-    if (when.getTime() < cutoff.getTime()) continue;
+    const startDate = parseEventDate(ev.date, ev.time);
+    if (!startDate) continue;
 
-    const msUntil = when.getTime() - now.getTime();
+    // For multi-day events (exhibitions, markets, festivals) use date_end so the
+    // card stays visible for the full run, not just the first 14 days after start.
+    const endDate = ev.date_end ? parseEventDate(ev.date_end) : null;
+    const effectiveEnd = endDate ?? startDate;
+
+    // Skip only if the event has fully passed the 14-day lookback window
+    if (effectiveEnd.getTime() < cutoff.getTime()) continue;
+
+    const msUntil = startDate.getTime() - now.getTime();
     const hoursUntil = msUntil / 3600000;
 
     if (msUntil <= 0) {
-      // Already started / happening now — show Maps + door details
+      // Event has started — skip if it's already ended
+      const stillOpen = !endDate || endDate.getTime() >= todayStart.getTime();
+      if (!stillOpen) continue;
+
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || "") + " Hong Kong")}`;
-      const previewParts = [
-        ev.venue,
-        ev.price ? `Door: ${ev.price}` : null,
-      ].filter(Boolean) as string[];
-      msgs.push({
-        id: `reminder-now-${ev.id}`,
-        title: `Happening now: ${ev.title}`,
-        preview: previewParts.join(" · ") || "On right now — get there.",
-        time: "now",
-        unread: true,
-        createdAt: new Date(now.getTime() - 60000).toISOString(),
-        kind: "saved-reminder-soon",
-        linkTo: `/event/${ev.id}`,
-        mapsUrl,
-      });
+
+      if (endDate && endDate.getTime() >= tomorrowStart.getTime()) {
+        // Multi-day ongoing (exhibition / market / festival still running)
+        const daysLeft = Math.ceil((endDate.getTime() - todayStart.getTime()) / 86400000);
+        const timeLabel = daysLeft === 1 ? "ends tomorrow" : `${daysLeft}d left`;
+        const previewParts = [
+          ev.time || null,   // e.g. "2–8pm, everyday"
+          ev.venue || null,
+          ev.price || null,
+        ].filter(Boolean) as string[];
+        msgs.push({
+          id: `reminder-now-${ev.id}`,
+          title: `On now: ${ev.title}`,
+          preview: previewParts.join(" · ") || "Happening now — get there.",
+          time: timeLabel,
+          unread: true,
+          createdAt: new Date(now.getTime() - 60000).toISOString(),
+          kind: "saved-reminder-soon",
+          linkTo: `/event/${ev.id}`,
+          mapsUrl,
+        });
+      } else {
+        // Single-day happening now, or last day of a multi-day event
+        const previewParts = [
+          ev.venue,
+          ev.price ? `Door: ${ev.price}` : null,
+        ].filter(Boolean) as string[];
+        msgs.push({
+          id: `reminder-now-${ev.id}`,
+          title: `Happening now: ${ev.title}`,
+          preview: previewParts.join(" · ") || "On right now — get there.",
+          time: "now",
+          unread: true,
+          createdAt: new Date(now.getTime() - 60000).toISOString(),
+          kind: "saved-reminder-soon",
+          linkTo: `/event/${ev.id}`,
+          mapsUrl,
+        });
+      }
     } else if (hoursUntil <= 2 && ev.time) {
       // Starting within 2 hours — show Maps + door details
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || "") + " Hong Kong")}`;
@@ -218,8 +251,8 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
         linkTo: `/event/${ev.id}`,
         mapsUrl,
       });
-    } else if (when >= tomorrowStart && when < tomorrowEnd) {
-      // Happening tomorrow — heads-up with key details + Maps shortcut to plan ahead
+    } else if (startDate >= tomorrowStart && startDate < tomorrowEnd) {
+      // Starting tomorrow — heads-up with key details + Maps shortcut
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || "") + " Hong Kong")}`;
       const previewParts = [
         ev.time || null,
@@ -235,21 +268,19 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
             : "Happening tomorrow — get ready.",
         time: "tomorrow",
         unread: true,
-        // Use now - 2min so it sorts below "now/soon" but above older messages
         createdAt: new Date(now.getTime() - 120000).toISOString(),
         kind: "saved-reminder-tomorrow",
         linkTo: `/event/${ev.id}`,
         mapsUrl,
       });
     } else {
-      // Generic upcoming reminder — sort by imminence: 5min per day away so
-      // near events appear higher than distant ones, all below now/soon/tomorrow
+      // Generic upcoming reminder — sort by imminence
       const daysUntil = Math.max(1, Math.ceil(msUntil / 86400000));
       msgs.push({
         id: `reminder-${ev.id}`,
         title: `Reminder: ${ev.title}`,
-        preview: reminderPreview(when),
-        time: when.toLocaleDateString(undefined, {
+        preview: reminderPreview(startDate),
+        time: startDate.toLocaleDateString(undefined, {
           month: "short",
           day: "numeric",
         }),
