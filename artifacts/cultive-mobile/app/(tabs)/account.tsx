@@ -17,7 +17,7 @@ import { useInbox } from "@/contexts/InboxContext";
 import { useColors } from "@/hooks/useColors";
 import { signOut, supabase } from "@/lib/supabase";
 
-const ADMIN_EMAILS = ["shanelong89@gmail.com"];
+const ADMIN_EMAILS = ["shanelong89@gmail.com", "shanelong@gmail.com"];
 
 const MENU_ITEMS: { label: string; route?: string }[] = [
   { label: "My Submissions", route: "/my-submissions" },
