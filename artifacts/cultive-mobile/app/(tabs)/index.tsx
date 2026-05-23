@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AVAILABLE_TAGS, TAG_NORMALIZE } from "@/data/events";
 import { useColors } from "@/hooks/useColors";
 import { getEvents, type Event } from "@/lib/supabase";
+import { formatTime } from "@/lib/utils";
 
 function parseTimeToMinutes(raw?: string | null): number {
   if (!raw) return Infinity;
@@ -331,6 +332,10 @@ function displayDate(raw: string, rawEnd?: string | null): string {
       const s = new Date(Number(isoS[1]), Number(isoS[2]) - 1, Number(isoS[3]));
       const e = new Date(Number(isoE[1]), Number(isoE[2]) - 1, Number(isoE[3]));
       const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const dy = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+      if (s.getTime() === e.getTime()) {
+        return `${dy[s.getDay()]} ${s.getDate()} ${mo[s.getMonth()]}`;
+      }
       if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
         return `${mo[s.getMonth()]} ${s.getDate()} – ${e.getDate()}`;
       }
@@ -642,7 +647,7 @@ function EventRow({
           </Text>
         ) : null}
         <Text style={[styles.timeText, { color: colors.mutedForeground }]}>
-          {event.time || "—"}
+          {formatTime(event.time) || "—"}
         </Text>
       </View>
       <View

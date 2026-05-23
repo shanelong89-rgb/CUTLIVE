@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -5,6 +6,7 @@ import {
   Alert,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -13,12 +15,14 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 import { useColors } from "@/hooks/useColors";
 import { signIn, signUp } from "@/lib/supabase";
+import { REMEMBER_ME_KEY } from "@/lib/utils";
 
 export default function AuthScreen() {
   const colors = useColors();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async () => {
@@ -30,8 +34,10 @@ export default function AuthScreen() {
     try {
       if (mode === "signin") {
         await signIn(email, password);
+        await AsyncStorage.setItem(REMEMBER_ME_KEY, String(rememberMe));
       } else {
         await signUp(email, password);
+        await AsyncStorage.setItem(REMEMBER_ME_KEY, "true");
       }
       router.replace("/(tabs)" as any);
     } catch (e: any) {
@@ -89,6 +95,20 @@ export default function AuthScreen() {
           },
         ]}
       />
+
+      {mode === "signin" && (
+        <View style={styles.rememberRow}>
+          <Text style={[styles.rememberLabel, { color: colors.mutedForeground }]}>
+            Remember me
+          </Text>
+          <Switch
+            value={rememberMe}
+            onValueChange={setRememberMe}
+            trackColor={{ false: colors.border, true: colors.foreground }}
+            thumbColor={colors.background}
+          />
+        </View>
+      )}
 
       <Pressable
         onPress={onSubmit}
@@ -149,6 +169,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_400Regular",
     marginBottom: 12,
+  },
+  rememberRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  rememberLabel: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
   },
   btn: {
     paddingVertical: 16,

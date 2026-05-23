@@ -19,34 +19,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useSavedEvents } from "@/hooks/useSavedEvents";
 import { getEventById } from "@/lib/supabase";
+import { displayDateRange, formatTime } from "@/lib/utils";
 
 const HERO_H = 320;
-
-function displayDateRange(date?: string, dateEnd?: string | null): string {
-  if (!date) return '';
-  const parseYMD = (s: string) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
-    if (!m) return null;
-    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-    return isNaN(d.getTime()) ? null : d;
-  };
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const start = parseYMD(date);
-  if (!dateEnd) {
-    if (start) return `${days[start.getDay()]}, ${months[start.getMonth()]} ${start.getDate()}`;
-    return date;
-  }
-  const end = parseYMD(dateEnd);
-  if (!start || !end) {
-    if (start) return `${days[start.getDay()]}, ${months[start.getMonth()]} ${start.getDate()}`;
-    return date;
-  }
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${months[start.getMonth()]} ${start.getDate()} – ${end.getDate()}`;
-  }
-  return `${months[start.getMonth()]} ${start.getDate()} – ${months[end.getMonth()]} ${end.getDate()}`;
-}
 
 // Only allow http(s) URLs as external ticket links — blocks javascript:/data: payloads.
 function safeHttpUrl(raw: string | null | undefined): string {
@@ -230,7 +205,7 @@ export default function EventDetailScreen() {
 
           <View style={[styles.meta, { borderColor: colors.border }]}>
             <MetaRow icon="calendar" text={displayDateRange(event.date, event.date_end)} colors={colors} />
-            <MetaRow icon="clock" text={event.time} colors={colors} />
+            <MetaRow icon="clock" text={formatTime(event.time)} colors={colors} />
             <MetaRow
               icon="map-pin"
               text={event.venue}
