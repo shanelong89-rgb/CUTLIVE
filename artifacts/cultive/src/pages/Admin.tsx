@@ -432,8 +432,14 @@ function EventsTab({
   const [igMsg, setIgMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [fixBusy, setFixBusy] = useState(false);
   const [fixMsg, setFixMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [scrollToTags, setScrollToTags] = useState(false);
 
   const eventsWithMissingTags = events.filter(e => !e.tags || e.tags.length === 0);
+
+  const handleEditWithTagFocus = (event: Event) => {
+    setScrollToTags(true);
+    onEdit(event);
+  };
 
   const handleFixMissingTags = async () => {
     if (eventsWithMissingTags.length === 0) return;
@@ -466,6 +472,15 @@ function EventsTab({
       text: parts.join(', ') + '.',
     });
   };
+
+  useEffect(() => {
+    if (!editingEvent || !scrollToTags) return;
+    setScrollToTags(false);
+    requestAnimationFrame(() => {
+      const el = document.getElementById('event-tags-field');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, [editingEvent, scrollToTags]);
 
   useEffect(() => {
     if (!editingEvent) { setFormData(EMPTY_EVENT); return; }
@@ -551,7 +566,7 @@ function EventsTab({
               </select>
             </div>
           </div>
-          <div className="form-group" style={{ marginBottom: '16px' }}>
+          <div id="event-tags-field" className="form-group" style={{ marginBottom: '16px' }}>
             <label>Tags <span style={{ fontWeight: 400, fontSize: '0.78rem', color: '#888', marginLeft: 6 }}>Category and Tags should agree</span></label>
             <div className="tag-pill-row">
               {AVAILABLE_TAGS.map(tag => {
@@ -835,23 +850,39 @@ function EventsTab({
             <span>Status</span>
             <span>Actions</span>
           </div>
-          {events.map(event => (
-            <div key={event.id} className="table-row">
-              <div className="event-info">
-                <strong>{event.title}</strong>
-                <small>{event.venue}</small>
+          {events.map(event => {
+            const isMissingTags = !event.tags || event.tags.length === 0;
+            const isOtherCategory = (event.category ?? '') === 'Other';
+            return (
+              <div key={event.id} className={`table-row${isMissingTags ? ' table-row--missing-tags' : ''}`}>
+                <div className="event-info">
+                  <strong>{event.title}</strong>
+                  <small>{event.venue}</small>
+                </div>
+                <span>{displayDateRange(event.date, event.date_end)}</span>
+                <span className="category-badge">{event.category}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                  <span className="status-badge published">Published</span>
+                  {isMissingTags && (
+                    <button
+                      type="button"
+                      className={`tag-missing-badge${isOtherCategory ? ' tag-missing-badge--manual' : ''}`}
+                      onClick={() => handleEditWithTagFocus(event)}
+                      title={isOtherCategory ? 'Other category — manual tag required. Click to edit.' : 'No tags — click to fix.'}
+                    >
+                      {isOtherCategory ? '⚠ Manual tag needed' : '⚠ No tags'}
+                    </button>
+                  )}
+                </div>
+                <div className="actions">
+                  <button onClick={() => onEdit(event)}>Edit</button>
+                  <button onClick={() => onDelete(event.id)} className="delete">
+                    Delete
+                  </button>
+                </div>
               </div>
-              <span>{displayDateRange(event.date, event.date_end)}</span>
-              <span className="category-badge">{event.category}</span>
-              <span className="status-badge published">Published</span>
-              <div className="actions">
-                <button onClick={() => onEdit(event)}>Edit</button>
-                <button onClick={() => onDelete(event.id)} className="delete">
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
