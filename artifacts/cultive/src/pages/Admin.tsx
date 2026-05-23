@@ -351,6 +351,12 @@ export function Admin() {
             onEdit={setEditingEvent}
             onDelete={handleDeleteEvent}
             onSave={handleSaveEvent}
+            onEventsPatched={(updated) =>
+              setEvents(prev => prev.map(e => {
+                const patch = updated.find(u => u.id === e.id);
+                return patch ?? e;
+              }))
+            }
           />
         )}
         {activeTab === 'submissions' && (
@@ -411,17 +417,55 @@ function EventsTab({
   onEdit,
   onDelete,
   onSave,
+  onEventsPatched,
 }: {
   events: Event[];
   editingEvent: Event | null;
   onEdit: (e: Event | null) => void;
   onDelete: (id: string) => void;
   onSave: (e: Event) => void;
+  onEventsPatched: (updated: Event[]) => void;
 }) {
   const [formData, setFormData] = useState<Event>(editingEvent || EMPTY_EVENT);
   const [igUrl, setIgUrl] = useState('');
   const [igBusy, setIgBusy] = useState(false);
   const [igMsg, setIgMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [fixBusy, setFixBusy] = useState(false);
+  const [fixMsg, setFixMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const eventsWithMissingTags = events.filter(e => !e.tags || e.tags.length === 0);
+
+  const handleFixMissingTags = async () => {
+    if (eventsWithMissingTags.length === 0) return;
+    setFixBusy(true);
+    setFixMsg(null);
+    const updated: Event[] = [];
+    const errors: string[] = [];
+    let skipped = 0;
+    for (const event of eventsWithMissingTags) {
+      const primaryTag = CATEGORY_TAG_MAP[event.category ?? ''];
+      if (!primaryTag) {
+        skipped++;
+        continue;
+      }
+      try {
+        const patched = await updateEvent(event.id, { tags: [primaryTag] });
+        updated.push(patched);
+      } catch (e: any) {
+        errors.push(e?.message ?? `Failed for event ${event.id}`);
+      }
+    }
+    setFixBusy(false);
+    if (updated.length > 0) onEventsPatched(updated);
+    const parts: string[] = [];
+    if (updated.length > 0) parts.push(`Fixed ${updated.length} event${updated.length !== 1 ? 's' : ''}`);
+    if (skipped > 0) parts.push(`${skipped} skipped (no mappable tag for category)`);
+    if (errors.length > 0) parts.push(`${errors.length} failed`);
+    setFixMsg({
+      type: errors.length > 0 ? 'err' : 'ok',
+      text: parts.join(', ') + '.',
+    });
+  };
 
   useEffect(() => {
     if (!editingEvent) { setFormData(EMPTY_EVENT); return; }
@@ -721,6 +765,34 @@ function EventsTab({
           + New Event
         </button>
       </div>
+
+      {/* Fix missing tags */}
+      {(eventsWithMissingTags.length > 0 || fixMsg) && (
+        <div className="admin-ig-add" style={{ marginBottom: 12 }}>
+          {eventsWithMissingTags.length > 0 && (
+            <>
+              <span className="admin-ig-add-label">
+                {eventsWithMissingTags.length} event{eventsWithMissingTags.length !== 1 ? 's' : ''} missing tags
+              </span>
+              <div className="admin-ig-add-row">
+                <button
+                  type="button"
+                  className="admin-ig-add-btn"
+                  disabled={fixBusy}
+                  onClick={handleFixMissingTags}
+                >
+                  {fixBusy ? 'Fixing…' : 'Fix missing tags'}
+                </button>
+              </div>
+            </>
+          )}
+          {fixMsg && (
+            <p style={{ marginTop: 6, fontSize: '0.82rem', color: fixMsg.type === 'ok' ? '#16a34a' : '#dc2626' }}>
+              {fixMsg.text}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Instagram quick-add */}
       <div className="admin-ig-add">
