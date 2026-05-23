@@ -8,6 +8,27 @@ function isHtml(str: string): boolean {
   return /<[a-z][\s\S]*>/i.test(str);
 }
 
+function unescapeHtmlEntities(str: string): string {
+  if (!/&lt;[a-z]/i.test(str)) return str;
+  return str
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+function renderDescription(desc: string): string {
+  const unescaped = unescapeHtmlEntities(desc);
+  if (isHtml(unescaped)) return unescaped;
+  // Plain text: preserve paragraph breaks and line breaks
+  const paras = unescaped.split(/\n{2,}/);
+  if (paras.length > 1) {
+    return paras.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+  }
+  return `<p style="white-space:pre-line">${unescaped}</p>`;
+}
+
 function displayDateRange(date?: string, dateEnd?: string | null): string {
   if (!date) return '';
   const parseYMD = (s: string) => {
@@ -169,14 +190,10 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
         <div className="detail-section">
           <h3>About this event</h3>
           {event.description ? (
-            isHtml(event.description) ? (
-              <div
-                className="detail-rich-text cultive-prose"
-                dangerouslySetInnerHTML={{ __html: event.description }}
-              />
-            ) : (
-              <p style={{ whiteSpace: 'pre-line' }}>{event.description}</p>
-            )
+            <div
+              className="detail-rich-text cultive-prose"
+              dangerouslySetInnerHTML={{ __html: renderDescription(event.description) }}
+            />
           ) : null}
         </div>
 
