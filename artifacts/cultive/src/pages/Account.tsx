@@ -169,7 +169,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
             </span>
             <span className="account-row-label">{item.label}</span>
             {item.meta && <span className="account-row-meta">{item.meta}</span>}
-            <span className="account-row-arrow">—→</span>
+            <span className="account-row-arrow">→</span>
           </a>
         ))}
       </nav>
