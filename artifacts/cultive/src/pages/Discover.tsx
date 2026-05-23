@@ -8,6 +8,23 @@ function formatTime(time?: string): string {
   return '';
 }
 
+// Converts any common time string to minutes since midnight for sorting.
+// Unknown / missing times sort last within their day (return Infinity).
+function parseTimeToMinutes(raw?: string | null): number {
+  if (!raw) return Infinity;
+  const s = raw.trim().toLowerCase();
+  if (s === 'noon') return 12 * 60;
+  if (s === 'midnight') return 24 * 60;
+  const m = s.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+  if (!m) return Infinity;
+  let h = parseInt(m[1], 10);
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  const period = m[3];
+  if (period === 'pm' && h !== 12) h += 12;
+  if (period === 'am' && h === 12) h = 0;
+  return h * 60 + min;
+}
+
 // Convert date(s) to a display string. Handles single YYYY-MM-DD dates and
 // optional date_end for multi-day events (e.g. "May 8 – 27", "May 8 – Jun 15").
 // Already-formatted strings pass through unchanged when no dateEnd is given.
@@ -398,8 +415,12 @@ export function Discover() {
     decorated.sort((a, b) => {
       // Past events always last
       if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
-      // Both have a parsed date → chronological
-      if (a.parsed && b.parsed) return a.parsed.getTime() - b.parsed.getTime();
+      // Both have a parsed date → chronological, then by time within same day
+      if (a.parsed && b.parsed) {
+        const dateDiff = a.parsed.getTime() - b.parsed.getTime();
+        if (dateDiff !== 0) return dateDiff;
+        return parseTimeToMinutes(a.e.time) - parseTimeToMinutes(b.e.time);
+      }
       // One parsed, one not → parsed first
       if (a.parsed) return -1;
       if (b.parsed) return 1;

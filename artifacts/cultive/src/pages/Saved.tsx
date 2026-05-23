@@ -76,8 +76,27 @@ function parseFirst(raw?: string): number {
   return isNaN(d.getTime()) ? Infinity : d.getTime();
 }
 
+function parseTimeToMinutes(raw?: string | null): number {
+  if (!raw) return Infinity;
+  const s = raw.trim().toLowerCase();
+  if (s === 'noon') return 12 * 60;
+  if (s === 'midnight') return 24 * 60;
+  const m = s.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+  if (!m) return Infinity;
+  let h = parseInt(m[1], 10);
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  const period = m[3];
+  if (period === 'pm' && h !== 12) h += 12;
+  if (period === 'am' && h === 12) h = 0;
+  return h * 60 + min;
+}
+
 function sortByDate(list: Event[]): Event[] {
-  return [...list].sort((a, b) => parseFirst(a.date) - parseFirst(b.date));
+  return [...list].sort((a, b) => {
+    const dateDiff = parseFirst(a.date) - parseFirst(b.date);
+    if (dateDiff !== 0) return dateDiff;
+    return parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time);
+  });
 }
 
 export function Saved() {
