@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getEventById } from '../lib/supabase';
 import type { Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
+import { formatTime } from '../lib/utils';
 
 // ─── OG / Twitter meta injection ────────────────────────────
 function setMetaProperty(property: string, content: string) {
@@ -267,7 +268,7 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
               <circle cx="12" cy="12" r="10"/>
               <polyline points="12 6 12 12 16 14"/>
             </svg>
-            {event.time}
+            {formatTime(event.time)}
           </div>
           <a
             className="detail-row detail-row-link"
