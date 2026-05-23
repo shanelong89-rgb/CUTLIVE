@@ -297,16 +297,6 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
           </div>
         </div>
 
-        <div className="detail-section">
-          <h3>About this event</h3>
-          {event.description ? (
-            <div
-              className="detail-rich-text cultive-prose"
-              dangerouslySetInnerHTML={{ __html: renderDescription(event.description) }}
-            />
-          ) : null}
-        </div>
-
         {/* ── Share row ───────────────────────────────────── */}
         <div className="share-row">
           <span className="share-label">Share</span>
@@ -351,6 +341,16 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
               <span className="share-btn-label">{copied ? 'Copied!' : 'Copy link'}</span>
             </button>
           </div>
+        </div>
+
+        <div className="detail-section">
+          <h3>About this event</h3>
+          {event.description ? (
+            <div
+              className="detail-rich-text cultive-prose"
+              dangerouslySetInnerHTML={{ __html: renderDescription(event.description) }}
+            />
+          ) : null}
         </div>
 
         {event.submitted_by && (
