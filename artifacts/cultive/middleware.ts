@@ -40,11 +40,20 @@ export default async function middleware(request: Request): Promise<Response | u
     if (!ev) return;
 
     const title = escHtml(ev.title ?? 'CULTIVE');
+    const rawDesc = (ev.description ?? '')
+      .replace(/<[^>]+>/g, '')
+      .trim();
+    // LinkedIn requires ≥100 chars — pad with venue/date context if the
+    // event description is short or missing.
+    const fallbackDesc = [
+      ev.venue ? `At ${ev.venue}.` : '',
+      ev.date ? `On ${ev.date}.` : '',
+      'Discover curated cultural events in Hong Kong on CULTIVE.',
+    ]
+      .filter(Boolean)
+      .join(' ');
     const plainDesc = escHtml(
-      (ev.description ?? '')
-        .replace(/<[^>]+>/g, '')
-        .trim()
-        .slice(0, 200) || 'A cultural event in Hong Kong.',
+      (rawDesc.length >= 20 ? rawDesc : fallbackDesc).slice(0, 300),
     );
     const image = escHtml(ev.image ?? '');
     const canonicalUrl = `https://cultive.city/event/${id}`;
