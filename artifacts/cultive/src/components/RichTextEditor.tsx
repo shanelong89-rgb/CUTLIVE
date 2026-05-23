@@ -4,6 +4,23 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useEffect, useCallback } from 'react';
 
+function isHtml(str: string): boolean {
+  return /<[a-z][\s\S]*>/i.test(str);
+}
+
+function plainTextToHtml(text: string): string {
+  return text
+    .split(/\n{2,}/)
+    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+function toEditorHtml(value: string): string {
+  if (!value) return '';
+  if (isHtml(value)) return value;
+  return plainTextToHtml(value);
+}
+
 interface Props {
   value: string;
   onChange: (html: string) => void;
@@ -54,7 +71,7 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write a descrip
       }),
       Placeholder.configure({ placeholder }),
     ],
-    content: value || '',
+    content: toEditorHtml(value),
     onUpdate: ({ editor }) => {
       const html = editor.isEmpty ? '' : editor.getHTML();
       onChange(html);
@@ -64,8 +81,9 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write a descrip
   useEffect(() => {
     if (!editor) return;
     const current = editor.isEmpty ? '' : editor.getHTML();
-    if (value !== current) {
-      editor.commands.setContent(value || '');
+    const desired = toEditorHtml(value);
+    if (desired !== current) {
+      editor.commands.setContent(desired);
     }
   }, [value, editor]);
 

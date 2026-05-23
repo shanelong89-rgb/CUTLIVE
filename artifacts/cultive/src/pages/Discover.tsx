@@ -524,7 +524,7 @@ export function Discover() {
           borderTop: '1px solid var(--n-border)',
         }}>
           <button
-            onClick={() => setCurrentPage(p => p - 1)}
+            onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             style={{
               visibility: currentPage > 1 ? 'visible' : 'hidden',
               display: 'flex', alignItems: 'center', gap: 6,
@@ -547,7 +547,7 @@ export function Discover() {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
               <button
                 key={n}
-                onClick={() => setCurrentPage(n)}
+                onClick={() => { setCurrentPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 style={{
                   width: 32, height: 32,
                   borderRadius: 4,
@@ -566,7 +566,7 @@ export function Discover() {
           </div>
 
           <button
-            onClick={() => setCurrentPage(p => p + 1)}
+            onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             style={{
               visibility: currentPage < totalPages ? 'visible' : 'hidden',
               display: 'flex', alignItems: 'center', gap: 6,
