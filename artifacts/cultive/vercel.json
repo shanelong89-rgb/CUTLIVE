@@ -12,5 +12,18 @@
         { "key": "Content-Type", "value": "application/json" }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/event/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|WhatsApp|TelegramBot|Discordbot|Applebot|ia_archiver|Pinterest|redditbot|Slurp|bingbot|Googlebot).*"
+        }
+      ],
+      "destination": "/api/event/:id"
+    }
   ]
 }

@@ -3,30 +3,19 @@ const SUPABASE_ANON_KEY =
   process.env.VITE_SUPABASE_ANON_KEY ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtamRxbGRtcG1lZ3V1eWVwYnN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNDkxMzksImV4cCI6MjA5NDgyNTEzOX0.FPUO7-RuPyb1FWwQRKGHnWyDeoDZIVf54xspUsh2_rc';
 
-const CRAWLERS =
-  /twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|whatsapp|telegrambot|discordbot|applebot|ia_archiver|pinterest|redditbot/i;
-
-function escHtml(s: string): string {
-  return s
+function escHtml(s) {
+  return String(s ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
 
-export default async function middleware(request: Request): Promise<Response | undefined> {
-  const { pathname } = new URL(request.url);
-
-  const match = pathname.match(/^\/event\/([^/?#]+)/);
-  if (!match) return;
-
-  const ua = request.headers.get('user-agent') ?? '';
-  if (!CRAWLERS.test(ua)) return;
-
-  const id = match[1];
+export default async function handler(req, res) {
+  const { id } = req.query;
 
   try {
-    const res = await fetch(
+    const r = await fetch(
       `${SUPABASE_URL}/rest/v1/events?id=eq.${encodeURIComponent(id)}&select=title,description,image,venue,date&limit=1`,
       {
         headers: {
@@ -35,28 +24,25 @@ export default async function middleware(request: Request): Promise<Response | u
         },
       },
     );
-    const rows = await res.json();
+    const rows = await r.json();
     const ev = rows?.[0];
-    if (!ev) return;
 
-    const title = escHtml(ev.title ?? 'CULTIVE');
-    const rawDesc = (ev.description ?? '')
-      .replace(/<[^>]+>/g, '')
-      .trim();
-    // LinkedIn requires ≥100 chars — pad with venue/date context if the
-    // event description is short or missing.
+    if (!ev) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(200).send(genericHtml());
+    }
+
+    const title = escHtml(ev.title || 'CULTIVE');
+    const rawDesc = (ev.description || '').replace(/<[^>]+>/g, '').trim();
     const fallbackDesc = [
       ev.venue ? `At ${ev.venue}.` : '',
-      ev.date ? `On ${ev.date}.` : '',
       'Discover curated cultural events in Hong Kong on CULTIVE.',
     ]
       .filter(Boolean)
       .join(' ');
-    const plainDesc = escHtml(
-      (rawDesc.length >= 20 ? rawDesc : fallbackDesc).slice(0, 300),
-    );
-    const image = escHtml(ev.image ?? '');
-    const canonicalUrl = `https://cultive.city/event/${id}`;
+    const desc = escHtml((rawDesc.length >= 20 ? rawDesc : fallbackDesc).slice(0, 300));
+    const image = escHtml(ev.image || '');
+    const url = `https://cultive.city/event/${id}`;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -64,16 +50,16 @@ export default async function middleware(request: Request): Promise<Response | u
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${title} | CULTIVE</title>
-  <meta name="description" content="${plainDesc}" />
+  <meta name="description" content="${desc}" />
   <meta property="og:title" content="${title}" />
-  <meta property="og:description" content="${plainDesc}" />
+  <meta property="og:description" content="${desc}" />
   <meta property="og:image" content="${image}" />
-  <meta property="og:url" content="${canonicalUrl}" />
+  <meta property="og:url" content="${url}" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="CULTIVE" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${title}" />
-  <meta name="twitter:description" content="${plainDesc}" />
+  <meta name="twitter:description" content="${desc}" />
   <meta name="twitter:image" content="${image}" />
 </head>
 <body>
@@ -81,14 +67,20 @@ export default async function middleware(request: Request): Promise<Response | u
 </body>
 </html>`;
 
-    return new Response(html, {
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+    return res.status(200).send(html);
   } catch {
-    return;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(200).send(genericHtml());
   }
 }
 
-export const config = {
-  matcher: '/event/:path*',
-};
+function genericHtml() {
+  return `<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8" />
+  <title>CULTIVE | 文化活</title>
+  <meta property="og:site_name" content="CULTIVE" />
+  <meta name="description" content="Hong Kong's curated cultural events." />
+</head><body><h1>CULTIVE</h1></body></html>`;
+}
