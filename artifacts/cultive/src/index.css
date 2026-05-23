@@ -3155,20 +3155,69 @@ h1, h2, h3 {
   flex-shrink: 0;
 }
 
+/* =====================================================
+   CULTIVE PROSE — single source of truth for rich text
+   Applied to: .cultive-prose (EventDetail) and
+               .rte-content .tiptap (admin editor editable area)
+   Both contexts render identically — WYSIWYG.
+   ===================================================== */
+.cultive-prose,
+.rte-content .tiptap {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--n-text);
+}
+.cultive-prose p,
+.rte-content .tiptap p { margin: 0 0 10px; }
+.cultive-prose p:last-child,
+.rte-content .tiptap p:last-child { margin-bottom: 0; }
+.cultive-prose h2,
+.rte-content .tiptap h2 { font-size: 1.1rem; font-weight: 700; margin: 18px 0 6px; }
+.cultive-prose h3,
+.rte-content .tiptap h3 { font-size: 0.95rem; font-weight: 700; margin: 14px 0 4px; }
+.cultive-prose ul,
+.cultive-prose ol,
+.rte-content .tiptap ul,
+.rte-content .tiptap ol { margin: 0 0 10px; padding-left: 20px; }
+.cultive-prose li,
+.rte-content .tiptap li { margin-bottom: 4px; }
+.cultive-prose a,
+.rte-content .tiptap a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.cultive-prose a:hover,
+.rte-content .tiptap a:hover { opacity: 0.7; }
+.cultive-prose blockquote,
+.rte-content .tiptap blockquote {
+  border-left: 3px solid var(--n-border);
+  margin: 0 0 10px;
+  padding-left: 14px;
+  color: var(--n-muted);
+  font-style: italic;
+}
+.cultive-prose code,
+.rte-content .tiptap code {
+  background: rgba(0,0,0,0.06);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+.cultive-prose strong,
+.rte-content .tiptap strong { font-weight: 700; }
+.cultive-prose em,
+.rte-content .tiptap em { font-style: italic; }
+.cultive-prose s,
+.rte-content .tiptap s { text-decoration: line-through; }
+
+/* RTE container (wraps the editable area — not prose content) */
 .rte-content {
   padding: 12px 14px;
   min-height: 140px;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--n-text);
   outline: none;
 }
-
 .rte-content .tiptap {
   outline: none;
   min-height: 120px;
 }
-
 .rte-content .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   color: var(--n-muted);
@@ -3177,65 +3226,8 @@ h1, h2, h3 {
   height: 0;
 }
 
-.rte-content .tiptap p { margin: 0 0 8px; }
-.rte-content .tiptap p:last-child { margin-bottom: 0; }
-.rte-content .tiptap h2 { font-size: 1.1rem; font-weight: 700; margin: 16px 0 6px; }
-.rte-content .tiptap h3 { font-size: 0.95rem; font-weight: 700; margin: 14px 0 4px; }
-.rte-content .tiptap ul,
-.rte-content .tiptap ol { margin: 0 0 8px; padding-left: 20px; }
-.rte-content .tiptap li { margin-bottom: 4px; }
-.rte-content .tiptap a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.rte-content .tiptap a:hover { opacity: 0.7; }
-.rte-content .tiptap blockquote {
-  border-left: 3px solid var(--n-border);
-  margin: 0 0 8px;
-  padding-left: 12px;
-  color: var(--n-muted);
-}
-.rte-content .tiptap code {
-  background: rgba(0,0,0,0.06);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-family: monospace;
-  font-size: 0.85em;
-}
-.rte-content .tiptap strong { font-weight: 700; }
-.rte-content .tiptap em { font-style: italic; }
-.rte-content .tiptap s { text-decoration: line-through; }
-
-/* =====================================================
-   RICH TEXT OUTPUT (Event Detail page)
-   ===================================================== */
-.detail-rich-text {
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: var(--n-text);
-}
-.detail-rich-text p { margin: 0 0 10px; }
-.detail-rich-text p:last-child { margin-bottom: 0; }
-.detail-rich-text h2 { font-size: 1.1rem; font-weight: 700; margin: 18px 0 6px; }
-.detail-rich-text h3 { font-size: 0.95rem; font-weight: 700; margin: 14px 0 4px; }
-.detail-rich-text ul,
-.detail-rich-text ol { margin: 0 0 10px; padding-left: 20px; }
-.detail-rich-text li { margin-bottom: 4px; }
-.detail-rich-text a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.detail-rich-text a:hover { opacity: 0.7; }
-.detail-rich-text blockquote {
-  border-left: 3px solid var(--n-border);
-  margin: 0 0 10px;
-  padding-left: 14px;
-  color: var(--n-muted);
-  font-style: italic;
-}
-.detail-rich-text code {
-  background: rgba(0,0,0,0.05);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-family: monospace;
-  font-size: 0.85em;
-}
-.detail-rich-text strong { font-weight: 700; }
-.detail-rich-text em { font-style: italic; }
+/* Event Detail rich text — uses .cultive-prose for all prose rules */
+.detail-rich-text { }
 
 .cancel-btn:hover {
   border-color: var(--n-text);

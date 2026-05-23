@@ -171,7 +171,7 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
           {event.description ? (
             isHtml(event.description) ? (
               <div
-                className="detail-rich-text"
+                className="detail-rich-text cultive-prose"
                 dangerouslySetInnerHTML={{ __html: event.description }}
               />
             ) : (
