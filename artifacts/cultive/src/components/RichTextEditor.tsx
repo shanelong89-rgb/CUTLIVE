@@ -2,7 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 
 function isHtml(str: string): boolean {
   return /<[a-z][\s\S]*>/i.test(str);
@@ -54,6 +54,8 @@ function ToolbarButton({
 }
 
 export function RichTextEditor({ value, onChange, placeholder = 'Write a description…' }: Props) {
+  const [isPreview, setIsPreview] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -104,6 +106,7 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write a descrip
   return (
     <div className="rte-wrapper">
       <div className="rte-toolbar">
+        {!isPreview && (<>
         <ToolbarButton
           title="Bold"
           active={editor.isActive('bold')}
@@ -205,8 +208,30 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write a descrip
             </svg>
           </ToolbarButton>
         )}
+        </>)}
+        <button
+          type="button"
+          title={isPreview ? 'Back to editing' : 'Preview how it looks on the event page'}
+          onMouseDown={(e) => { e.preventDefault(); setIsPreview(p => !p); }}
+          className={`rte-btn rte-preview-btn${isPreview ? ' rte-btn-active' : ''}`}
+        >
+          {isPreview ? 'Edit' : 'Preview'}
+        </button>
       </div>
-      <EditorContent editor={editor} className="rte-content" />
+
+      {isPreview ? (
+        <div className="rte-preview-panel cultive-prose">
+          {value ? (
+            isHtml(value)
+              ? <div dangerouslySetInnerHTML={{ __html: value }} />
+              : <p style={{ whiteSpace: 'pre-line', margin: 0 }}>{value}</p>
+          ) : (
+            <p className="rte-preview-empty">Nothing to preview yet.</p>
+          )}
+        </div>
+      ) : (
+        <EditorContent editor={editor} className="rte-content" />
+      )}
     </div>
   );
 }

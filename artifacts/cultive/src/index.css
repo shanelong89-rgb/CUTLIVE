@@ -3155,6 +3155,27 @@ h1, h2, h3 {
   flex-shrink: 0;
 }
 
+.rte-preview-btn {
+  width: auto;
+  padding: 0 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+
+.rte-preview-panel {
+  padding: 12px 14px;
+  min-height: 140px;
+}
+
+.rte-preview-empty {
+  color: var(--n-muted);
+  font-style: italic;
+  margin: 0;
+}
+
 /* =====================================================
    CULTIVE PROSE — single source of truth for rich text
    Applied to: .cultive-prose (EventDetail) and
