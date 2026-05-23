@@ -1290,9 +1290,9 @@ h1, h2, h3 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  margin-bottom: 40px;
-  padding-bottom: 40px;
-  border-bottom: 1px solid var(--n-border);
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .detail-row {
@@ -2101,9 +2101,11 @@ h1, h2, h3 {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 20px 0;
+  padding: 14px 0;
   border-top: 1px solid var(--n-border);
-  margin-top: 4px;
+  border-bottom: 1px solid var(--n-border);
+  margin-top: 24px;
+  margin-bottom: 40px;
 }
 
 .share-label {
