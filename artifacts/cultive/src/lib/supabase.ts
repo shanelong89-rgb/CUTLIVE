@@ -110,10 +110,7 @@ export function invalidateEventsCache() {
 }
 
 // ─── Public: events ───────────────────────────────────────────
-export async function getEvents() {
-  const cached = readEventsCache();
-  if (cached) return cached;
-
+async function fetchEventsFromDB(): Promise<Event[]> {
   const { data, error } = await supabase
     .from('events')
     .select('*')
@@ -126,6 +123,22 @@ export async function getEvents() {
   if (!data || data.length === 0) return mockEvents;
   writeEventsCache(data as Event[]);
   return data as Event[];
+}
+
+/**
+ * Returns cached events immediately (if available), then fires a background
+ * re-fetch so the UI stays fresh without a loading flash.
+ * Pass `onUpdate` to receive the fresh list once the background fetch finishes.
+ */
+export async function getEvents(onUpdate?: (data: Event[]) => void): Promise<Event[]> {
+  const cached = readEventsCache();
+  if (cached) {
+    if (onUpdate) {
+      fetchEventsFromDB().then(onUpdate).catch(() => undefined);
+    }
+    return cached;
+  }
+  return fetchEventsFromDB();
 }
 
 export async function getEventById(id: string) {

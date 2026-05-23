@@ -351,16 +351,22 @@ export function Discover() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch events from Supabase
+  // Fetch events from Supabase — stale-while-revalidate:
+  // serve cache instantly, then silently refresh in the background.
   useEffect(() => {
+    let cancelled = false;
     async function fetchEvents() {
       setLoading(true);
-      const data = await getEvents();
-      // If no data from Supabase, fallback to empty array
-      setEvents(data);
-      setLoading(false);
+      const data = await getEvents((fresh) => {
+        if (!cancelled) setEvents(fresh);
+      });
+      if (!cancelled) {
+        setEvents(data);
+        setLoading(false);
+      }
     }
     fetchEvents();
+    return () => { cancelled = true; };
   }, []);
 
   // Reset to page 1 whenever filters change
