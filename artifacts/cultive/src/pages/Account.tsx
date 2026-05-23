@@ -32,8 +32,20 @@ function formatDate(s?: string) {
 
 export function Account({ setIsAuthOpen }: AccountProps) {
   const { user, isAdmin, loading } = useAuth();
-  const { count: savedCount } = useSavedEvents();
+  const { ids: savedIds } = useSavedEvents();
   const { unreadCount } = useInboxMessages();
+
+  // DB-validated saved count — seeds from cache so the number is instant
+  // on return visits, then refreshes against the events table to drop any
+  // orphaned IDs (events that were deleted after being saved).
+  const SAVED_VALIDATED_KEY = 'cultive:saved-count-validated';
+  const [validatedSavedCount, setValidatedSavedCount] = useState<number | null>(() => {
+    try {
+      const v = localStorage.getItem(SAVED_VALIDATED_KEY);
+      return v !== null ? Number(v) : null;
+    } catch { return null; }
+  });
+  const displaySavedCount = validatedSavedCount ?? savedIds.length;
   const [submissionCount, setSubmissionCount] = useState<number | null>(() => {
     if (typeof window === 'undefined') return null;
     try {
@@ -90,6 +102,32 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     return () => { active = false; };
   }, [user]);
 
+  // ── Validated saved count ────────────────────────────────────
+  // Cross-checks local saved IDs against the events table so orphaned IDs
+  // (deleted events still sitting in saved_events) don't inflate the count.
+  useEffect(() => {
+    if (!user) { setValidatedSavedCount(null); return; }
+    let active = true;
+    (async () => {
+      if (savedIds.length === 0) {
+        if (!active) return;
+        setValidatedSavedCount(0);
+        try { localStorage.setItem(SAVED_VALIDATED_KEY, '0'); } catch { /* ignore */ }
+        return;
+      }
+      const { count } = await supabase
+        .from('events')
+        .select('id', { count: 'exact', head: true })
+        .in('id', savedIds);
+      if (!active) return;
+      const n = count ?? 0;
+      setValidatedSavedCount(n);
+      try { localStorage.setItem(SAVED_VALIDATED_KEY, String(n)); } catch { /* ignore */ }
+    })();
+    return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, savedIds.length]);
+
   // ── Signed-out state ────────────────────────────────────────
   if (!loading && !user) {
     return (
@@ -130,7 +168,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
   const joined = formatDate(user.created_at);
 
   const menuItems: { label: string; href?: string; meta?: string }[] = [
-    { label: 'Saved Events', href: '/saved', meta: `${savedCount} saved` },
+    { label: 'Saved Events', href: '/saved', meta: `${displaySavedCount} saved` },
     { label: 'My Tickets', href: '/tickets', meta: '0 active' },
     {
       label: 'My Submissions',
@@ -169,7 +207,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
           <span className="account-stat-label">Tickets</span>
         </div>
         <div className="account-stat-cell">
-          <span className="account-stat-num">{savedCount}</span>
+          <span className="account-stat-num">{displaySavedCount}</span>
           <span className="account-stat-label">Saved</span>
         </div>
       </section>

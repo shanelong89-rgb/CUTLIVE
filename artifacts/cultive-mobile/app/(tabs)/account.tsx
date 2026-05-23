@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useInbox } from "@/contexts/InboxContext";
 import { useColors } from "@/hooks/useColors";
-import { signOut, supabase } from "@/lib/supabase";
+import { listSavedEventIdsRemote, signOut, supabase } from "@/lib/supabase";
 
 const ADMIN_EMAILS = ["shanelong89@gmail.com", "shanelong@gmail.com"];
 
@@ -30,7 +30,10 @@ export default function AccountScreen() {
   const [email, setEmail] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [submissionCount, setSubmissionCount] = useState<number | null>(null);
+  const [savedCount, setSavedCount] = useState<number | null>(null);
   const { unreadCount } = useInbox();
+
+  const SAVED_VALIDATED_KEY = "cultive:saved-count-validated";
 
   const extractDisplayName = (user: { user_metadata?: Record<string, any>; email?: string | null } | null | undefined): string | null => {
     if (!user) return null;
@@ -40,7 +43,6 @@ export default function AccountScreen() {
   async function fetchAndCacheSubCount(userId?: string, userEmail?: string | null, guard?: () => boolean) {
     if (!userId && !userEmail) return;
     const cacheKey = `cultive:sub-count:${userId ?? userEmail}`;
-    // Show cached count immediately — no spinner flash on return visits.
     try {
       const cached = await AsyncStorage.getItem(cacheKey);
       if (cached !== null && (!guard || guard())) setSubmissionCount(Number(cached));
@@ -60,6 +62,34 @@ export default function AccountScreen() {
     }
   }
 
+  async function fetchAndCacheSavedCount(userId?: string, guard?: () => boolean) {
+    if (!userId) return;
+    // Seed from cache immediately so count shows without a flash.
+    try {
+      const cached = await AsyncStorage.getItem(SAVED_VALIDATED_KEY);
+      if (cached !== null && (!guard || guard())) setSavedCount(Number(cached));
+    } catch { /* ignore */ }
+    // Fetch remote saved IDs then count how many still exist as real events,
+    // dropping any orphaned IDs from deleted events.
+    const savedIds = await listSavedEventIdsRemote();
+    if (!guard || guard()) {
+      if (savedIds.length === 0) {
+        setSavedCount(0);
+        AsyncStorage.setItem(SAVED_VALIDATED_KEY, "0").catch(() => {});
+        return;
+      }
+      const { count } = await supabase
+        .from("events")
+        .select("id", { count: "exact", head: true })
+        .in("id", savedIds);
+      if (!guard || guard()) {
+        const n = count ?? 0;
+        setSavedCount(n);
+        AsyncStorage.setItem(SAVED_VALIDATED_KEY, String(n)).catch(() => {});
+      }
+    }
+  }
+
   useEffect(() => {
     let mounted = true;
     const guard = () => mounted;
@@ -70,6 +100,7 @@ export default function AccountScreen() {
       setEmail(userEmail);
       setDisplayName(extractDisplayName(data.session?.user));
       fetchAndCacheSubCount(userId, userEmail, guard);
+      fetchAndCacheSavedCount(userId, guard);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const userEmail = session?.user.email ?? null;
@@ -78,8 +109,10 @@ export default function AccountScreen() {
       setDisplayName(extractDisplayName(session?.user));
       if (userId || userEmail) {
         fetchAndCacheSubCount(userId, userEmail);
+        fetchAndCacheSavedCount(userId);
       } else {
         setSubmissionCount(null);
+        setSavedCount(null);
       }
     });
     return () => {
@@ -224,6 +257,24 @@ export default function AccountScreen() {
             <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
           </Pressable>
         )}
+
+        {/* Saved Events row */}
+        <Pressable
+          onPress={() => router.push("/(tabs)/saved" as any)}
+          style={({ pressed }) => [
+            styles.menuItem,
+            { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Text style={[styles.menuIndex, { color: colors.mutedForeground }]}>01</Text>
+          <Text style={[styles.menuLabel, { color: colors.foreground }]}>Saved Events</Text>
+          {savedCount !== null && (
+            <Text style={[styles.menuMeta, { color: colors.mutedForeground }]}>
+              {savedCount} saved
+            </Text>
+          )}
+          <Text style={[styles.menuArrow, { color: colors.foreground }]}>—</Text>
+        </Pressable>
 
         {/* Regular menu items */}
         {MENU_ITEMS.map((item, i) => {
