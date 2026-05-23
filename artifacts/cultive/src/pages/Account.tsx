@@ -47,7 +47,9 @@ export function Account({ setIsAuthOpen }: AccountProps) {
   const handleChangePassword = async () => {
     if (!user?.email || pwResetState === 'sending' || pwResetState === 'sent') return;
     setPwResetState('sending');
-    const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
     setPwResetState(error ? 'error' : 'sent');
   };
 
