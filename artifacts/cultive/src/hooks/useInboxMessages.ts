@@ -227,7 +227,7 @@ function submissionToMessage(s: Submission): InboxMessage {
   }
   return {
     id: `sub-pending-${s.id}`,
-    title: `Submission received: "${s.title}"`,
+    title: 'Submission received',
     preview: 'Our editors are reviewing your event. You\'ll hear back within a few days.',
     time: relativeTime(s.created_at),
     unread: false,
