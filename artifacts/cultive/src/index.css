@@ -2700,12 +2700,15 @@ h1, h2, h3 {
   /* Mobile modal */
   .modal-overlay {
     align-items: flex-end;
+    padding: 0;
   }
   
   .modal-content {
     max-width: 100%;
-    border-radius: 8px 8px 0 0;
-    padding: 28px 5vw 32px;
+    max-height: 92dvh;
+    overflow-y: auto;
+    border-radius: 12px 12px 0 0;
+    padding: 28px 5vw 48px;
   }
 }
 

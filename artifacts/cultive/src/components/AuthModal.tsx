@@ -95,14 +95,26 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </div>
 
           {mode === 'login' && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 16, cursor: 'pointer' }}>
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 14px',
+              marginBottom: 16,
+              borderRadius: 6,
+              border: '1px solid var(--n-border)',
+              cursor: 'pointer',
+              userSelect: 'none',
+            }}>
+              <span style={{ fontSize: '0.875rem', color: 'var(--n-text)', fontWeight: 500 }}>
+                Remember me
+              </span>
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ width: 16, height: 16, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                style={{ width: 18, height: 18, accentColor: 'var(--n-text)', cursor: 'pointer' }}
               />
-              Remember me
             </label>
           )}
 
