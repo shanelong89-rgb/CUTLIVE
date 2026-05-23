@@ -5,7 +5,6 @@ import { DeviceEventEmitter } from "react-native";
 import { parseEventDate } from "@/lib/calendar";
 import {
   deleteReadItemsRemote,
-  getEvents,
   getMySubmissions,
   listReadItemKeysRemote,
   markReadItemsRemote,
@@ -369,8 +368,13 @@ export function useInboxMessages() {
     try {
       const savedIds = await readSavedIds();
       if (savedIds.length > 0) {
-        const all = await getEvents();
-        setSavedEvents(all.filter((e) => savedIds.includes(e.id)));
+        // Query only the IDs that still exist in the DB — validates local list
+        // against the backend and naturally drops any orphaned IDs.
+        const { data } = await supabase
+          .from('events')
+          .select('*')
+          .in('id', savedIds);
+        setSavedEvents((data || []) as Event[]);
       } else {
         setSavedEvents([]);
       }
@@ -387,8 +391,11 @@ export function useInboxMessages() {
         setSavedEvents([]);
         return;
       }
-      const all = await getEvents();
-      setSavedEvents(all.filter((e) => savedIds.includes(e.id)));
+      const { data } = await supabase
+        .from('events')
+        .select('*')
+        .in('id', savedIds);
+      setSavedEvents((data || []) as Event[]);
     } catch {
       // ignore
     }

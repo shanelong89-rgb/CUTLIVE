@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { deleteReadItemsRemote, getEvents, getMySubmissions, listReadItemKeysRemote, markReadItemsRemote, supabase, type Event, type Submission } from '../lib/supabase';
+import { deleteReadItemsRemote, getMySubmissions, listReadItemKeysRemote, markReadItemsRemote, supabase, type Event, type Submission } from '../lib/supabase';
 
 const READ_KEY = 'cultive:read-messages';
 const SAVED_KEY = 'cultive:saved-events';
@@ -411,8 +411,13 @@ export function useInboxMessages() {
     try {
       const savedIds = readSavedIds();
       if (savedIds.length > 0) {
-        const all = await getEvents();
-        setSavedEvents(all.filter((e) => savedIds.includes(e.id)));
+        // Query only the IDs that still exist in the DB — validates local list
+        // against the backend and naturally drops any orphaned IDs.
+        const { data } = await supabase
+          .from('events')
+          .select('*')
+          .in('id', savedIds);
+        setSavedEvents((data || []) as Event[]);
       } else {
         setSavedEvents([]);
       }
@@ -429,8 +434,11 @@ export function useInboxMessages() {
         setSavedEvents([]);
         return;
       }
-      const all = await getEvents();
-      setSavedEvents(all.filter((e) => savedIds.includes(e.id)));
+      const { data } = await supabase
+        .from('events')
+        .select('*')
+        .in('id', savedIds);
+      setSavedEvents((data || []) as Event[]);
     } catch {
       // ignore
     }
