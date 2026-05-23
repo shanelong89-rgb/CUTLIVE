@@ -64,13 +64,30 @@ function genId(prefix: string) {
     .slice(2, 8)}`;
 }
 
+// ─── Events cache (mobile) ────────────────────────────────────
+// Module-level in-memory cache as a safety net for callers outside React Query.
+// React Query already handles caching for Discover + Saved (shared ['events'] key,
+// staleTime: 5 min). This catches any direct getEvents() calls elsewhere.
+
+const EVENTS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+type EventsCacheEntry = { data: Event[]; fetchedAt: number };
+let _eventsMemCache: EventsCacheEntry | null = null;
+
+export function invalidateEventsCache() {
+  _eventsMemCache = null;
+}
+
 export async function getEvents(): Promise<Event[]> {
+  if (_eventsMemCache && Date.now() - _eventsMemCache.fetchedAt < EVENTS_CACHE_TTL) {
+    return _eventsMemCache.data;
+  }
   try {
     const { data, error } = await supabase
       .from("events")
       .select("*")
       .order("date", { ascending: true });
     if (error || !data || data.length === 0) return mockEvents;
+    _eventsMemCache = { data: data as Event[], fetchedAt: Date.now() };
     return data as Event[];
   } catch {
     return mockEvents;
@@ -80,6 +97,11 @@ export async function getEvents(): Promise<Event[]> {
 export async function getEventById(id: string): Promise<Event | null> {
   const mockEvent = mockEvents.find((e) => e.id === id);
   if (mockEvent) return mockEvent;
+  // Check in-memory cache before hitting the DB.
+  if (_eventsMemCache) {
+    const found = _eventsMemCache.data.find((e) => e.id === id);
+    if (found) return found;
+  }
   try {
     const { data, error } = await supabase
       .from("events")

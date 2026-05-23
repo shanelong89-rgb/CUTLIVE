@@ -57,8 +57,56 @@ export type Submission = {
   published_event_id?: string | null;
 };
 
+// ─── Events cache ─────────────────────────────────────────────
+// Two layers: module-level memory (fastest, resets on page refresh) +
+// localStorage (survives refresh, cleared after TTL).
+// This dramatically reduces Supabase egress — navigating between Discover,
+// Saved, and EventDetail within one session costs at most 1 DB round-trip.
+
+const EVENTS_CACHE_KEY = 'cultive:events-cache';
+const EVENTS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+type EventsCacheEntry = { data: Event[]; fetchedAt: number };
+let _eventsMemCache: EventsCacheEntry | null = null;
+
+function readEventsCache(): Event[] | null {
+  // 1. In-memory first — zero cost
+  if (_eventsMemCache && Date.now() - _eventsMemCache.fetchedAt < EVENTS_CACHE_TTL) {
+    return _eventsMemCache.data;
+  }
+  // 2. localStorage fallback — survives page refresh within the TTL window
+  try {
+    const raw = localStorage.getItem(EVENTS_CACHE_KEY);
+    if (raw) {
+      const entry: EventsCacheEntry = JSON.parse(raw);
+      if (Date.now() - entry.fetchedAt < EVENTS_CACHE_TTL) {
+        _eventsMemCache = entry; // warm up in-memory for next call
+        return entry.data;
+      }
+    }
+  } catch { /* ignore quota / parse errors */ }
+  return null;
+}
+
+function writeEventsCache(data: Event[]) {
+  const entry: EventsCacheEntry = { data, fetchedAt: Date.now() };
+  _eventsMemCache = entry;
+  try {
+    localStorage.setItem(EVENTS_CACHE_KEY, JSON.stringify(entry));
+  } catch { /* ignore quota errors (large payload) */ }
+}
+
+/** Call after any admin write (approve/reject/delete) to force a fresh fetch. */
+export function invalidateEventsCache() {
+  _eventsMemCache = null;
+  try { localStorage.removeItem(EVENTS_CACHE_KEY); } catch { /* ignore */ }
+}
+
 // ─── Public: events ───────────────────────────────────────────
 export async function getEvents() {
+  const cached = readEventsCache();
+  if (cached) return cached;
+
   const { data, error } = await supabase
     .from('events')
     .select('*')
@@ -69,12 +117,21 @@ export async function getEvents() {
     return mockEvents;
   }
   if (!data || data.length === 0) return mockEvents;
+  writeEventsCache(data as Event[]);
   return data as Event[];
 }
 
 export async function getEventById(id: string) {
   const mockEvent = mockEvents.find(e => e.id === id);
   if (mockEvent) return mockEvent;
+
+  // Check the in-memory/localStorage cache before hitting the DB.
+  // If the user arrived from the Discover page the cache is already warm.
+  const cached = readEventsCache();
+  if (cached) {
+    const found = cached.find(e => e.id === id);
+    if (found) return found;
+  }
 
   const { data, error } = await supabase
     .from('events')

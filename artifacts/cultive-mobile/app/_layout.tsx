@@ -22,7 +22,16 @@ import { supabase } from "@/lib/supabase";
 
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+// staleTime: 5 min — events fetched within the last 5 minutes are served
+// from React Query's in-memory cache without hitting Supabase. Discover and
+// Saved share the same ['events'] query key so they always reuse the same data.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
 
 function RootLayoutNav() {
   return (
