@@ -147,10 +147,9 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
 
   // Inject OG / Twitter meta tags while on this page
   useEffect(() => {
-    if (event) {
-      applyEventOgTags(event);
-      return resetOgTags;
-    }
+    if (!event) return;
+    applyEventOgTags(event);
+    return resetOgTags;
   }, [event]);
 
   const eventUrl = event ? `https://cultive.city/event/${event.id}` : window.location.href;
