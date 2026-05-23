@@ -42,7 +42,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
       return null;
     } catch { return null; }
   });
-  const [pwResetState, setPwResetState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [pwResetState, setPwResetState] = useState<'idle' | 'sending' | 'sent' | 'error' | 'rate-limited'>('idle');
 
   const handleChangePassword = async () => {
     if (!user?.email || pwResetState === 'sending' || pwResetState === 'sent') return;
@@ -50,7 +50,13 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-    setPwResetState(error ? 'error' : 'sent');
+    if (!error) {
+      setPwResetState('sent');
+    } else if (error.status === 429 || error.message?.toLowerCase().includes('rate limit')) {
+      setPwResetState('rate-limited');
+    } else {
+      setPwResetState('error');
+    }
   };
 
   useEffect(() => {
@@ -230,6 +236,8 @@ export function Account({ setIsAuthOpen }: AccountProps) {
             ? 'Sending…'
             : pwResetState === 'sent'
             ? '✓ Reset link sent — check your email'
+            : pwResetState === 'rate-limited'
+            ? 'Too many attempts — wait a few minutes'
             : pwResetState === 'error'
             ? 'Something went wrong — try again'
             : 'Change Password'}
