@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useInbox } from "@/contexts/InboxContext";
 import { useColors } from "@/hooks/useColors";
 import { signOut, supabase } from "@/lib/supabase";
@@ -36,27 +37,39 @@ export default function AccountScreen() {
     return user.user_metadata?.full_name ?? user.user_metadata?.name ?? null;
   };
 
+  async function fetchAndCacheSubCount(userId?: string, userEmail?: string | null, guard?: () => boolean) {
+    if (!userId && !userEmail) return;
+    const cacheKey = `cultive:sub-count:${userId ?? userEmail}`;
+    // Show cached count immediately — no spinner flash on return visits.
+    try {
+      const cached = await AsyncStorage.getItem(cacheKey);
+      if (cached !== null && (!guard || guard())) setSubmissionCount(Number(cached));
+    } catch { /* ignore */ }
+    const filter = [
+      userId ? `user_id.eq.${userId}` : null,
+      userEmail ? `submitter_email.eq.${userEmail}` : null,
+    ].filter(Boolean).join(",");
+    const { count } = await supabase
+      .from("submissions")
+      .select("*", { count: "exact", head: true })
+      .or(filter);
+    if (!guard || guard()) {
+      const n = count ?? 0;
+      setSubmissionCount(n);
+      AsyncStorage.setItem(cacheKey, String(n)).catch(() => {});
+    }
+  }
+
   useEffect(() => {
     let mounted = true;
+    const guard = () => mounted;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       const userEmail = data.session?.user.email ?? null;
+      const userId = data.session?.user.id;
       setEmail(userEmail);
       setDisplayName(extractDisplayName(data.session?.user));
-      const userId = data.session?.user.id;
-      if (userId || userEmail) {
-        const filter = [
-          userId ? `user_id.eq.${userId}` : null,
-          userEmail ? `submitter_email.eq.${userEmail}` : null,
-        ].filter(Boolean).join(",");
-        supabase
-          .from("submissions")
-          .select("*", { count: "exact", head: true })
-          .or(filter)
-          .then(({ count }) => {
-            if (mounted) setSubmissionCount(count ?? 0);
-          });
-      }
+      fetchAndCacheSubCount(userId, userEmail, guard);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const userEmail = session?.user.email ?? null;
@@ -64,15 +77,7 @@ export default function AccountScreen() {
       setEmail(userEmail);
       setDisplayName(extractDisplayName(session?.user));
       if (userId || userEmail) {
-        const filter = [
-          userId ? `user_id.eq.${userId}` : null,
-          userEmail ? `submitter_email.eq.${userEmail}` : null,
-        ].filter(Boolean).join(",");
-        supabase
-          .from("submissions")
-          .select("*", { count: "exact", head: true })
-          .or(filter)
-          .then(({ count }) => setSubmissionCount(count ?? 0));
+        fetchAndCacheSubCount(userId, userEmail);
       } else {
         setSubmissionCount(null);
       }

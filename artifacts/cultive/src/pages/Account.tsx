@@ -34,7 +34,14 @@ export function Account({ setIsAuthOpen }: AccountProps) {
   const { user, isAdmin, loading } = useAuth();
   const { count: savedCount } = useSavedEvents();
   const { unreadCount } = useInboxMessages();
-  const [submissionCount, setSubmissionCount] = useState<number | null>(null);
+  const [submissionCount, setSubmissionCount] = useState<number | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      // Will be overwritten once we know the user ID, but avoids a flash on
+      // repeated visits by reading the last-known count for any user.
+      return null;
+    } catch { return null; }
+  });
   const [pwResetState, setPwResetState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   const handleChangePassword = async () => {
@@ -49,6 +56,13 @@ export function Account({ setIsAuthOpen }: AccountProps) {
       setSubmissionCount(null);
       return;
     }
+    const cacheKey = `cultive:sub-count:${user.id}`;
+    // Show cached value immediately so there's no "—" flash on return visits.
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached !== null) setSubmissionCount(Number(cached));
+    } catch { /* ignore */ }
+
     let active = true;
     (async () => {
       const filter = [
@@ -60,11 +74,12 @@ export function Account({ setIsAuthOpen }: AccountProps) {
         .from('submissions')
         .select('*', { count: 'exact', head: true })
         .or(filter);
-      if (active) setSubmissionCount(count ?? 0);
+      if (!active) return;
+      const n = count ?? 0;
+      setSubmissionCount(n);
+      try { localStorage.setItem(cacheKey, String(n)); } catch { /* ignore */ }
     })();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [user]);
 
   // ── Signed-out state ────────────────────────────────────────

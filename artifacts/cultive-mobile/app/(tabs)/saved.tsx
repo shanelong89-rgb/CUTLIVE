@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -22,7 +22,7 @@ import { getEvents, supabase, type Event } from "@/lib/supabase";
 export default function SavedScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { ids, count, remove, clear } = useSavedEvents();
+  const { ids, remove, bulkRemove, clear } = useSavedEvents();
   const [signedIn, setSignedIn] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
@@ -45,6 +45,16 @@ export default function SavedScreen() {
     const map = new Map(allEvents.map((e) => [e.id, e] as const));
     return ids.map((id) => map.get(id)).filter((e): e is Event => !!e);
   }, [allEvents, ids]);
+
+  // Purge saved IDs that no longer exist in the DB (one batch, no re-fetch).
+  const didPurgeRef = useRef(false);
+  React.useEffect(() => {
+    if (isLoading || allEvents.length === 0 || didPurgeRef.current) return;
+    didPurgeRef.current = true;
+    const validIds = new Set(allEvents.map((e) => e.id));
+    const orphans = ids.filter((id) => !validIds.has(id));
+    if (orphans.length > 0) bulkRemove(orphans);
+  }, [isLoading, allEvents, ids, bulkRemove]);
 
   async function handleAddToCalendar(item: Event) {
     setAddingCalId(item.id);
@@ -111,9 +121,9 @@ export default function SavedScreen() {
         </Text>
         <View style={styles.metaRow}>
           <Text style={[styles.meta, { color: colors.mutedForeground }]}>
-            {isLoading ? "Loading…" : `${count} saved`}
+            {isLoading ? "Loading…" : `${events.length} saved`}
           </Text>
-          {count > 0 && (
+          {(isLoading ? ids.length : events.length) > 0 && (
             <Pressable
               onPress={() =>
                 Alert.alert("Clear saved?", "This removes every saved event.", [

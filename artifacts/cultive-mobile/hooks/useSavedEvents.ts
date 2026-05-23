@@ -168,6 +168,18 @@ export function useSavedEvents() {
     cancelEventNotifications(id).catch(() => {});
   }, []);
 
+  const bulkRemove = useCallback(async (toRemove: string[]) => {
+    if (toRemove.length === 0) return;
+    const next = (await read()).filter((x) => !toRemove.includes(x));
+    await write(next);
+    setIds(next);
+    for (const id of toRemove) {
+      removeSavedEventRemote(id).catch(() => {});
+      removeEventFromCalendar(id).catch(() => {});
+      cancelEventNotifications(id).catch(() => {});
+    }
+  }, []);
+
   const clear = useCallback(async () => {
     const previous = await read();
     await write([]);
@@ -178,5 +190,5 @@ export function useSavedEvents() {
     }
   }, []);
 
-  return { ids, count: ids.length, ready, isSaved, toggle, remove, clear };
+  return { ids, count: ids.length, ready, isSaved, toggle, remove, bulkRemove, clear };
 }
