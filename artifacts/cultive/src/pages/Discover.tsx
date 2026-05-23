@@ -360,45 +360,66 @@ export function Discover() {
     filtered = filterByDate(filtered, activeDateFilter);
 
     // Sort: upcoming first (soonest → latest), then undated, then past at the bottom
+    const now = new Date();
+    const nowTs = now.getTime();
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayTs = todayStart.getTime();
     const decorated = filtered.map((e) => {
       const all = parseAllEventDates(e.date, true);
-      // Use date_end as the authoritative end date when present so multi-day
-      // events like "May 8–27" aren't marked past until after the 27th.
-      const endOverride = (() => {
-        if (!e.date_end) return null;
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date_end.trim());
-        if (!m) return null;
-        const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-        return isNaN(d.getTime()) ? null : d;
-      })();
-      if (all.length === 0) return { e, parsed: null, isPast: false };
+      if (all.length === 0) return { e, parsed: null, isPast: false, endTs: 0 };
       const minDate = all.reduce((a, b) => a.getTime() < b.getTime() ? a : b);
-      const maxDate = endOverride ?? all.reduce((a, b) => a.getTime() > b.getTime() ? a : b);
-      // Ongoing: started in the past but hasn't ended yet — sort by start date so it floats up
-      const isOngoing = minDate.getTime() < todayTs && maxDate.getTime() >= todayTs;
-      if (isOngoing) return { e, parsed: minDate, isPast: false };
-      // Upcoming: soonest future date
-      const upcoming = all.filter(d => d.getTime() >= todayTs);
-      if (upcoming.length > 0) {
-        const parsed = upcoming.reduce((a, b) => a.getTime() < b.getTime() ? a : b);
-        return { e, parsed, isPast: false };
+      const maxDate = all.reduce((a, b) => a.getTime() > b.getTime() ? a : b);
+
+      // Effective end timestamp:
+      // • With date_end → end of that calendar day (midnight of the following day)
+      // • Without date_end, starts 9 pm+ → start time + 9 h grace (covers HK late nights til ~6 am)
+      // • Otherwise → end of the calendar day (midnight + 24 h)
+      let effectiveEndTs: number;
+      if (e.date_end) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date_end.trim());
+        if (m) {
+          const endDay = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+          endDay.setDate(endDay.getDate() + 1);
+          effectiveEndTs = endDay.getTime();
+        } else {
+          effectiveEndTs = maxDate.getTime() + 24 * 60 * 60 * 1000;
+        }
+      } else {
+        const startMins = parseTimeToMinutes(e.time);
+        const isLateNight = isFinite(startMins) && startMins >= 21 * 60; // 9 pm+
+        if (isLateNight) {
+          effectiveEndTs = maxDate.getTime() + startMins * 60 * 1000 + 9 * 60 * 60 * 1000;
+        } else {
+          effectiveEndTs = maxDate.getTime() + 24 * 60 * 60 * 1000;
+        }
       }
-      // All past: most recent occurrence (or date_end)
-      return { e, parsed: maxDate, isPast: true };
+
+      const isPast = nowTs >= effectiveEndTs;
+
+      if (!isPast) {
+        const upcoming = all.filter(d => d.getTime() >= todayTs);
+        if (upcoming.length > 0) {
+          const parsed = upcoming.reduce((a, b) => a.getTime() < b.getTime() ? a : b);
+          return { e, parsed, isPast: false, endTs: effectiveEndTs };
+        }
+        return { e, parsed: minDate, isPast: false, endTs: effectiveEndTs };
+      }
+      return { e, parsed: maxDate, isPast: true, endTs: effectiveEndTs };
     });
     decorated.sort((a, b) => {
-      // Past events always last
       if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
-      // Both have a parsed date → chronological, then by time within same day
+      if (a.isPast && b.isPast) {
+        // Most recently ended → top of past section; oldest ended → bottom
+        if (a.endTs !== b.endTs) return b.endTs - a.endTs;
+        if (a.parsed && b.parsed) return b.parsed.getTime() - a.parsed.getTime();
+        return 0;
+      }
       if (a.parsed && b.parsed) {
         const dateDiff = a.parsed.getTime() - b.parsed.getTime();
         if (dateDiff !== 0) return dateDiff;
         return parseTimeToMinutes(a.e.time) - parseTimeToMinutes(b.e.time);
       }
-      // One parsed, one not → parsed first
       if (a.parsed) return -1;
       if (b.parsed) return 1;
       return 0;
