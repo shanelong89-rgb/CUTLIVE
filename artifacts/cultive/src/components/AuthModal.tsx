@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { signIn, signUp } from '../lib/supabase';
 
+const REMEMBER_ME_KEY = 'cultive-remember-me';
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,6 +12,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -24,10 +27,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       if (mode === 'login') {
         await signIn(email, password);
+        localStorage.setItem(REMEMBER_ME_KEY, String(rememberMe));
         onClose();
       } else {
         const result = await signUp(email, password);
         if (result.session) {
+          localStorage.setItem(REMEMBER_ME_KEY, 'true');
           onClose();
         } else {
           setNotice('Account created. Check your email to confirm, then sign in.');
@@ -88,6 +93,19 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             />
           </div>
+
+          {mode === 'login' && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 16, cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: 'var(--primary)', cursor: 'pointer' }}
+              />
+              Remember me
+            </label>
+          )}
+
           {err && (
             <p style={{ color: '#b91c1c', fontSize: '0.85rem', marginBottom: 12 }}>{err}</p>
           )}

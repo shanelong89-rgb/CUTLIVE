@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { supabase, isAdmin as checkIsAdmin } from '../lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
 
+const REMEMBER_ME_KEY = 'cultive-remember-me';
+
+function isRemembered(): boolean {
+  try {
+    return localStorage.getItem(REMEMBER_ME_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
+
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -43,10 +53,19 @@ export function useAuth() {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // If the user chose not to be remembered, sign them out when the tab closes.
+    const handleUnload = () => {
+      if (!isRemembered()) {
+        supabase.auth.signOut();
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleUnload);
     };
   }, []);
 
