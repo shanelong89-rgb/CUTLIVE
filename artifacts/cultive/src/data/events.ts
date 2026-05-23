@@ -228,6 +228,12 @@ export const AVAILABLE_TAGS = [
   { id: 'community',  label: 'Community' },
 ];
 
+// Normalize non-canonical tag forms (e.g. singular) to their AVAILABLE_TAGS ids.
+// Add entries here whenever Hermes or manual data entry uses a variant spelling.
+export const TAG_NORMALIZE: Record<string, string> = {
+  'workshop': 'workshops',
+};
+
 // Canonical mapping: admin Category dropdown value → primary tag id
 export const CATEGORY_TAG_MAP: Record<string, string> = {
   'Music':      'music',

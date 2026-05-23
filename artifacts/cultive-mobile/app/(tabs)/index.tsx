@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AVAILABLE_TAGS } from "@/data/events";
+import { AVAILABLE_TAGS, TAG_NORMALIZE } from "@/data/events";
 import { useColors } from "@/hooks/useColors";
 import { getEvents, type Event } from "@/lib/supabase";
 
@@ -428,7 +428,7 @@ export default function DiscoverScreen() {
     if (activeTags.length > 0) {
       list = events.filter((e) => {
         if (e.tags && e.tags.length > 0) {
-          return e.tags.some((t) => activeTags.includes(t));
+          return e.tags.some((t) => activeTags.includes(TAG_NORMALIZE[t] ?? t));
         }
         return activeTags.includes((e.category ?? "").toLowerCase());
       });

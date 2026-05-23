@@ -252,6 +252,11 @@ export const categories = [
   "Exclusive",
 ];
 
+// Normalize non-canonical tag forms to their AVAILABLE_TAGS ids.
+export const TAG_NORMALIZE: Record<string, string> = {
+  "workshop": "workshops",
+};
+
 export const AVAILABLE_TAGS: { id: string; label: string }[] = [
   { id: "music",      label: "Music" },
   { id: "electronic", label: "Electronic" },

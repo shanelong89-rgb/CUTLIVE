@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AVAILABLE_TAGS, CATEGORY_TAG_MAP } from '../data/events';
+import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_NORMALIZE } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
 
 function formatTime(time?: string): string {
@@ -372,7 +372,9 @@ export function Discover() {
       filtered = events.filter(e => {
         // Build the full effective tag set: explicit tags + category-derived tag
         const categoryTag = CATEGORY_TAG_MAP[e.category ?? ''];
-        const effectiveTags = new Set([...(e.tags ?? []), ...(categoryTag ? [categoryTag] : [])]);
+        const effectiveTags = new Set(
+          [...(e.tags ?? []), ...(categoryTag ? [categoryTag] : [])].map(t => TAG_NORMALIZE[t] ?? t)
+        );
         if (effectiveTags.size > 0) {
           return activeTags.some(t => effectiveTags.has(t));
         }
