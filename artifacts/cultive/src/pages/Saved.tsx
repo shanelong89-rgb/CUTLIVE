@@ -83,6 +83,12 @@ export function Saved() {
       const map = new Map(all.map((e) => [e.id, e] as const));
       const saved = ids.map((id) => map.get(id)).filter((e): e is Event => !!e);
 
+      // Purge any saved IDs that no longer correspond to a real event so the
+      // count shown in the sidebar / account panel stays accurate.
+      for (const id of ids) {
+        if (!map.has(id)) remove(id);
+      }
+
       // Sort earliest date first; undated events go to the bottom
       const parseFirst = (raw?: string): number => {
         if (!raw) return Infinity;
