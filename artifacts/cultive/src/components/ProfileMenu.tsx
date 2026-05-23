@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../hooks/useAuth';
 import { signOut, supabase } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
+
+const SUB_CACHE_PREFIX = 'cultive:sub-count:';
+const SAVED_VALIDATED_KEY = 'cultive:saved-count-validated';
 
 function initialsFor(email?: string | null) {
   if (!email) return '·';
@@ -26,33 +29,91 @@ function formatDate(s?: string) {
   }
 }
 
+function readCache(key: string): number | null {
+  try {
+    const v = localStorage.getItem(key);
+    return v !== null ? Number(v) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(key: string, n: number) {
+  try { localStorage.setItem(key, String(n)); } catch { /* ignore */ }
+}
+
 export function ProfileMenu() {
   const { user, isAdmin } = useAuth();
-  const { count: savedCount } = useSavedEvents();
+  const { ids } = useSavedEvents();
   const [open, setOpen] = useState(false);
-  const [submissionCount, setSubmissionCount] = useState<number | null>(null);
 
-  // Load the user's submission count when the panel opens
+  // ── Submission count ─────────────────────────────────────────────
+  // Seed from cache so there's no "…" flash on repeat opens.
+  const [submissionCount, setSubmissionCount] = useState<number | null>(() =>
+    user ? readCache(`${SUB_CACHE_PREFIX}${user.id}`) : null
+  );
+
+  // ── Saved count ──────────────────────────────────────────────────
+  // Raw ids.length can be stale (orphaned IDs from deleted events).
+  // We keep a validated count that's refreshed when the panel opens.
+  const [validatedSavedCount, setValidatedSavedCount] = useState<number | null>(
+    () => readCache(SAVED_VALIDATED_KEY)
+  );
+  // Fall back to raw count while the validated count is loading.
+  const displaySavedCount = validatedSavedCount ?? ids.length;
+
+  // Track whether we've already fetched during this "open" session
+  // so we don't re-fetch on every re-render while the panel is open.
+  const fetchedForOpenRef = useRef(false);
+
   useEffect(() => {
-    if (!open || !user) return;
+    if (!open) {
+      fetchedForOpenRef.current = false;
+      return;
+    }
+    if (!user || fetchedForOpenRef.current) return;
+    fetchedForOpenRef.current = true;
+
     let active = true;
+
+    // ── Submission count ──────────────────────────────────────────
+    const subCacheKey = `${SUB_CACHE_PREFIX}${user.id}`;
+    const cachedSub = readCache(subCacheKey);
+    if (cachedSub !== null) setSubmissionCount(cachedSub);
+
     (async () => {
-      // Match by user_id (Instagram submissions) OR submitter_email (manual submissions)
       const filters: string[] = [];
       if (user.id) filters.push(`user_id.eq.${user.id}`);
       if (user.email) filters.push(`submitter_email.eq.${user.email}`);
-      const query = supabase
-        .from('submissions')
-        .select('*', { count: 'exact', head: true });
-      const { count } = filters.length
-        ? await query.or(filters.join(','))
-        : await query;
-      if (active) setSubmissionCount(count ?? 0);
+      const query = supabase.from('submissions').select('*', { count: 'exact', head: true });
+      const { count } = filters.length ? await query.or(filters.join(',')) : await query;
+      if (!active) return;
+      const n = count ?? 0;
+      setSubmissionCount(n);
+      writeCache(subCacheKey, n);
     })();
-    return () => {
-      active = false;
-    };
-  }, [open, user]);
+
+    // ── Saved count validation ────────────────────────────────────
+    // Show cached validated count immediately (already seeded in state init).
+    // Then cross-check which saved IDs still exist as real events.
+    if (ids.length === 0) {
+      setValidatedSavedCount(0);
+      writeCache(SAVED_VALIDATED_KEY, 0);
+    } else {
+      (async () => {
+        const { count } = await supabase
+          .from('events')
+          .select('id', { count: 'exact', head: true })
+          .in('id', ids);
+        if (!active) return;
+        const n = count ?? 0;
+        setValidatedSavedCount(n);
+        writeCache(SAVED_VALIDATED_KEY, n);
+      })();
+    }
+
+    return () => { active = false; };
+  }, [open, user, ids]);
 
   useEffect(() => {
     if (!open) return;
@@ -126,7 +187,7 @@ export function ProfileMenu() {
                 <span className="profile-stat-label">Tickets</span>
               </div>
               <div className="profile-stat">
-                <span className="profile-stat-num">{savedCount}</span>
+                <span className="profile-stat-num">{displaySavedCount}</span>
                 <span className="profile-stat-label">Saved</span>
               </div>
             </section>
@@ -158,7 +219,7 @@ export function ProfileMenu() {
               <a href="/saved" className="profile-nav-row" onClick={() => setOpen(false)}>
                 <span className="profile-nav-num">02</span>
                 <span className="profile-nav-label">Saved Events</span>
-                <span className="profile-nav-arrow">{savedCount > 0 ? `${savedCount} →` : '→'}</span>
+                <span className="profile-nav-arrow">{displaySavedCount > 0 ? `${displaySavedCount} →` : '→'}</span>
               </a>
               <a href="/tickets" className="profile-nav-row" onClick={() => setOpen(false)}>
                 <span className="profile-nav-num">03</span>
