@@ -46,6 +46,9 @@ function displayDateRange(date?: string, dateEnd?: string | null): string {
     if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     return date;
   }
+  if (start.getTime() === end.getTime()) {
+    return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
   if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
     return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()} – ${end.getDate()}`;
   }
