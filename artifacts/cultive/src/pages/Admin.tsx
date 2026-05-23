@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { AVAILABLE_TAGS } from '../data/events';
+import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_CATEGORY_MAP } from '../data/events';
 import { RichTextEditor } from '../components/RichTextEditor';
 
 import {
@@ -424,7 +424,13 @@ function EventsTab({
   const [igMsg, setIgMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   useEffect(() => {
-    setFormData(editingEvent || EMPTY_EVENT);
+    if (!editingEvent) { setFormData(EMPTY_EVENT); return; }
+    // If the event has no tags but has a category, derive an initial tag
+    const base = editingEvent.tags ?? [];
+    const tags = base.length === 0 && editingEvent.category
+      ? (CATEGORY_TAG_MAP[editingEvent.category] ? [CATEGORY_TAG_MAP[editingEvent.category]] : [])
+      : base;
+    setFormData({ ...editingEvent, tags });
   }, [editingEvent]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -466,7 +472,17 @@ function EventsTab({
               <label>Category</label>
               <select
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) => {
+                  const newCategory = e.target.value;
+                  const primaryTag = CATEGORY_TAG_MAP[newCategory];
+                  setFormData(f => {
+                    const currentTags = f.tags ?? [];
+                    const newTags = primaryTag && !currentTags.includes(primaryTag)
+                      ? [primaryTag, ...currentTags]
+                      : currentTags;
+                    return { ...f, category: newCategory, tags: newTags };
+                  });
+                }}
               >
                 <option>Music</option>
                 <option>Arts</option>
@@ -480,7 +496,7 @@ function EventsTab({
             </div>
           </div>
           <div className="form-group" style={{ marginBottom: '16px' }}>
-            <label>Tags</label>
+            <label>Tags <span style={{ fontWeight: 400, fontSize: '0.78rem', color: '#888', marginLeft: 6 }}>Category and Tags should agree</span></label>
             <div className="tag-pill-row">
               {AVAILABLE_TAGS.map(tag => {
                 const active = (formData.tags ?? []).includes(tag.id);
@@ -490,12 +506,21 @@ function EventsTab({
                     type="button"
                     className={`tag-pill-btn ${active ? 'active' : ''}`}
                     onClick={() =>
-                      setFormData(f => ({
-                        ...f,
-                        tags: active
-                          ? (f.tags ?? []).filter(t => t !== tag.id)
-                          : [...(f.tags ?? []), tag.id],
-                      }))
+                      setFormData(f => {
+                        const currentTags = f.tags ?? [];
+                        const newTags = active
+                          ? currentTags.filter(t => t !== tag.id)
+                          : [...currentTags, tag.id];
+                        // If the current category's primary tag was just removed,
+                        // update category to match the first remaining tag
+                        const primaryTagForCategory = CATEGORY_TAG_MAP[f.category ?? ''];
+                        let newCategory = f.category;
+                        if (primaryTagForCategory && !newTags.includes(primaryTagForCategory)) {
+                          const firstMatch = newTags.find(t => TAG_CATEGORY_MAP[t]);
+                          if (firstMatch) newCategory = TAG_CATEGORY_MAP[firstMatch];
+                        }
+                        return { ...f, tags: newTags, category: newCategory };
+                      })
                     }
                   >
                     {tag.label}

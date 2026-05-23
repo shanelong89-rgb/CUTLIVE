@@ -227,3 +227,29 @@ export const AVAILABLE_TAGS = [
   { id: 'workshops',  label: 'Workshops' },
   { id: 'community',  label: 'Community' },
 ];
+
+// Canonical mapping: admin Category dropdown value → primary tag id
+export const CATEGORY_TAG_MAP: Record<string, string> = {
+  'Music':      'music',
+  'Arts':       'art',
+  'Nightlife':  'nightlife',
+  'Food':       'food',
+  'Wellness':   'wellness',
+  'Market':     'market',
+  'Workshops':  'workshops',
+  'Community':  'community',
+  'Other':      '',
+};
+
+// Reverse mapping: tag id → Category dropdown value
+export const TAG_CATEGORY_MAP: Record<string, string> = {
+  'music':      'Music',
+  'electronic': 'Music',
+  'nightlife':  'Nightlife',
+  'art':        'Arts',
+  'market':     'Market',
+  'food':       'Food',
+  'wellness':   'Wellness',
+  'workshops':  'Workshops',
+  'community':  'Other',
+};

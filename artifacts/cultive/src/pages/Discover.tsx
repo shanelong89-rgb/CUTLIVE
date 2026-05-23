@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AVAILABLE_TAGS } from '../data/events';
+import { AVAILABLE_TAGS, CATEGORY_TAG_MAP } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
 
 function formatTime(time?: string): string {
@@ -353,11 +353,13 @@ export function Discover() {
     let filtered = events;
     if (activeTags.length > 0) {
       filtered = events.filter(e => {
-        if (e.tags && e.tags.length > 0) {
-          // Event has tags: show if any overlap with selected
-          return e.tags.some(t => activeTags.includes(t));
+        // Build the full effective tag set: explicit tags + category-derived tag
+        const categoryTag = CATEGORY_TAG_MAP[e.category ?? ''];
+        const effectiveTags = new Set([...(e.tags ?? []), ...(categoryTag ? [categoryTag] : [])]);
+        if (effectiveTags.size > 0) {
+          return activeTags.some(t => effectiveTags.has(t));
         }
-        // Backward compat: event has no tags yet — match on category lowercase
+        // Last-resort fallback for truly unclassified events
         return activeTags.includes((e.category ?? '').toLowerCase());
       });
     }
