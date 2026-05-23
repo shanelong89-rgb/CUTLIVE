@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getEventById } from '../lib/supabase';
 import type { Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
-import { formatTime } from '../lib/utils';
+import { formatTime, displayDateRange } from '../lib/utils';
 
 // ─── OG / Twitter meta injection ────────────────────────────
 function setMetaProperty(property: string, content: string) {
@@ -81,30 +81,6 @@ function renderDescription(desc: string): string {
     return paras.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
   }
   return `<p style="white-space:pre-line">${unescaped}</p>`;
-}
-
-function displayDateRange(date?: string, dateEnd?: string | null): string {
-  if (!date) return '';
-  const parseYMD = (s: string) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
-    if (!m) return null;
-    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-    return isNaN(d.getTime()) ? null : d;
-  };
-  const start = parseYMD(date);
-  if (!dateEnd) {
-    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return date;
-  }
-  const end = parseYMD(dateEnd);
-  if (!start || !end) {
-    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return date;
-  }
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()} – ${end.getDate()}`;
-  }
-  return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 }
 
 interface EventDetailProps {

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_NORMALIZE } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
-import { formatTime } from '../lib/utils';
+import { formatTime, displayDateRange } from '../lib/utils';
 
 // Converts any common time string to minutes since midnight for sorting.
 // Unknown / missing times sort last within their day (return Infinity).
@@ -19,36 +19,6 @@ function parseTimeToMinutes(raw?: string | null): number {
   if (period === 'pm' && h !== 12) h += 12;
   if (period === 'am' && h === 12) h = 0;
   return h * 60 + min;
-}
-
-// Convert date(s) to a display string. Handles single YYYY-MM-DD dates and
-// optional date_end for multi-day events (e.g. "May 8 – 27", "May 8 – Jun 15").
-// Already-formatted strings pass through unchanged when no dateEnd is given.
-function displayDateRange(date?: string, dateEnd?: string | null): string {
-  if (!date) return '';
-  const parseYMD = (s: string) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
-    if (!m) return null;
-    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-    return isNaN(d.getTime()) ? null : d;
-  };
-  const start = parseYMD(date);
-  if (!dateEnd) {
-    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return date;
-  }
-  const end = parseYMD(dateEnd);
-  if (!start || !end) {
-    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return date;
-  }
-  if (start.getTime() === end.getTime()) {
-    return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  }
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()} – ${end.getDate()}`;
-  }
-  return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 }
 
 // Parse freeform event date strings into a Date (best-effort).
