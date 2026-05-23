@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { signOut, supabase } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
-import { useInboxMessages } from '../hooks/useInboxMessages';
+import { useInbox } from '../contexts/InboxContext';
 
 interface AccountProps {
   setIsAuthOpen?: (open: boolean) => void;
@@ -33,7 +33,7 @@ function formatDate(s?: string) {
 export function Account({ setIsAuthOpen }: AccountProps) {
   const { user, isAdmin, loading } = useAuth();
   const { ids: savedIds } = useSavedEvents();
-  const { unreadCount } = useInboxMessages();
+  const { unreadCount } = useInbox();
 
   // DB-validated saved count — seeds from cache so the number is instant
   // on return visits, then refreshes against the events table to drop any

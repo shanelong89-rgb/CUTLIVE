@@ -12,7 +12,7 @@ import { ResetPassword } from './pages/ResetPassword';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
-import { useInboxMessages } from './hooks/useInboxMessages';
+import { useInbox } from './contexts/InboxContext';
 import { useState, useEffect } from 'react';
 
 // Scroll to top only on forward navigation — browser handles scroll restoration on back/forward
@@ -31,7 +31,7 @@ function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
-  const { unreadCount } = useInboxMessages();
+  const { unreadCount } = useInbox();
 
   return (
     <div className="app">

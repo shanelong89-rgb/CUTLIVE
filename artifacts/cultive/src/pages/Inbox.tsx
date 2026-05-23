@@ -1,9 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useInboxMessages } from '../hooks/useInboxMessages';
+import { useInbox } from '../contexts/InboxContext';
 
 export function Inbox() {
   const { messages, unreadCount, loading, signedIn, markRead, markAllRead } =
-    useInboxMessages();
+    useInbox();
   const navigate = useNavigate();
 
   return (

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../hooks/useAuth';
 import { signOut, supabase } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
+import { useInbox } from '../contexts/InboxContext';
 
 const SUB_CACHE_PREFIX = 'cultive:sub-count:';
 const SAVED_VALIDATED_KEY = 'cultive:saved-count-validated';
@@ -45,6 +46,7 @@ function writeCache(key: string, n: number) {
 export function ProfileMenu() {
   const { user, isAdmin } = useAuth();
   const { ids } = useSavedEvents();
+  const { unreadCount } = useInbox();
   const [open, setOpen] = useState(false);
 
   // ── Submission count ─────────────────────────────────────────────
@@ -234,7 +236,9 @@ export function ProfileMenu() {
               <a href="/inbox" className="profile-nav-row" onClick={() => setOpen(false)}>
                 <span className="profile-nav-num">05</span>
                 <span className="profile-nav-label">Inbox</span>
-                <span className="profile-nav-arrow">→</span>
+                <span className="profile-nav-arrow">
+                  {unreadCount > 0 ? `${unreadCount > 9 ? '9+' : unreadCount} unread →` : '→'}
+                </span>
               </a>
               {isAdmin && (
                 <a href="/admin" className="profile-nav-row" onClick={() => setOpen(false)}>
