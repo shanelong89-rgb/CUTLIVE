@@ -159,6 +159,14 @@ export function useSavedEvents() {
     removeSavedEventRemote(id).catch(() => {});
   }, []);
 
+  const bulkRemove = useCallback((toRemove: string[]) => {
+    if (toRemove.length === 0) return;
+    const next = read().filter((x) => !toRemove.includes(x));
+    write(next);
+    setIds(next);
+    for (const id of toRemove) removeSavedEventRemote(id).catch(() => {});
+  }, []);
+
   const clear = useCallback(() => {
     const previous = read();
     write([]);
@@ -166,5 +174,5 @@ export function useSavedEvents() {
     for (const id of previous) removeSavedEventRemote(id).catch(() => {});
   }, []);
 
-  return { ids, count: ids.length, isSaved, toggle, remove, clear };
+  return { ids, count: ids.length, isSaved, toggle, remove, bulkRemove, clear };
 }

@@ -68,12 +68,32 @@ function CalendarDropdown({ event, onClose }: { event: Event; onClose: () => voi
   );
 }
 
+function parseFirst(raw?: string): number {
+  if (!raw) return Infinity;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])).getTime();
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? Infinity : d.getTime();
+}
+
+function sortByDate(list: Event[]): Event[] {
+  return [...list].sort((a, b) => parseFirst(a.date) - parseFirst(b.date));
+}
+
 export function Saved() {
-  const { ids, remove, clear } = useSavedEvents();
+  const { ids, bulkRemove, clear, remove } = useSavedEvents();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [openCalId, setOpenCalId] = useState<string | null>(null);
 
+  // Cached event map so re-filtering on unsave doesn't need a new API call.
+  const allEventsMapRef = useRef<Map<string, Event>>(new Map());
+  // Flipped to true after the initial fetch + purge completes.
+  const didInitRef = useRef(false);
+
+  // Fetch all events once on mount. Purge orphaned IDs in a single batch so
+  // the count is correct everywhere without causing extra API round-trips.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let active = true;
     (async () => {
@@ -81,27 +101,29 @@ export function Saved() {
       const all = await getEvents();
       if (!active) return;
       const map = new Map(all.map((e) => [e.id, e] as const));
-      const saved = ids.map((id) => map.get(id)).filter((e): e is Event => !!e);
+      allEventsMapRef.current = map;
 
-      // Purge any saved IDs that no longer correspond to a real event so the
-      // count shown in the sidebar / account panel stays accurate.
-      for (const id of ids) {
-        if (!map.has(id)) remove(id);
-      }
+      const orphans = ids.filter((id) => !map.has(id));
+      const valid = ids.filter((id) => map.has(id)).map((id) => map.get(id)!);
 
-      // Sort earliest date first; undated events go to the bottom
-      const parseFirst = (raw?: string): number => {
-        if (!raw) return Infinity;
-        const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
-        if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])).getTime();
-        const d = new Date(raw);
-        return isNaN(d.getTime()) ? Infinity : d.getTime();
-      };
-      const ordered = [...saved].sort((a, b) => parseFirst(a.date) - parseFirst(b.date));
-      setEvents(ordered);
+      setEvents(sortByDate(valid));
       setLoading(false);
+      // Mark init done BEFORE bulkRemove so the ids-change effect below
+      // sees the flag and knows it can safely re-filter.
+      didInitRef.current = true;
+      if (orphans.length) bulkRemove(orphans);
     })();
     return () => { active = false; };
+  }, []); // intentional: fetch once on mount using ids snapshot
+
+  // Re-filter from the cached map whenever the user explicitly unsaves an event
+  // or the cloud sync delivers a different set. The initial purge-triggered ids
+  // change is handled above, so no extra API call is needed here.
+  useEffect(() => {
+    if (!didInitRef.current) return;
+    const map = allEventsMapRef.current;
+    const valid = ids.filter((id) => map.has(id)).map((id) => map.get(id)!);
+    setEvents(sortByDate(valid));
   }, [ids]);
 
   return (
