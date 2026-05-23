@@ -15,8 +15,9 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.replit.cultivemobile",
+      "bundleIdentifier": "city.cultive.app",
       "appleTeamId": "QU9S49M4Y6",
+      "associatedDomains": ["applinks:cultive.city", "webcredentials:cultive.city"],
       "infoPlist": {
         "NSCalendarsUsageDescription": "CULTIVE saves events to your calendar so you don't miss them.",
         "NSCalendarsFullAccessUsageDescription": "CULTIVE saves events to your calendar so you don't miss them.",
@@ -27,7 +28,20 @@
       }
     },
     "android": {
-      "package": "com.replit.cultivemobile",
+      "package": "city.cultive.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "cultive.city"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",

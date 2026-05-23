@@ -54,12 +54,19 @@ All four card types are working on both web and mobile:
 - [ ] **Auto-fill submitter email/name** on mobile submit form — pre-populate from active Supabase session so submission count is always tied to the right account.
 
 ### App Store setup
-- [ ] **Update bundle ID** in `app.json` from `com.replit.cultivemobile` → `city.cultive.app`
-- [ ] **EAS setup** — run `eas build:configure` to generate `eas.json`
+- [x] **Bundle ID updated** — `app.json` now uses `city.cultive.app` for both iOS and Android
+- [x] **`associatedDomains` added** to iOS section in `app.json` (applinks + webcredentials)
+- [x] **Android `intentFilters`** added for App Links to `app.json`
+- [x] **AASA file created** — `public/.well-known/apple-app-site-association` (Team ID `QU9S49M4Y6`)
+- [x] **`assetlinks.json` created** — `public/.well-known/assetlinks.json` (SHA256 placeholder — fill in after first EAS build)
+- [x] **`vercel.json` created** — serves both well-known files with correct `Content-Type: application/json`
+- [x] **`eas.json` created** — EAS build profiles (development / preview / production)
+- [ ] **EAS login** — `npm install -g eas-cli && eas login` (your terminal)
+- [ ] **Link to Expo project** — `cd artifacts/cultive-mobile && eas init` or `eas build:configure` (your terminal)
 - [ ] **EAS secrets** — add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` in expo.dev dashboard
-- [ ] **Universal Links** — AASA file on Vercel + `associatedDomains` in `app.json`
+- [ ] **Deploy Vercel update** — push/deploy so `cultive.city/.well-known/apple-app-site-association` is live
 - [ ] **First EAS production build** — `eas build --platform ios --profile production`
-- [ ] **Android signing** — get SHA256 from `eas credentials`, add to `assetlinks.json`
+- [ ] **Android SHA256** — run `eas credentials` after first build, copy fingerprint into `assetlinks.json`, redeploy Vercel
 - [ ] **Submit** — `eas submit --platform ios` / `eas submit --platform android`
 
 ---
