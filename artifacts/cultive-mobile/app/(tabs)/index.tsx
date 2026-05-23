@@ -309,11 +309,18 @@ function sortUpcomingFirst(list: Event[]): Event[] {
           effectiveEndTs = maxDate.getTime() + 24 * 60 * 60 * 1000;
         }
       } else {
-        // No end date: grace period = start time minutes + 12 h from midnight of maxDate
+        // No end date: 8-hour grace period only for events starting at 11 pm (23:00) or later.
+        // e.g. 11:30 pm start → effective end = midnight + 23h30m + 8h = 7:30 am next day.
+        // All other events expire at the end of their calendar day (midnight + 24 h).
         const startMins = parseTimeToMinutes(e.time);
-        const offsetMs = (isFinite(startMins) ? startMins : 0) * 60 * 1000;
-        const graceMs = 12 * 60 * 60 * 1000;
-        effectiveEndTs = maxDate.getTime() + offsetMs + graceMs;
+        const isLateNight = isFinite(startMins) && startMins >= 23 * 60; // 11 pm+
+        if (isLateNight) {
+          const offsetMs = startMins * 60 * 1000;
+          const graceMs = 8 * 60 * 60 * 1000;
+          effectiveEndTs = maxDate.getTime() + offsetMs + graceMs;
+        } else {
+          effectiveEndTs = maxDate.getTime() + 24 * 60 * 60 * 1000;
+        }
       }
 
       const isPast = nowTs >= effectiveEndTs;
