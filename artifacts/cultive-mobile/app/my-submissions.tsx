@@ -18,7 +18,7 @@ import { getMySubmissions, type Submission } from "@/lib/supabase";
 
 function StatusBadge({ status }: { status?: string }) {
   const colors = useColors();
-  const s = status || "pending";
+  const s = (status || "pending").replace("pending_scrape", "pending");
 
   const badgeColors: Record<string, { bg: string; text: string }> = {
     pending: { bg: "#fef9c3", text: "#854d0e" },
@@ -134,7 +134,7 @@ export default function MySubmissionsScreen() {
                 style={[styles.cardTitle, { color: colors.foreground }]}
                 numberOfLines={2}
               >
-                {sub.title}
+                {/pending\s*scrape/i.test(sub.title ?? '') ? 'Pending review…' : sub.title}
               </Text>
               <StatusBadge status={sub.status} />
             </View>

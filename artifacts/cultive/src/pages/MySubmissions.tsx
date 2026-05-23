@@ -93,7 +93,9 @@ export function MySubmissions() {
           {submissions.map((sub) => (
             <div key={sub.id} className="message-card" style={{ cursor: 'default' }}>
               <div className="message-header">
-                <h3 className="message-title" style={{ flex: 1 }}>{sub.title}</h3>
+                <h3 className="message-title" style={{ flex: 1 }}>
+                  {/pending\s*scrape/i.test(sub.title ?? '') ? 'Pending review…' : sub.title}
+                </h3>
                 <StatusBadge status={sub.status} />
               </div>
               <p className="message-preview">
