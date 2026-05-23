@@ -54,6 +54,13 @@ function parseEventDate(raw: string, timeStr?: string): Date | null {
           if (!isNaN(attempt.getTime())) base = attempt;
         }
       }
+      if (!base) {
+        // Final fallback for plain ISO dates like "2026-05-23".
+        // Safe to parse directly — the new Date(raw) bypass above only matters
+        // for range strings like "May 8-27, 2026" which V8 misparses.
+        const direct = new Date(raw);
+        if (!isNaN(direct.getTime()) && direct.getFullYear() === explicitYear) base = direct;
+      }
     } else {
       // No explicit year — handle weekday-prefixed formats first to avoid V8 quirk
       // returning year ~2001 for strings like "Fri 13 Jun".
