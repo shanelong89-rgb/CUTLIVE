@@ -280,35 +280,69 @@ function parseEventDate(raw: string, timeStr?: string): Date | null {
 }
 
 function sortUpcomingFirst(list: Event[]): Event[] {
+  const now = new Date();
+  const nowTs = now.getTime();
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const todayTs = todayStart.getTime();
+
   return [...list]
     .map((e) => {
       const all = parseAllEventDates(e.date, true);
-      // Use date_end as authoritative end so multi-day events aren't marked
-      // past until after the end date, not the start date.
-      const endOverride = (() => {
-        if (!e.date_end) return null;
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date_end.trim());
-        if (!m) return null;
-        const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-        return isNaN(d.getTime()) ? null : d;
-      })();
-      if (all.length === 0) return { e, parsed: null as Date | null, isPast: false };
+      if (all.length === 0) return { e, parsed: null as Date | null, isPast: false, endTs: 0 };
+
       const minDate = all.reduce((a, b) => (a.getTime() < b.getTime() ? a : b));
-      const maxDate = endOverride ?? all.reduce((a, b) => (a.getTime() > b.getTime() ? a : b));
-      const isOngoing = minDate.getTime() < todayTs && maxDate.getTime() >= todayTs;
-      if (isOngoing) return { e, parsed: minDate as Date | null, isPast: false };
-      const upcoming = all.filter((d) => d.getTime() >= todayTs);
-      if (upcoming.length > 0) {
-        const parsed = upcoming.reduce((a, b) => (a.getTime() < b.getTime() ? a : b));
-        return { e, parsed: parsed as Date | null, isPast: false };
+      const maxDate = all.reduce((a, b) => (a.getTime() > b.getTime() ? a : b));
+
+      // Compute the effective end timestamp used for both isPast and sort order.
+      // • With date_end  → end of that calendar day (midnight of the following day)
+      // • Without date_end → midnight of maxDate + start-time offset + 12 hr grace
+      //   e.g. event starts 11:30 pm → effective end = 11:30 pm + 12 h = 11:30 am next day
+      let effectiveEndTs: number;
+      if (e.date_end) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date_end.trim());
+        if (m) {
+          const endDay = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+          endDay.setDate(endDay.getDate() + 1); // end of that day = start of next
+          effectiveEndTs = endDay.getTime();
+        } else {
+          effectiveEndTs = maxDate.getTime() + 24 * 60 * 60 * 1000;
+        }
+      } else {
+        // No end date: grace period = start time minutes + 12 h from midnight of maxDate
+        const startMins = parseTimeToMinutes(e.time);
+        const offsetMs = (isFinite(startMins) ? startMins : 0) * 60 * 1000;
+        const graceMs = 12 * 60 * 60 * 1000;
+        effectiveEndTs = maxDate.getTime() + offsetMs + graceMs;
       }
-      return { e, parsed: maxDate as Date | null, isPast: true };
+
+      const isPast = nowTs >= effectiveEndTs;
+
+      if (!isPast) {
+        // Pick the soonest date that is today or in the future as the sort key
+        const upcoming = all.filter((d) => d.getTime() >= todayTs);
+        if (upcoming.length > 0) {
+          const parsed = upcoming.reduce((a, b) => (a.getTime() < b.getTime() ? a : b));
+          return { e, parsed, isPast: false, endTs: effectiveEndTs };
+        }
+        // Ongoing (started before today, ends in the future)
+        return { e, parsed: minDate, isPast: false, endTs: effectiveEndTs };
+      }
+
+      return { e, parsed: maxDate, isPast: true, endTs: effectiveEndTs };
     })
     .sort((a, b) => {
+      // Past events always sink to the bottom
       if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
+
+      if (a.isPast && b.isPast) {
+        // Most recently ended → top of past section; oldest ended → bottom
+        if (a.endTs !== b.endTs) return b.endTs - a.endTs;
+        if (a.parsed && b.parsed) return b.parsed.getTime() - a.parsed.getTime();
+        return 0;
+      }
+
+      // Upcoming: soonest first (ascending)
       if (a.parsed && b.parsed) {
         const dateDiff = a.parsed.getTime() - b.parsed.getTime();
         if (dateDiff !== 0) return dateDiff;
