@@ -425,12 +425,24 @@ function EventsTab({
 
   useEffect(() => {
     if (!editingEvent) { setFormData(EMPTY_EVENT); return; }
-    // If the event has no tags but has a category, derive an initial tag
-    const base = editingEvent.tags ?? [];
-    const tags = base.length === 0 && editingEvent.category
-      ? (CATEGORY_TAG_MAP[editingEvent.category] ? [CATEGORY_TAG_MAP[editingEvent.category]] : [])
-      : base;
-    setFormData({ ...editingEvent, tags });
+    let tags: string[] = editingEvent.tags ?? [];
+    let category: string = editingEvent.category ?? 'Other';
+
+    if (tags.length > 0) {
+      // Tags exist — check if category matches; if not, derive category from tags
+      const primaryTagForCategory = CATEGORY_TAG_MAP[category];
+      const categoryTagPresent = primaryTagForCategory && tags.includes(primaryTagForCategory);
+      if (!categoryTagPresent) {
+        const firstMapped = tags.find(t => TAG_CATEGORY_MAP[t]);
+        if (firstMapped) category = TAG_CATEGORY_MAP[firstMapped];
+      }
+    } else if (category) {
+      // Tags empty — derive initial tag from category so pills are pre-selected
+      const primaryTag = CATEGORY_TAG_MAP[category];
+      if (primaryTag) tags = [primaryTag];
+    }
+
+    setFormData({ ...editingEvent, tags, category });
   }, [editingEvent]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -511,11 +523,15 @@ function EventsTab({
                         const newTags = active
                           ? currentTags.filter(t => t !== tag.id)
                           : [...currentTags, tag.id];
-                        // If the current category's primary tag was just removed,
-                        // update category to match the first remaining tag
+                        // Re-derive category from the resulting tags:
+                        // triggers when the current category's primary tag was removed,
+                        // OR the category is 'Other' (no primary tag) and a mapped tag was added
                         const primaryTagForCategory = CATEGORY_TAG_MAP[f.category ?? ''];
+                        const categoryStillRepresented = primaryTagForCategory
+                          ? newTags.includes(primaryTagForCategory)
+                          : false;
                         let newCategory = f.category;
-                        if (primaryTagForCategory && !newTags.includes(primaryTagForCategory)) {
+                        if (!categoryStillRepresented) {
                           const firstMatch = newTags.find(t => TAG_CATEGORY_MAP[t]);
                           if (firstMatch) newCategory = TAG_CATEGORY_MAP[firstMatch];
                         }
