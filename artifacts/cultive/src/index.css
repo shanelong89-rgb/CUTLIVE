@@ -1883,6 +1883,32 @@ h1, h2, h3 {
 }
 
 /* Sign-out */
+.account-change-password {
+  width: 100%;
+  padding: 18px;
+  background: transparent;
+  border: 1px solid var(--n-border);
+  color: var(--n-text);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  margin-bottom: 12px;
+}
+
+.account-change-password:hover:not(:disabled) {
+  background: var(--n-bg-alt);
+}
+
+.account-change-password:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
 .account-signout {
   width: 100%;
   padding: 18px;

@@ -35,6 +35,14 @@ export function Account({ setIsAuthOpen }: AccountProps) {
   const { count: savedCount } = useSavedEvents();
   const { unreadCount } = useInboxMessages();
   const [submissionCount, setSubmissionCount] = useState<number | null>(null);
+  const [pwResetState, setPwResetState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  const handleChangePassword = async () => {
+    if (!user?.email || pwResetState === 'sending' || pwResetState === 'sent') return;
+    setPwResetState('sending');
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+    setPwResetState(error ? 'error' : 'sent');
+  };
 
   useEffect(() => {
     if (!user) {
@@ -189,6 +197,26 @@ export function Account({ setIsAuthOpen }: AccountProps) {
             {(user.app_metadata?.provider as string) ?? 'email'}
           </span>
         </div>
+      </div>
+
+      {/* Change password */}
+      <div className="account-section-head">
+        <span className="account-section-label">— SECURITY —</span>
+      </div>
+      <div style={{ padding: '0 0 8px' }}>
+        <button
+          className="account-change-password"
+          onClick={handleChangePassword}
+          disabled={pwResetState === 'sending' || pwResetState === 'sent'}
+        >
+          {pwResetState === 'sending'
+            ? 'Sending…'
+            : pwResetState === 'sent'
+            ? '✓ Reset link sent — check your email'
+            : pwResetState === 'error'
+            ? 'Something went wrong — try again'
+            : 'Change Password'}
+        </button>
       </div>
 
       {/* Sign out */}

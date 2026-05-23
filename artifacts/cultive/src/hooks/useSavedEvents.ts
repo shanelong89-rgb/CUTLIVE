@@ -74,6 +74,14 @@ export function useSavedEvents() {
         const local = read();
         const prevOwner = readOwner();
         const sameUser = prevOwner === userId;
+
+        // Immediately clear stale cache on account switch so the UI
+        // shows 0 right away rather than waiting for the remote fetch.
+        if (!sameUser) {
+          write([]);
+          setIds([]);
+        }
+
         const remote = await listSavedEventIdsRemote();
         if (cancelled) return;
 
