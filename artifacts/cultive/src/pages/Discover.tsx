@@ -419,8 +419,14 @@ export function Discover() {
       }
 
       const isPast = nowTs >= effectiveEndTs;
+      const isOngoing = !isPast && minDate.getTime() < todayTs;
 
       if (!isPast) {
+        // Ongoing events (already started, not yet ended) sort by their start date
+        // so they always appear before purely upcoming events.
+        if (isOngoing) {
+          return { e, parsed: minDate, isPast: false, endTs: effectiveEndTs };
+        }
         const upcoming = all.filter(d => d.getTime() >= todayTs);
         if (upcoming.length > 0) {
           const parsed = upcoming.reduce((a, b) => a.getTime() < b.getTime() ? a : b);
