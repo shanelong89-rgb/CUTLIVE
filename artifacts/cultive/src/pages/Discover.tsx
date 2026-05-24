@@ -98,6 +98,23 @@ function parseAllEventDates(raw: string, keepPast = false): Date[] {
   for (const seg of segments) {
     const t = seg.trim();
 
+    // Cross-month range — e.g. "May 23 - June 7" or "May 23 - June 7, 2026"
+    const rangeX = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\s*-\s*([A-Za-z]{3,})\s+(\d{1,2})\b/);
+    if (rangeX) {
+      const yr = t.match(/\b(20\d{2})\b/)?.[1] ?? String(now.getFullYear());
+      const start = new Date(`${rangeX[1]} ${rangeX[2]}, ${yr}`);
+      const end   = new Date(`${rangeX[3]} ${rangeX[4]}, ${yr}`);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        if (!keepPast && end.getTime() < today.getTime() - 86400000) {
+          start.setFullYear(Number(yr) + 1);
+          end.setFullYear(Number(yr) + 1);
+        }
+        lastMonth = end.getMonth();
+        results.push(start, end);
+        continue;
+      }
+    }
+
     // Range "Month D1-D2" — e.g. "May 8-27" or "May 8 - 27, 2026"
     const rangeA = t.match(/\b([A-Za-z]{3,})\s+(\d{1,2})\s*-\s*(\d{1,2})\b/);
     if (rangeA) {
