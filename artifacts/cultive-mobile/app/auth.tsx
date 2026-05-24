@@ -313,6 +313,5 @@ const styles = StyleSheet.create({
   dividerText: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
-    whiteSpace: "nowrap" as any,
   },
 });
