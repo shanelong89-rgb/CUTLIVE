@@ -6,3 +6,9 @@ id = "j7TUrb6RNu8PPTBT_YOQm"
 uri = "file://artifacts/cultive/email-templates/cultive-email-templates.zip"
 type = "unspecified"
 title = "CULTIVE Email Templates"
+
+[[outputs]]
+id = "2GlWbRmdmUpms5X1izAkk"
+uri = "file://CULTIVE_Press_Overview.md"
+type = "text"
+title = "CULTIVE — Press & Marketing Overview"
