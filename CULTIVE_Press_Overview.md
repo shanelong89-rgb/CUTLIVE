@@ -18,7 +18,7 @@ We exist because Hong Kong's cultural scene is vibrant, scattered, and chronical
 
 Hong Kong has incredible culture. The problem isn't that events don't exist — it's that finding them requires knowing the right people. CULTIVE fixes that.
 
-We combine two things that rarely go together: editorial taste and community intelligence. Every event on the platform is reviewed before it goes live. But the tips come from the community — anyone can submit an event, and if it makes it through review, they earn $50 HKD and the credit.
+We combine two things that rarely go together: editorial taste and community intelligence. Every event on the platform is reviewed before it goes live. But the tips come from the community — anyone can submit an event, and if it makes it through review, it goes live with their name on it.
 
 The result is a feed that feels curated, not algorithmic. No noise. No sponsored filler. Just what's actually worth your time.
 
@@ -42,7 +42,7 @@ Two ways to contribute:
 1. **Instagram Quick-Submit** — paste an Instagram post or Reel URL. Our system extracts the event details automatically and queues it for review.
 2. **Manual Form** — fill in title, date, venue, category, price, description, image, and ticket link yourself.
 
-Approved submissions earn the submitter **$50 HKD** and are credited to their profile. This creates a real incentive for the city's most plugged-in people to share what they know.
+Approved submissions are credited to their profile — recognition for the people who know what's worth sharing.
 
 **Inbox**
 A personal notification centre. You're notified when your submission is approved or rejected, and reminded when a saved event is coming up. Clean, no spam.
@@ -57,7 +57,7 @@ Some events on CULTIVE are gated. These are drops, private previews, and invite-
 
 ### For the Community
 
-CULTIVE is designed to reward the people who actually know what's happening. The $50 HKD per approved submission isn't just a gimmick — it's a signal that we value local intelligence. The people who know about the hidden jazz bar pop-up in Sham Shui Po or the private gallery opening in Wong Chuk Hang are the editorial backbone of the platform.
+CULTIVE is designed to surface the people who actually know what's happening. The people who know about the hidden jazz bar pop-up in Sham Shui Po or the private gallery opening in Wong Chuk Hang are the editorial backbone of the platform.
 
 Every submission goes through human review before it goes live. That's intentional. It keeps quality high, and it means the feed stays trustworthy.
 
@@ -97,7 +97,6 @@ The platform is built to scale. The architecture separates the API, database, we
 | Hong Kong–specific focus | ✅ | ❌ | ❌ | ❌ |
 | Native mobile app | ✅ | ✅ | ✅ | ✅ |
 | Members-only / exclusive events | ✅ | ❌ | ❌ | ❌ |
-| Reward for contributors | ✅ | ❌ | ❌ | ❌ |
 | No algorithm, no ads | ✅ | ❌ | ❌ | ❌ |
 
 ---
@@ -116,8 +115,7 @@ The long-term bet is that the best events in Hong Kong will be CULTIVE-first. No
 
 - **Platform:** Web (cultive.city) + iOS & Android native mobile app
 - **Market:** Hong Kong
-- **Content model:** Human-reviewed, community-submitted
-- **Contributor incentive:** $50 HKD per approved submission
+- **Content model:** Community-submitted, editorially reviewed
 - **Authentication:** Email/password or Google Sign-In
 - **Categories:** Music, Arts & Culture, Food & Drink, Nightlife, Wellness, Markets, and more
 - **Districts covered:** All major HK cultural districts (Central, Wan Chai, Sheung Wan, Kennedy Town, Tai Hang, Sham Shui Po, Kowloon, and more)
@@ -128,7 +126,6 @@ The long-term bet is that the best events in Hong Kong will be CULTIVE-first. No
 ## Talking Points for Press & Media
 
 - "CULTIVE is what Hong Kong's cultural scene has needed for years — a single place that actually knows what's good."
-- "We pay people for what they know. $50 HKD per approved tip. That's how serious we are about sourcing quality."
 - "No algorithm. No ads. A real human reviews every event before it goes live."
 - "Exclusive events on CULTIVE aren't marketing language — they're events you genuinely can't find anywhere else."
 - "We built for mobile first, because that's how Hong Kong lives. But the web experience is just as sharp."
