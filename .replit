@@ -46,6 +46,9 @@ VITE_SUPABASE_URL = "https://qmjdqldmpmeguuyepbsw.supabase.co"
 VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtamRxbGRtcG1lZ3V1eWVwYnN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNDkxMzksImV4cCI6MjA5NDgyNTEzOX0.FPUO7-RuPyb1FWwQRKGHnWyDeoDZIVf54xspUsh2_rc"
 EXPO_PUBLIC_SUPABASE_URL = "https://qmjdqldmpmeguuyepbsw.supabase.co"
 EXPO_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtamRxbGRtcG1lZ3V1eWVwYnN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNDkxMzksImV4cCI6MjA5NDgyNTEzOX0.FPUO7-RuPyb1FWwQRKGHnWyDeoDZIVf54xspUsh2_rc"
+VITE_GOOGLE_CLIENT_ID = "391878188121-9cbgo2d9o7i3c8f6dpobrsosc38mqt3m.apps.googleusercontent.com"
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID = "391878188121-s2sp2j0t5q5det87cfgsds1b1lilbuv4.apps.googleusercontent.com"
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID = "391878188121-9cbgo2d9o7i3c8f6dpobrsosc38mqt3m.apps.googleusercontent.com"
 
 [nix]
 channel = "stable-25_05"
