@@ -313,6 +313,12 @@ function EventRow({ event, isPast = false }: { event: Event; isPast?: boolean })
 
 const PAGE_SIZE = 20;
 
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  document.documentElement.scrollTo({ top: 0, behavior: 'instant' });
+  document.body.scrollTo({ top: 0, behavior: 'instant' });
+}
+
 export function Discover() {
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [activeDateFilter, setActiveDateFilter] = useState('all');
@@ -543,7 +549,7 @@ export function Discover() {
           borderTop: '1px solid var(--n-border)',
         }}>
           <button
-            onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => { setCurrentPage(p => p - 1); scrollToTop(); }}
             style={{
               visibility: currentPage > 1 ? 'visible' : 'hidden',
               display: 'flex', alignItems: 'center', gap: 6,
@@ -566,7 +572,7 @@ export function Discover() {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
               <button
                 key={n}
-                onClick={() => { setCurrentPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                onClick={() => { setCurrentPage(n); scrollToTop(); }}
                 style={{
                   width: 32, height: 32,
                   borderRadius: 4,
@@ -585,7 +591,7 @@ export function Discover() {
           </div>
 
           <button
-            onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => { setCurrentPage(p => p + 1); scrollToTop(); }}
             style={{
               visibility: currentPage < totalPages ? 'visible' : 'hidden',
               display: 'flex', alignItems: 'center', gap: 6,
