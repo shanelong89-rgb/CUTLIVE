@@ -334,6 +334,18 @@ export async function signOut() {
   if (error) throw error;
 }
 
+export async function signInWithGoogle(redirectUrl: string) {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: redirectUrl,
+      skipBrowserRedirect: true,
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function adminListSubmissions(): Promise<Submission[]> {
   try {
     const { data, error } = await supabase
