@@ -105,9 +105,16 @@ The platform is built to scale. The architecture separates the API, database, we
 
 CULTIVE is building the cultural operating system for Hong Kong.
 
-Phase one is the events platform — what exists now. Phase two is the membership layer: tiered access, exclusive invites, and a verified community of people who shape the city's culture rather than just consume it. Phase three is the infrastructure for organisers — ticketing, RSVP management, and real audience data, all within the platform.
+**Phase One — The Platform** *(live now)*
+A curated, community-powered events discovery platform across web and mobile. Human editorial review, smart discovery, saved events, and community submissions.
 
-The long-term bet is that the best events in Hong Kong will be CULTIVE-first. Not because we've locked anyone in, but because the audience here is better than anywhere else.
+**Phase Two — Ticketing & Credits**
+In-app ticketing for paid events, with QR code check-in and seamless RSVP management for organisers. Alongside this, a contributor credit system: community members who submit approved events earn credits redeemable against tickets purchased through CULTIVE. The value stays in the ecosystem — rewarding the people who feed it.
+
+**Phase Three — The Membership Layer**
+Tiered access, exclusive drops, and a verified inner circle of people who shape Hong Kong's culture. The best events on CULTIVE will be CULTIVE-first — not because anyone is locked in, but because the audience here is worth more than anywhere else.
+
+The long-term bet is simple: own the discovery layer, own the ticketing layer, and the rest follows.
 
 ---
 
