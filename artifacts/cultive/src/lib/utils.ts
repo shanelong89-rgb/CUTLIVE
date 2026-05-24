@@ -13,23 +13,36 @@ export function displayDateRange(date?: string, dateEnd?: string | null): string
     const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
     return isNaN(d.getTime()) ? null : d;
   };
+  const fmt = (d: Date, opts: Intl.DateTimeFormatOptions) =>
+    d.toLocaleDateString('en-US', opts);
+
   const start = parseYMD(date);
-  if (!dateEnd) {
-    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return date;
+
+  // Both dates are ISO — full control over formatting
+  if (start) {
+    if (!dateEnd) return fmt(start, { weekday: 'short', month: 'short', day: 'numeric' });
+    const end = parseYMD(dateEnd);
+    if (!end || start.getTime() === end.getTime())
+      return fmt(start, { weekday: 'short', month: 'short', day: 'numeric' });
+    if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear())
+      return `${fmt(start, { month: 'short' })} ${start.getDate()} – ${end.getDate()}`;
+    return `${fmt(start, { month: 'short', day: 'numeric' })} – ${fmt(end, { month: 'short', day: 'numeric' })}`;
   }
-  const end = parseYMD(dateEnd);
-  if (!start || !end) {
-    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return date;
+
+  // Raw string fallback — strip the year and normalise the dash so it's
+  // consistent with ISO-formatted events (e.g. "May 23 - June 7, 2026" → "May 23 – Jun 7")
+  const crossMonth = date.match(
+    /\b([A-Za-z]{3,})\s+(\d{1,2})\s*[-–]\s*([A-Za-z]{3,})\s+(\d{1,2})\b/
+  );
+  if (crossMonth) {
+    const s = new Date(`${crossMonth[1]} ${crossMonth[2]}, ${new Date().getFullYear()}`);
+    const e = new Date(`${crossMonth[3]} ${crossMonth[4]}, ${new Date().getFullYear()}`);
+    if (!isNaN(s.getTime()) && !isNaN(e.getTime())) {
+      return `${fmt(s, { month: 'short', day: 'numeric' })} – ${fmt(e, { month: 'short', day: 'numeric' })}`;
+    }
   }
-  if (start.getTime() === end.getTime()) {
-    return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  }
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()} – ${end.getDate()}`;
-  }
-  return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  // Last resort — just strip the year to keep it short
+  return date.replace(/,?\s*20\d{2}\b/g, '').replace(/\s*-\s*/g, ' – ').trim();
 }
 
 export function formatTime(time?: string): string {
