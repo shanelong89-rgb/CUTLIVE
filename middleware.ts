@@ -6,21 +6,23 @@ declare const process: { env: Record<string, string | undefined> };
 /**
  * Vercel Edge Middleware — OG tag injection for social/messaging bots.
  *
- * When Telegram, Discord, WhatsApp, Twitter etc. fetch an event URL to
- * generate a link preview, they don't execute JavaScript. This middleware
- * detects those bot user-agents and returns a minimal HTML page that contains
- * the correct Open Graph tags for the event, fetched directly from Supabase.
+ * Handles two URL patterns:
+ *  - /event/:id  → event-specific title, description and flyer image
+ *  - /?ref=CODE  → invite link preview ("You've been invited to CULTIVE")
  *
- * Real users pass straight through to the React SPA as normal.
+ * Real users pass straight through to the React SPA unchanged.
  * Runs at the edge before Vercel's SPA rewrite kicks in.
  */
 
 const BOT_UA =
   /telegrambot|twitterbot|facebookexternalhit|discordbot|whatsapp|slackbot|linkedinbot|ia_archiver|googlebot|bingbot|rogerbot|semrushbot|ahrefsbot/i;
 
-/** Escape a string for safe insertion into an HTML attribute value. */
+const SITE = 'https://cultive.city';
+const LOGO = `${SITE}/favicon.png`;
+
+/** Escape a value for safe insertion into an HTML attribute. */
 function esc(s: string): string {
-  return String(s)
+  return String(s ?? '')
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
@@ -36,83 +38,95 @@ function toPlainText(html: string, maxLen = 160): string {
     .slice(0, maxLen) || 'A cultural event in Hong Kong.';
 }
 
-export const config = {
-  matcher: ['/event/:id+'],
-};
-
-export default async function middleware(request: Request): Promise<Response | undefined> {
-  const url = new URL(request.url);
-
-  // Double-check we're on an event path (config.matcher may not apply on all
-  // non-Next.js Vercel deployments).
-  const pathMatch = url.pathname.match(/^\/event\/([^/]+)$/);
-  if (!pathMatch) return;
-
-  // Only intercept known bot crawlers — real users pass through unchanged.
-  const ua = request.headers.get('user-agent') ?? '';
-  if (!BOT_UA.test(ua)) return;
-
-  const id = pathMatch[1];
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-
-  // If env vars are missing (shouldn't happen in production), fall through.
-  if (!supabaseUrl || !supabaseKey) return;
-
-  let event: Record<string, string> | null = null;
-  try {
-    const apiRes = await fetch(
-      `${supabaseUrl}/rest/v1/events?id=eq.${encodeURIComponent(id)}&select=id,title,description,image,venue,date&limit=1`,
-      {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-      },
-    );
-    const rows = await apiRes.json();
-    event = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-  } catch {
-    // Supabase unreachable — fall through to SPA so the user still sees the page.
-    return;
-  }
-
-  // Unknown event — fall through.
-  if (!event) return;
-
-  const title     = esc(event.title ?? 'CULTIVE');
-  const desc      = esc(toPlainText(event.description ?? ''));
-  const image     = esc(event.image ?? 'https://cultive.city/favicon.png');
-  const canonical = esc(`https://cultive.city/event/${event.id}`);
-  const pageTitle = esc(`${event.title} | CULTIVE`);
-
-  const html = `<!doctype html>
+function ogHtml(opts: {
+  pageTitle: string;
+  title: string;
+  desc: string;
+  image: string;
+  url: string;
+}): Response {
+  const { pageTitle, title, desc, image, url } = opts;
+  return new Response(
+    `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <title>${pageTitle}</title>
-  <meta name="description" content="${desc}"/>
-  <meta property="og:type"        content="website"/>
-  <meta property="og:site_name"   content="CULTIVE"/>
-  <meta property="og:title"       content="${title}"/>
-  <meta property="og:description" content="${desc}"/>
-  <meta property="og:image"       content="${image}"/>
-  <meta property="og:url"         content="${canonical}"/>
-  <meta name="twitter:card"        content="summary_large_image"/>
-  <meta name="twitter:title"       content="${title}"/>
-  <meta name="twitter:description" content="${desc}"/>
-  <meta name="twitter:image"       content="${image}"/>
+  <meta name="description"          content="${desc}"/>
+  <meta property="og:type"          content="website"/>
+  <meta property="og:site_name"     content="CULTIVE"/>
+  <meta property="og:title"         content="${title}"/>
+  <meta property="og:description"   content="${desc}"/>
+  <meta property="og:image"         content="${image}"/>
+  <meta property="og:url"           content="${url}"/>
+  <meta name="twitter:card"         content="summary_large_image"/>
+  <meta name="twitter:title"        content="${title}"/>
+  <meta name="twitter:description"  content="${desc}"/>
+  <meta name="twitter:image"        content="${image}"/>
 </head>
-<body>
-  <p><a href="${canonical}">${title}</a></p>
-</body>
-</html>`;
-
-  return new Response(html, {
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      // Cache at the edge for 1 hour; serve stale for up to 24 h while revalidating.
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+<body><p><a href="${url}">${title}</a></p></body>
+</html>`,
+    {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      },
     },
+  );
+}
+
+export const config = {
+  matcher: ['/', '/event/:id+'],
+};
+
+export default async function middleware(request: Request): Promise<Response | undefined> {
+  const url = new URL(request.url);
+  const ua  = request.headers.get('user-agent') ?? '';
+
+  // Only intercept known bot crawlers — real users pass through unchanged.
+  if (!BOT_UA.test(ua)) return;
+
+  // ── Invite link: /?ref=CODE ──────────────────────────────────────────────
+  const refCode = url.searchParams.get('ref');
+  if (url.pathname === '/' && refCode) {
+    return ogHtml({
+      pageTitle: 'You're invited to join CULTIVE | 文化活',
+      title:     'You're invited to join CULTIVE',
+      desc:      'Your friend invited you to CULTIVE — Hong Kong\'s curated guide to cultural events. Sign up free and start exploring art, music, film, and more.',
+      image:     LOGO,
+      url:       esc(`${SITE}/?ref=${refCode}`),
+    });
+  }
+
+  // ── Event page: /event/:id ───────────────────────────────────────────────
+  const eventMatch = url.pathname.match(/^\/event\/([^/]+)$/);
+  if (!eventMatch) return;
+
+  const id          = eventMatch[1];
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return;
+
+  let event: Record<string, string> | null = null;
+  try {
+    const res  = await fetch(
+      `${supabaseUrl}/rest/v1/events?id=eq.${encodeURIComponent(id)}&select=id,title,description,image,venue,date&limit=1`,
+      { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } },
+    );
+    const rows = await res.json();
+    event = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  } catch {
+    return; // Supabase unreachable — fall through to SPA
+  }
+
+  if (!event) return;
+
+  return ogHtml({
+    pageTitle: esc(`${event.title} | CULTIVE`),
+    title:     esc(event.title),
+    desc:      esc(toPlainText(event.description ?? '')),
+    image:     esc(event.image || LOGO),
+    url:       esc(`${SITE}/event/${event.id}`),
   });
 }
