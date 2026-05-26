@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Link, useSearchParams, useNavigationType } from 'react-router-dom';
 import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_NORMALIZE } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
 import { formatTime, displayDateRange } from '../lib/utils';
@@ -347,6 +347,25 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+  const navType = useNavigationType();
+  const scrollRestoredRef = useRef(false);
+
+  // Save scroll position when leaving this page
+  useEffect(() => {
+    return () => {
+      sessionStorage.setItem('cultive:discover-scroll', String(Math.round(window.scrollY)));
+    };
+  }, []);
+
+  // Restore scroll position after returning via back button, once events have loaded
+  useEffect(() => {
+    if (navType !== 'POP' || loading || scrollRestoredRef.current) return;
+    const saved = sessionStorage.getItem('cultive:discover-scroll');
+    if (!saved) return;
+    scrollRestoredRef.current = true;
+    const y = parseInt(saved, 10);
+    requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' }));
+  }, [navType, loading]);
   const setCurrentPage = (n: number | ((p: number) => number)) => {
     const next = typeof n === 'function' ? n(currentPage) : n;
     setSearchParams(p => { const s = new URLSearchParams(p); s.set('page', String(next)); return s; }, { replace: false });
