@@ -699,27 +699,27 @@ h1, h2, h3 {
 /* Thumbnail */
 .event-thumb {
   width: 100px;
-  overflow: hidden;
-  border-right: 1px solid var(--n-border);
   flex-shrink: 0;
+  border-right: 1px solid var(--n-border);
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
 }
 
 .event-thumb img {
-  width: 100%;
-  height: 100%;
-  min-height: 90px;
-  object-fit: cover;
-  object-position: center top;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
   display: block;
-  border-radius: 0;
+  border-radius: 3px;
 }
 
 .event-thumb-placeholder {
-  width: 100%;
-  min-height: 90px;
+  width: 80px;
+  height: 80px;
   background: var(--n-accent);
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2596,12 +2596,14 @@ h1, h2, h3 {
   }
   
   .event-thumb {
-    width: 80px;
+    width: 88px;
+    padding: 8px;
   }
 
   .event-thumb img,
   .event-thumb-placeholder {
-    min-height: 80px;
+    width: 72px;
+    height: 72px;
   }
   
   .event-details {
