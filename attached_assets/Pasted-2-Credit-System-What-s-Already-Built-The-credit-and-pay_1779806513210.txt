@@ -1,0 +1,260 @@
+2. Credit System
+What's Already Built
+The credit and payment infrastructure exists in the backend and frontend from the original Cultive build. The payment layer gets repurposed — credits accumulate as a floating balance, not connected to a payment gateway yet. Future use: credits apply toward event tickets and exclusive experiences when the ticketing system launches.
+Credit Earning Rules
+Action
+Credit Amount
+Trigger
+Notes
+Approved submission
+HK$50
+Event passes editorial review and goes live
+One credit per approved event. No cap.
+Invited friend signs up
+HK$25
+Friend creates account via invite link and verifies email
+One credit per verified sign-up. No cap.
+Future: event attendance
+TBD
+User attends a CULTIVE event (QR check-in)
+Phase 2 — ticketing integration
+Future: content contribution
+TBD
+Long-form review, photo set, etc.
+Phase 2 — editorial content layer
+Credit Earning — Detailed Flow
+Approved Submission → HK$50
+text
+text
+User submits event (IG link or manual form)
+        │
+        ▼
+Event enters review queue
+        │
+        ▼
+Editorial review (human or agent)
+        │
+        ├── APPROVED
+        │       │
+        │       ▼
+        │   Event goes live on platform
+        │   User credited HK$50
+        │   Notification: "Your submission is live! +HK$50 credit"
+        │   Credit balance updates in account
+        │
+        └── REJECTED
+                │
+                ▼
+            Notification with reason
+            No credit
+            Can resubmit
+
+Invited Friend Signs Up → HK$25
+text
+text
+User shares invite link
+        │
+        ▼
+Friend clicks link → lands on CULTIVE with invite ref
+        │
+        ▼
+Friend signs up (Google or email)
+        │
+        ▼
+Email verified
+        │
+        ▼
+Inviter credited HK$25
+Invited friend also credited HK$25 (welcome bonus)
+Notification to inviter: "[Name] joined CULTIVE! +HK$25 credit"
+Credit balance updates in both accounts
+
+Credit Display — Account Page
+The credit balance is visible on the user's account page. Clean, prominent, always accessible.
+text
+text
+┌─────────────────────────────────────────────┐
+│                                             │
+│  YOUR CREDITS                               │
+│                                             │
+│  ┌───────────────────────────────────────┐  │
+│  │                                       │  │
+│  │     HK$175                            │  │
+│  │                                       │  │
+│  │     Available balance                 │  │
+│  │                                       │  │
+│  └───────────────────────────────────────┘  │
+│                                             │
+│  HOW YOU EARNED                             │
+│                                             │
+│  Approved submissions    2 × HK$50   HK$100│
+│  Invite sign-ups         3 × HK$25    HK$75│
+│                                    ─────────│
+│                                    TOTAL HK$175│
+│                                             │
+│  ACTIVITY                                   │
+│                                             │
+│  Apr 18  +HK$50   "Gallery Night in WCH"    │
+│          approved                            │
+│  Apr 15  +HK$25   @sarahk joined via        │
+│          your invite                         │
+│  Apr 12  +HK$50   "Jazz at Orange Peel"     │
+│          approved                            │
+│  Apr 10  +HK$25   @mikechan joined via      │
+│          your invite                         │
+│  Apr 08  +HK$25   @janewong joined via      │
+│          your invite                         │
+│                                             │
+│  ───────────────────────────────────────    │
+│  Credits can be used toward CULTIVE events  │
+│  and experiences (coming soon)              │
+│                                             │
+└─────────────────────────────────────────────┘
+
+Technical Implementation
+Component
+Details
+Credit table
+New table in Supabase: user_credits. Fields: user_id, balance, total_earned, total_spent, last_updated.
+Credit ledger
+New table: credit_transactions. Fields: id, user_id, amount, type (submission_approved / invite_signup / future: event_purchase), reference_id, created_at.
+Balance calculation
+Sum of all credit_transactions for user_id. Display in account page.
+Invite tracking
+New table: invite_links. Fields: id, user_id, invite_code (unique), created_at, times_used. New table: invite_signups. Fields: id, invite_code, invited_user_id, inviter_user_id, verified_at.
+Credit trigger — submissions
+When editorial review status changes to "approved", system checks if credit already issued for this submission. If not, inserts credit_transaction (+50) and updates user_credits balance.
+Credit trigger — invites
+When invited user verifies email, system checks invite_signups table. If valid invite and no duplicate, inserts credit_transaction (+25) for both inviter and invited user.
+Fraud prevention
+One credit per submission (tracked by submission_id). One credit per unique invited email (no duplicates). Invite link abuse detection: if same IP/device creates multiple accounts via invite, flag for review.
+Credit expiry
+No expiry for now. Credits are permanent until used.
+Credit Messaging Throughout the Platform
+Location
+Message
+Submit page
+"Submit an event. If it's approved, you earn HK$50 credit."
+After submission
+"Submitted! We'll review it within 24 hours. If approved, HK$50 goes to your account."
+Approval notification
+"Your submission is live! +HK$50 credit. [View your balance]"
+Invite page
+"Share CULTIVE with friends. You both earn HK$25 when they sign up."
+Account page
+Full credit balance and activity (see above)
+Gateway prompt
+"Sign up to keep exploring. Earn HK$50 every time you submit an event that gets approved."
+Homepage (signed in)
+"Your balance: HK$175. [View details]" (small, not obtrusive)
+
+3. Invite System
+How It Works
+Every signed-up user gets a unique invite link. They share it. When someone signs up via that link and verifies their email, both the inviter and the invited user get HK$25 credit.
+The Invite Link
+text
+text
+Format: cultive.city/invite/[UNIQUE_CODE]
+Example: cultive.city/invite/EUGENE2026
+
+Alternative (short): ctlv.city/i/[CODE]
+
+Where Users Access Their Invite Link
+Location
+How
+Account page
+Full invite link + one-tap copy + share buttons (WhatsApp, Instagram, Facebook, copy link)
+Invite page
+Dedicated page: cultive.city/invite — shows invite stats, link, share options
+Post-approval notification
+"Your submission is live! +HK
+50.
+S
+h
+a
+r
+e
+C
+U
+L
+T
+I
+V
+E
+a
+n
+d
+e
+a
+r
+n
++
+H
+K
+50.ShareCULTIVEandearn+HK25 more: [link]"
+Gateway prompt
+After sign-up from gateway: "Welcome! Share with friends and you both earn HK$25."
+Navigation
+Small "Invite" link in nav or footer. Always accessible.
+Invite Page Design
+text
+text
+┌─────────────────────────────────────────────┐
+│                                             │
+│  INVITE FRIENDS                             │
+│  You both earn HK$25                        │
+│                                             │
+│  Your invite link:                          │
+│  ┌──────────────────────────────┬────────┐  │
+│  │ cultive.city/invite/EUGENE26 │ [Copy] │  │
+│  └──────────────────────────────┴────────┘  │
+│                                             │
+│  Share via:                                 │
+│  [WhatsApp] [Instagram] [Facebook] [Copy]   │
+│                                             │
+│  ───────────────────────────────────────    │
+│                                             │
+│  YOUR INVITE STATS                          │
+│                                             │
+│  Invites sent        12                     │
+│  Friends joined      3                      │
+│  Credits earned    HK$75                    │
+│                                             │
+│  ───────────────────────────────────────    │
+│                                             │
+│  HOW IT WORKS                               │
+│                                             │
+│  1. Share your link                         │
+│  2. Friend signs up and verifies email      │
+│  3. You both get HK$25 credit               │
+│  4. Credits use toward CULTIVE events       │
+│     (coming soon)                           │
+│                                             │
+│  ACTIVITY                                   │
+│                                             │
+│  Apr 18  @sarahk joined    +HK$25          │
+│  Apr 12  @mikechan joined  +HK$25          │
+│  Apr 08  @janewong joined  +HK$25          │
+│                                             │
+└─────────────────────────────────────────────┘
+
+Share Message Templates (Pre-filled When User Shares)
+WhatsApp:
+text
+text
+been using CULTIVE to find events in HK — actually curated, no algorithm noise. sign up through my link and we both get HK$25 credit: cultive.city/invite/[CODE]
+
+Instagram (DM or Story):
+text
+text
+found this app called CULTIVE — curated events for HK, community-submitted, actually good. use my link and we both get HK$25: cultive.city/invite/[CODE]
+
+Facebook:
+text
+text
+If you're in Hong Kong and you actually want to know what's happening culturally — CULTIVE is worth checking out. Curated events, no algorithm, community-powered. Sign up through my link and we both get HK$25 credit: cultive.city/invite/[CODE]
+
+Copy link (bare):
+text
+text
+cultive.city/invite/[CODE]
