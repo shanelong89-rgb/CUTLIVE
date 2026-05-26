@@ -91,12 +91,25 @@ function parseTimeToMinutes(raw?: string | null): number {
   return h * 60 + min;
 }
 
-function sortByDate(list: Event[]): Event[] {
+function sortByDate(list: Event[], descending = false): Event[] {
   return [...list].sort((a, b) => {
     const dateDiff = parseFirst(a.date) - parseFirst(b.date);
-    if (dateDiff !== 0) return dateDiff;
-    return parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time);
+    if (dateDiff !== 0) return descending ? -dateDiff : dateDiff;
+    const timeDiff = parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time);
+    return descending ? -timeDiff : timeDiff;
   });
+}
+
+function isEventPast(event: Event): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  // Use date_end if available, otherwise fall back to date
+  const endRaw = event.date_end || event.date;
+  if (!endRaw) return false;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endRaw.trim());
+  if (!m) return false;
+  const end = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return end < today;
 }
 
 export function Saved() {
@@ -145,6 +158,76 @@ export function Saved() {
     setEvents(sortByDate(valid));
   }, [ids]);
 
+  const upcoming = sortByDate(events.filter(e => !isEventPast(e)), false);
+  const past     = sortByDate(events.filter(e =>  isEventPast(e)), true);
+
+  const renderRow = (event: Event, isPast: boolean) => {
+    const district = event.district || event.venue.split(',')[0] || '';
+    const isExclusive = event.is_exclusive || event.isExclusive;
+    return (
+      <div key={event.id} className={`event-row saved-row${isPast ? ' event-row--past' : ''}`}>
+        <Link to={`/event/${event.id}`} className="event-time">
+          {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end)}</span>}
+          <span>{event.time || '—'}</span>
+        </Link>
+        <Link to={`/event/${event.id}`} className="event-thumb">
+          {event.image ? (
+            <img src={event.image} alt={event.title} loading="lazy" />
+          ) : (
+            <div className="event-thumb-placeholder">IMG</div>
+          )}
+        </Link>
+        <Link to={`/event/${event.id}`} className="event-details">
+          <h4 className="event-title">{event.title}</h4>
+          <p className="event-meta">
+            {event.category}
+            {district ? ` · ${district}` : ''}
+            {isExclusive && ' · Members Only'}
+          </p>
+          <p className="event-venue">{event.venue}</p>
+          {event.submitted_by && (
+            <p className="event-curator">✦ {event.submitted_by}</p>
+          )}
+        </Link>
+
+        <div className="saved-actions">
+          <div className="saved-cal-wrap">
+            <button
+              className="saved-cal-btn"
+              title="Add to calendar"
+              aria-label="Add to calendar"
+              onClick={(e) => {
+                e.preventDefault();
+                setOpenCalId(openCalId === event.id ? null : event.id);
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </button>
+            {openCalId === event.id && (
+              <CalendarDropdown
+                event={event}
+                onClose={() => setOpenCalId(null)}
+              />
+            )}
+          </div>
+          <button
+            className="saved-remove"
+            onClick={(e) => { e.preventDefault(); remove(event.id); }}
+            aria-label="Remove from saved"
+            title="Remove"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <header className="header">
@@ -162,7 +245,11 @@ export function Saved() {
 
       <div className="section-header">
         <span className="section-label">
-          {loading ? 'Loading…' : `${events.length} saved`}
+          {loading
+            ? 'Loading…'
+            : events.length === 0
+              ? '0 saved'
+              : `${upcoming.length} upcoming${past.length > 0 ? ` · ${past.length} past` : ''}`}
         </span>
         {events.length > 0 && (
           <button
@@ -188,72 +275,18 @@ export function Saved() {
             <Link to="/" className="saved-empty-cta">Browse Events</Link>
           </div>
         ) : (
-          events.map((event) => {
-            const district = event.district || event.venue.split(',')[0] || '';
-            const isExclusive = event.is_exclusive || event.isExclusive;
-            return (
-              <div key={event.id} className="event-row saved-row">
-                <Link to={`/event/${event.id}`} className="event-time">
-                  {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end)}</span>}
-                  <span>{event.time || '—'}</span>
-                </Link>
-                <Link to={`/event/${event.id}`} className="event-thumb">
-                  {event.image ? (
-                    <img src={event.image} alt={event.title} loading="lazy" />
-                  ) : (
-                    <div className="event-thumb-placeholder">IMG</div>
-                  )}
-                </Link>
-                <Link to={`/event/${event.id}`} className="event-details">
-                  <h4 className="event-title">{event.title}</h4>
-                  <p className="event-meta">
-                    {event.category}
-                    {district ? ` · ${district}` : ''}
-                    {isExclusive && ' · Members Only'}
-                  </p>
-                  <p className="event-venue">{event.venue}</p>
-                  {event.submitted_by && (
-                    <p className="event-curator">✦ {event.submitted_by}</p>
-                  )}
-                </Link>
+          <>
+            {upcoming.map(e => renderRow(e, false))}
 
-                <div className="saved-actions">
-                  <div className="saved-cal-wrap">
-                    <button
-                      className="saved-cal-btn"
-                      title="Add to calendar"
-                      aria-label="Add to calendar"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setOpenCalId(openCalId === event.id ? null : event.id);
-                      }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                      </svg>
-                    </button>
-                    {openCalId === event.id && (
-                      <CalendarDropdown
-                        event={event}
-                        onClose={() => setOpenCalId(null)}
-                      />
-                    )}
-                  </div>
-                  <button
-                    className="saved-remove"
-                    onClick={(e) => { e.preventDefault(); remove(event.id); }}
-                    aria-label="Remove from saved"
-                    title="Remove"
-                  >
-                    ×
-                  </button>
+            {past.length > 0 && (
+              <>
+                <div className="saved-past-divider">
+                  <span className="saved-past-label">— PAST EVENTS —</span>
                 </div>
-              </div>
-            );
-          })
+                {past.map(e => renderRow(e, true))}
+              </>
+            )}
+          </>
         )}
       </div>
     </div>
