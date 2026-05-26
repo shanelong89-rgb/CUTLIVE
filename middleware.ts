@@ -79,20 +79,20 @@ export const config = {
   matcher: ['/', '/event/:id+'],
 };
 
-export default async function middleware(request: Request): Promise<Response | undefined> {
+export default async function middleware(request: Request) {
   const url = new URL(request.url);
   const ua  = request.headers.get('user-agent') ?? '';
 
   // Only intercept known bot crawlers — real users pass through unchanged.
-  if (!BOT_UA.test(ua)) return;
+  if (!BOT_UA.test(ua)) return undefined;
 
   // ── Invite link: /?ref=CODE ──────────────────────────────────────────────
   const refCode = url.searchParams.get('ref');
   if (url.pathname === '/' && refCode) {
     return ogHtml({
-      pageTitle: 'You're invited to join CULTIVE | 文化活',
-      title:     'You're invited to join CULTIVE',
-      desc:      'Your friend invited you to CULTIVE — Hong Kong\'s curated guide to cultural events. Sign up free and start exploring art, music, film, and more.',
+      pageTitle: "You're invited to join CULTIVE | \u6587\u5316\u6d3b",
+      title:     "You're invited to join CULTIVE",
+      desc:      "Your friend invited you to CULTIVE \u2014 Hong Kong's curated guide to cultural events. Sign up free and start exploring art, music, film, and more.",
       image:     LOGO,
       url:       esc(`${SITE}/?ref=${refCode}`),
     });
@@ -100,13 +100,13 @@ export default async function middleware(request: Request): Promise<Response | u
 
   // ── Event page: /event/:id ───────────────────────────────────────────────
   const eventMatch = url.pathname.match(/^\/event\/([^/]+)$/);
-  if (!eventMatch) return;
+  if (!eventMatch) return undefined;
 
   const id          = eventMatch[1];
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseKey) return;
+  if (!supabaseUrl || !supabaseKey) return undefined;
 
   let event: Record<string, string> | null = null;
   try {
@@ -117,10 +117,10 @@ export default async function middleware(request: Request): Promise<Response | u
     const rows = await res.json();
     event = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
   } catch {
-    return; // Supabase unreachable — fall through to SPA
+    return undefined; // Supabase unreachable — fall through to SPA
   }
 
-  if (!event) return;
+  if (!event) return undefined;
 
   return ogHtml({
     pageTitle: esc(`${event.title} | CULTIVE`),
