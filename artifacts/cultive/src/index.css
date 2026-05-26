@@ -709,8 +709,9 @@ h1, h2, h3 {
 
 .event-thumb img {
   width: 86px;
-  height: 86px;
-  object-fit: contain;
+  height: auto;
+  max-height: 110px;
+  object-fit: cover;
   display: block;
   border-radius: 8px;
 }
@@ -2600,7 +2601,12 @@ h1, h2, h3 {
     padding: 6px;
   }
 
-  .event-thumb img,
+  .event-thumb img {
+    width: 76px;
+    height: auto;
+    max-height: 96px;
+  }
+
   .event-thumb-placeholder {
     width: 76px;
     height: 76px;
