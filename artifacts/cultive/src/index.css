@@ -712,14 +712,14 @@ h1, h2, h3 {
   height: 86px;
   object-fit: contain;
   display: block;
-  border-radius: 3px;
+  border-radius: 8px;
 }
 
 .event-thumb-placeholder {
   width: 86px;
   height: 86px;
   background: var(--n-accent);
-  border-radius: 3px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
