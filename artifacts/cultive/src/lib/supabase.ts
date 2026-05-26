@@ -629,11 +629,23 @@ export type CreditTransaction = {
   id: string;
   user_id: string;
   amount: number;
-  type: 'submission_approved' | 'referral_bonus' | 'manual' | 'redemption';
+  type: 'submission_approved' | 'referral_bonus' | 'referral_invitee_bonus' | 'manual' | 'redemption';
   description: string | null;
   reference_id: string | null;
   created_at: string;
 };
+
+export async function getCreditTransactions(): Promise<CreditTransaction[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data } = await supabase
+    .from('credit_transactions')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  return (data ?? []) as CreditTransaction[];
+}
 
 export async function getUserCredits(): Promise<{
   balance: number;

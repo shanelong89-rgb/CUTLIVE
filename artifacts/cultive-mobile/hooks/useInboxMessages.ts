@@ -13,6 +13,26 @@ import {
   type Submission,
 } from "@/lib/supabase";
 
+type CreditTransaction = {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: "submission_approved" | "referral_bonus" | "referral_invitee_bonus" | "manual" | "redemption";
+  description: string | null;
+  reference_id: string | null;
+  created_at: string;
+};
+
+async function getCreditTransactions(userId: string): Promise<CreditTransaction[]> {
+  const { data } = await supabase
+    .from("credit_transactions")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  return (data ?? []) as CreditTransaction[];
+}
+
 const READ_KEY = "cultive:read-messages";
 const SAVED_KEY = "cultive:saved-events";
 const SAVED_EVENT_NAME = "cultive:saved-events-changed";
@@ -92,9 +112,53 @@ export interface InboxMessage {
     | "submission-rejected"
     | "saved-reminder"
     | "saved-reminder-tomorrow"
-    | "saved-reminder-soon";
+    | "saved-reminder-soon"
+    | "referral-joined"
+    | "referral-invitee"
+    | "submission-credit";
   linkTo?: string;
   mapsUrl?: string;
+}
+
+function buildCreditMessages(txs: CreditTransaction[]): InboxMessage[] {
+  const msgs: InboxMessage[] = [];
+  for (const tx of txs) {
+    if (tx.type === "referral_bonus") {
+      msgs.push({
+        id: `ref-joined-${tx.id}`,
+        title: "A friend joined CULTIVE",
+        preview: `You earned HK$${tx.amount} credit — keep sharing to earn more.`,
+        time: relativeTime(tx.created_at),
+        unread: false,
+        createdAt: tx.created_at,
+        kind: "referral-joined",
+        linkTo: "/account",
+      });
+    } else if (tx.type === "referral_invitee_bonus") {
+      msgs.push({
+        id: `ref-invitee-${tx.id}`,
+        title: `Welcome bonus — HK$${tx.amount} credit added`,
+        preview: "You joined via an invite. Share CULTIVE with friends to keep earning.",
+        time: relativeTime(tx.created_at),
+        unread: false,
+        createdAt: tx.created_at,
+        kind: "referral-invitee",
+        linkTo: "/account",
+      });
+    } else if (tx.type === "submission_approved") {
+      msgs.push({
+        id: `sub-credit-${tx.id}`,
+        title: `HK$${tx.amount} credit earned`,
+        preview: "Your submitted event was published on CULTIVE. Credit added to your account.",
+        time: relativeTime(tx.created_at),
+        unread: false,
+        createdAt: tx.created_at,
+        kind: "submission-credit",
+        linkTo: "/account",
+      });
+    }
+  }
+  return msgs;
 }
 
 function relativeTime(iso: string): string {
@@ -302,6 +366,7 @@ export function useInboxMessages() {
   const lastReadWriteRef = useRef(0);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [savedEvents, setSavedEvents] = useState<Event[]>([]);
+  const [creditTxs, setCreditTxs] = useState<CreditTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
@@ -333,7 +398,10 @@ export function useInboxMessages() {
     setSignedIn(true);
     setUserId(user.id);
     setSignupAt(user.created_at || null);
-    const subs = await getMySubmissions();
+    const [subs, txs] = await Promise.all([
+      getMySubmissions(),
+      getCreditTransactions(user.id).catch(() => [] as CreditTransaction[]),
+    ]);
 
     // ── Status-change unread tracking ──────────────────────────────────────
     // Load the last known status for each submission from AsyncStorage.
@@ -400,6 +468,7 @@ export function useInboxMessages() {
     // ───────────────────────────────────────────────────────────────────────
 
     setSubmissions(subs);
+    setCreditTxs(txs);
     try {
       const savedIds = await readSavedIds();
       if (savedIds.length > 0) {
@@ -447,6 +516,7 @@ export function useInboxMessages() {
         setSignupAt(null);
         setSubmissions([]);
         setSavedEvents([]);
+        setCreditTxs([]);
         setLoading(false);
       }
     });
@@ -485,6 +555,16 @@ export function useInboxMessages() {
         // Suppress the self-triggered reload from our own markRead / markAllRead upserts.
         () => { if (Date.now() - lastReadWriteRef.current < 3000) return; load(); },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "credit_transactions",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => { load(); },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -495,6 +575,7 @@ export function useInboxMessages() {
     if (!signedIn) return [];
     const base: InboxMessage[] = submissions.map(submissionToMessage);
     base.push(...buildSavedReminders(savedEvents));
+    base.push(...buildCreditMessages(creditTxs));
     if (signupAt) {
       base.push({
         id: "welcome",
