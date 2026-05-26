@@ -1,3 +1,8 @@
+/// <reference lib="dom" />
+
+// Vercel Edge Runtime exposes process.env at runtime; declare it for TS.
+declare const process: { env: Record<string, string | undefined> };
+
 /**
  * Vercel Edge Middleware — OG tag injection for social/messaging bots.
  *
