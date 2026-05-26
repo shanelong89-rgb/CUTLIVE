@@ -51,7 +51,11 @@ export function useAuth() {
       if (mounted) setLoading(false);
     };
 
-    if (!isRemembered() && !sessionStorage.getItem(SESSION_ACTIVE_KEY)) {
+    // Skip the startup signOut when we're inside a popup window (e.g. Google OAuth callback).
+    // The popup has its own empty sessionStorage so the flag is never set there, and calling
+    // signOut() from the popup would clear the session for the parent window too.
+    const isPopup = window.opener !== null;
+    if (!isPopup && !isRemembered() && !sessionStorage.getItem(SESSION_ACTIVE_KEY)) {
       console.log('[auth] startup signOut — remember-me is false and no session flag');
       supabase.auth.signOut();
     }

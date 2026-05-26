@@ -389,8 +389,11 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
     return () => { cancelled = true; };
   }, []);
 
-  // Reset to page 1 whenever filters change (replace so filter changes don't stack in history)
+  // Reset to page 1 whenever filters change, but NOT on initial mount — that would
+  // overwrite the page number the user was on when they pressed Back.
+  const filterInitRef = useRef(true);
   useEffect(() => {
+    if (filterInitRef.current) { filterInitRef.current = false; return; }
     setSearchParams(p => { const s = new URLSearchParams(p); s.set('page', '1'); return s; }, { replace: true });
   }, [activeTags, activeDateFilter]);
 
