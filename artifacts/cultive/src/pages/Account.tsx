@@ -130,9 +130,9 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     });
   };
 
-  // ── Validated saved count ────────────────────────────────────
-  // Cross-checks local saved IDs against the events table so orphaned IDs
-  // (deleted events still sitting in saved_events) don't inflate the count.
+  // ── Validated saved count (upcoming only) ────────────────────
+  // Cross-checks local saved IDs against the events table, drops orphaned IDs
+  // (deleted events), and excludes past events — count reflects upcoming only.
   useEffect(() => {
     if (!user) { setValidatedSavedCount(null); return; }
     let active = true;
@@ -143,12 +143,19 @@ export function Account({ setIsAuthOpen }: AccountProps) {
         try { localStorage.setItem(SAVED_VALIDATED_KEY, '0'); } catch { /* ignore */ }
         return;
       }
-      const { count } = await supabase
+      const { data } = await supabase
         .from('events')
-        .select('id', { count: 'exact', head: true })
+        .select('id, date, date_end')
         .in('id', savedIds);
       if (!active) return;
-      const n = count ?? 0;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const n = (data ?? []).filter(e => {
+        const raw = e.date_end || e.date;
+        if (!raw) return true;
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+        if (!m) return true;
+        return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) >= today;
+      }).length;
       setValidatedSavedCount(n);
       try { localStorage.setItem(SAVED_VALIDATED_KEY, String(n)); } catch { /* ignore */ }
     })();

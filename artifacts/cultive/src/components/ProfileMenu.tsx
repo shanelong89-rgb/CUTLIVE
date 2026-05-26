@@ -95,20 +95,27 @@ export function ProfileMenu() {
       writeCache(subCacheKey, n);
     })();
 
-    // ── Saved count validation ────────────────────────────────────
+    // ── Saved count validation (upcoming only) ───────────────────
     // Show cached validated count immediately (already seeded in state init).
-    // Then cross-check which saved IDs still exist as real events.
+    // Then cross-check which saved IDs still exist and are not yet past.
     if (ids.length === 0) {
       setValidatedSavedCount(0);
       writeCache(SAVED_VALIDATED_KEY, 0);
     } else {
       (async () => {
-        const { count } = await supabase
+        const { data } = await supabase
           .from('events')
-          .select('id', { count: 'exact', head: true })
+          .select('id, date, date_end')
           .in('id', ids);
         if (!active) return;
-        const n = count ?? 0;
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const n = (data ?? []).filter(e => {
+          const raw = e.date_end || e.date;
+          if (!raw) return true;
+          const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+          if (!m) return true;
+          return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) >= today;
+        }).length;
         setValidatedSavedCount(n);
         writeCache(SAVED_VALIDATED_KEY, n);
       })();
