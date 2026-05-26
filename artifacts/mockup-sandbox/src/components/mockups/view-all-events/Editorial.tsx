@@ -108,7 +108,7 @@ export function Editorial() {
                 <div style={{ fontSize: "0.65rem", fontWeight: 600, color: "#030213", lineHeight: 1.3 }}>{event.date}</div>
                 <div style={{ fontSize: "0.65rem", color: "#717182", marginTop: 2 }}>{event.time}</div>
               </div>
-              <div style={{ width: 72, height: 52, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "#f0f0f0" }}>
+              <div style={{ width: 72, height: 52, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#f0f0f0" }}>
                 <img src={event.image} alt={event.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
