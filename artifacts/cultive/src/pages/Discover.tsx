@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_NORMALIZE } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
 import { formatTime, displayDateRange } from '../lib/utils';
@@ -341,7 +341,12 @@ export function Discover() {
   const [activeDateFilter, setActiveDateFilter] = useState('all');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+  const setCurrentPage = (n: number | ((p: number) => number)) => {
+    const next = typeof n === 'function' ? n(currentPage) : n;
+    setSearchParams(p => { const s = new URLSearchParams(p); s.set('page', String(next)); return s; }, { replace: false });
+  };
 
   // Fetch events from Supabase — stale-while-revalidate:
   // serve cache instantly, then silently refresh in the background.
@@ -361,8 +366,10 @@ export function Discover() {
     return () => { cancelled = true; };
   }, []);
 
-  // Reset to page 1 whenever filters change
-  useEffect(() => { setCurrentPage(1); }, [activeTags, activeDateFilter]);
+  // Reset to page 1 whenever filters change (replace so filter changes don't stack in history)
+  useEffect(() => {
+    setSearchParams(p => { const s = new URLSearchParams(p); s.set('page', '1'); return s; }, { replace: true });
+  }, [activeTags, activeDateFilter]);
 
   const filteredEvents = useMemo(() => {
     let filtered = events;
