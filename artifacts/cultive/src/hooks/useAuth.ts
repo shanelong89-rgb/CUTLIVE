@@ -3,6 +3,7 @@ import { supabase, isAdmin as checkIsAdmin } from '../lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
 
 const REMEMBER_ME_KEY = 'cultive-remember-me';
+const SESSION_ACTIVE_KEY = 'cultive-session-active';
 
 function isRemembered(): boolean {
   try {
@@ -23,6 +24,16 @@ export function useAuth() {
 
     const apply = async (s: Session | null) => {
       if (!mounted) return;
+
+      // Keep the tab-lifetime sessionStorage marker in sync with the session.
+      // This is how "remember me = OFF" knows whether this tab had an active
+      // session before the user closed and reopened the browser.
+      if (s) {
+        sessionStorage.setItem(SESSION_ACTIVE_KEY, '1');
+      } else {
+        sessionStorage.removeItem(SESSION_ACTIVE_KEY);
+      }
+
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
@@ -33,6 +44,22 @@ export function useAuth() {
       }
       if (mounted) setLoading(false);
     };
+
+    // "Remember me = OFF" enforcement — startup check only, no beforeunload.
+    //
+    // How it works: when the user logs in with "remember me" unchecked we store
+    // cultive-remember-me='false' in localStorage AND set a sessionStorage flag
+    // while the tab is alive.  sessionStorage is cleared when the tab/window is
+    // closed but survives refreshes within the same tab.
+    //
+    // So: if "don't remember me" is set AND the sessionStorage flag is gone,
+    // the user must have closed the tab and come back — sign them out now.
+    //
+    // This replaces the old beforeunload approach which was unreliable and broke
+    // Google OAuth by firing signOut() while the browser was navigating to Google.
+    if (!isRemembered() && !sessionStorage.getItem(SESSION_ACTIVE_KEY)) {
+      supabase.auth.signOut();
+    }
 
     supabase.auth.getSession().then(({ data }) => apply(data.session));
 
@@ -53,26 +80,10 @@ export function useAuth() {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Clear the OAuth-in-progress flag when the page finishes loading after a
-    // redirect (the session has already been established by this point).
-    sessionStorage.removeItem('cultive-oauth-pending');
-
-    // If the user chose not to be remembered, sign them out when the tab closes.
-    // Skip this if an OAuth round-trip is in progress — navigating to Google
-    // triggers beforeunload, and calling signOut() here would wipe the PKCE
-    // code verifier that Supabase stored for the session exchange.
-    const handleUnload = () => {
-      if (!isRemembered() && !sessionStorage.getItem('cultive-oauth-pending')) {
-        supabase.auth.signOut();
-      }
-    };
-    window.addEventListener('beforeunload', handleUnload);
-
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleUnload);
     };
   }, []);
 
