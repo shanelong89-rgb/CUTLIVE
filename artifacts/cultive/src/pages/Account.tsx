@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { signOut, supabase } from '../lib/supabase';
+import { signOut, supabase, getUserCredits, getOrCreateReferralCode, type CreditTransaction } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 import { useInbox } from '../contexts/InboxContext';
 
@@ -55,6 +55,10 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     } catch { return null; }
   });
   const [pwResetState, setPwResetState] = useState<'idle' | 'sending' | 'sent' | 'error' | 'rate-limited'>('idle');
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const [creditTx, setCreditTx] = useState<CreditTransaction[]>([]);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralCopied, setReferralCopied] = useState(false);
 
   const handleChangePassword = async () => {
     if (!user?.email || pwResetState === 'sending' || pwResetState === 'sent') return;
@@ -101,6 +105,30 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     })();
     return () => { active = false; };
   }, [user]);
+
+  // ── Credits & referral code ──────────────────────────────────
+  useEffect(() => {
+    if (!user) { setCreditBalance(null); setCreditTx([]); setReferralCode(null); return; }
+    let active = true;
+    (async () => {
+      const [credits, code] = await Promise.all([getUserCredits(), getOrCreateReferralCode()]);
+      if (!active) return;
+      setCreditBalance(credits.balance);
+      setCreditTx(credits.transactions);
+      setReferralCode(code);
+    })();
+    return () => { active = false; };
+  }, [user]);
+
+  const inviteLink = referralCode ? `${window.location.origin}?ref=${referralCode}` : null;
+
+  const handleCopyInvite = () => {
+    if (!inviteLink) return;
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      setReferralCopied(true);
+      setTimeout(() => setReferralCopied(false), 2000);
+    });
+  };
 
   // ── Validated saved count ────────────────────────────────────
   // Cross-checks local saved IDs against the events table so orphaned IDs
@@ -203,12 +231,14 @@ export function Account({ setIsAuthOpen }: AccountProps) {
           <span className="account-stat-label">Submissions</span>
         </div>
         <div className="account-stat-cell">
-          <span className="account-stat-num">0</span>
-          <span className="account-stat-label">Tickets</span>
-        </div>
-        <div className="account-stat-cell">
           <span className="account-stat-num">{displaySavedCount}</span>
           <span className="account-stat-label">Saved</span>
+        </div>
+        <div className="account-stat-cell account-stat-cell--credit">
+          <span className="account-stat-num account-stat-num--credit">
+            {creditBalance === null ? '—' : `HK$${creditBalance}`}
+          </span>
+          <span className="account-stat-label">Credits</span>
         </div>
       </section>
 
@@ -234,6 +264,58 @@ export function Account({ setIsAuthOpen }: AccountProps) {
           </a>
         ))}
       </nav>
+
+      {/* Credits & Rewards */}
+      <div className="account-section-head">
+        <span className="account-section-label">— CREDITS & REWARDS —</span>
+      </div>
+      <div className="account-credit-panel">
+        <div className="account-credit-balance">
+          <span className="account-credit-balance-label">Available Balance</span>
+          <span className="account-credit-balance-amount">
+            HK${creditBalance ?? 0}
+          </span>
+          <span className="account-credit-balance-note">
+            Earn HK$50 per approved submission · HK$25 per invite
+          </span>
+        </div>
+        {creditTx.length > 0 ? (
+          <ul className="account-credit-tx-list">
+            {creditTx.map(tx => (
+              <li key={tx.id} className="account-credit-tx">
+                <span className="account-credit-tx-desc">{tx.description ?? tx.type}</span>
+                <span className={`account-credit-tx-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
+                  {tx.amount >= 0 ? '+' : ''}HK${tx.amount}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="account-credit-empty">
+            No credits yet — submit an event or invite a friend to earn your first HK$50 or HK$25.
+          </p>
+        )}
+      </div>
+
+      {/* Invite a Friend */}
+      <div className="account-section-head">
+        <span className="account-section-label">— INVITE A FRIEND —</span>
+      </div>
+      <div className="account-invite-panel">
+        <p className="account-invite-desc">
+          Share your personal link. When a friend signs up, you both get a head start — you earn <strong>HK$25</strong> in credits the moment they join.
+        </p>
+        {inviteLink ? (
+          <div className="account-invite-link-row">
+            <span className="account-invite-link-text">{inviteLink}</span>
+            <button className="account-invite-copy" onClick={handleCopyInvite}>
+              {referralCopied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        ) : (
+          <p className="account-credit-empty">Generating your invite link…</p>
+        )}
+      </div>
 
       {/* Account meta */}
       <div className="account-section-head">

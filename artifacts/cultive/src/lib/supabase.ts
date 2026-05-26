@@ -456,7 +456,17 @@ export async function approveSubmission(sub: Submission) {
     tags: finalTags,
     submitted_by: sub.submitter_name || null,
   });
-  // 2. Mark submission as approved + link
+  // 2. Award HK$50 credit to the submitter (if they have a user_id)
+  if (sub.user_id) {
+    await supabase.rpc('award_submission_credits', {
+      p_submitter_user_id: sub.user_id,
+      p_submission_id: sub.id,
+    }).then(({ error }) => {
+      if (error) console.warn('Credit award error:', error.message);
+    });
+  }
+
+  // 3. Mark submission as approved + link
   const { data, error } = await supabase
     .from('submissions')
     .update({
@@ -581,4 +591,66 @@ export async function signInWithGoogle() {
 
 export function onAuthStateChange(callback: (event: string, session: any) => void) {
   return supabase.auth.onAuthStateChange(callback);
+}
+
+// ─── Credits & Referrals ─────────────────────────────────────
+
+export type CreditTransaction = {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: 'submission_approved' | 'referral_bonus' | 'manual' | 'redemption';
+  description: string | null;
+  reference_id: string | null;
+  created_at: string;
+};
+
+export async function getUserCredits(): Promise<{
+  balance: number;
+  transactions: CreditTransaction[];
+}> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { balance: 0, transactions: [] };
+
+  const [creditsRes, txRes] = await Promise.all([
+    supabase
+      .from('user_credits')
+      .select('balance')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('credit_transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20),
+  ]);
+
+  return {
+    balance: creditsRes.data?.balance ?? 0,
+    transactions: (txRes.data ?? []) as CreditTransaction[],
+  };
+}
+
+export async function getOrCreateReferralCode(): Promise<string | null> {
+  const { data, error } = await supabase.rpc('get_or_create_referral_code');
+  if (error) { console.warn('Referral code error:', error.message); return null; }
+  return data as string;
+}
+
+export async function applyReferralCode(code: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('apply_referral_code', { p_code: code });
+  if (error) { console.warn('Apply referral error:', error.message); return false; }
+  return !!data;
+}
+
+export async function awardSubmissionCredits(
+  submitterUserId: string,
+  submissionId: string,
+): Promise<void> {
+  const { error } = await supabase.rpc('award_submission_credits', {
+    p_submitter_user_id: submitterUserId,
+    p_submission_id: submissionId,
+  });
+  if (error) console.warn('Credit award error:', error.message);
 }

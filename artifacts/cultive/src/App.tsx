@@ -14,7 +14,10 @@ import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
 import { useInbox } from './contexts/InboxContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { supabase, applyReferralCode } from './lib/supabase';
+
+const REF_CODE_KEY = 'cultive:pending-ref';
 
 // Scroll to top only on forward navigation — browser handles scroll restoration on back/forward
 function ScrollToTop() {
@@ -33,6 +36,33 @@ function App() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
   const { unreadCount } = useInbox();
+  const appliedRef = useRef(false);
+
+  // Capture ?ref=CODE from the URL and persist it until after signup
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      try { localStorage.setItem(REF_CODE_KEY, ref); } catch { /* ignore */ }
+    }
+  }, []);
+
+  // When a new user signs up, apply any pending referral code
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user && !appliedRef.current) {
+        const code = localStorage.getItem(REF_CODE_KEY);
+        if (!code) return;
+        // Only apply if account was created within last 5 minutes (fresh signup)
+        const created = new Date(session.user.created_at).getTime();
+        if (Date.now() - created > 5 * 60 * 1000) return;
+        appliedRef.current = true;
+        await applyReferralCode(code);
+        try { localStorage.removeItem(REF_CODE_KEY); } catch { /* ignore */ }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <div className="app">
@@ -40,7 +70,7 @@ function App() {
       {!isAdminPage && <WebNav setIsAuthOpen={setIsAuthOpen} unreadCount={unreadCount} />}
 
       <Routes>
-        <Route path="/" element={<Discover />} />
+        <Route path="/" element={<Discover setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/event/:id" element={<EventDetail setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/tickets" element={<Tickets />} />
         <Route path="/submit" element={<Submit />} />

@@ -790,6 +790,90 @@ h1, h2, h3 {
   opacity: 0.55;
 }
 
+/* ── Event Gate Wall ─────────────────────────────── */
+.event-gate {
+  position: relative;
+}
+
+.event-gate-blur {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.5;
+}
+
+.event-gate-wall {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.96) 30%, rgba(255,255,255,1) 60%);
+  text-align: center;
+  gap: 10px;
+}
+
+.event-gate-count {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--n-muted);
+  margin: 0;
+}
+
+.event-gate-headline {
+  font-family: var(--font-display, 'Archivo Black', sans-serif);
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--n-fg, #111);
+  margin: 0;
+}
+
+.event-gate-body {
+  font-size: 0.82rem;
+  color: var(--n-muted);
+  max-width: 280px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.event-gate-cta {
+  margin-top: 6px;
+  padding: 13px 28px;
+  background: var(--n-fg, #111);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.event-gate-cta:hover { opacity: 0.8; }
+
+.event-gate-sub {
+  font-size: 0.72rem;
+  color: var(--n-muted);
+  margin: 0;
+}
+
+.event-gate-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: var(--n-fg, #111);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* =====================================================
    MOBILE TAB BAR (Hidden on Desktop)
    ===================================================== */
@@ -1939,6 +2023,139 @@ h1, h2, h3 {
   letter-spacing: 0.24em;
   color: var(--n-muted, #666);
 }
+
+/* Credits stat cell accent */
+.account-stat-num--credit {
+  color: var(--n-fg, #111);
+}
+
+/* ── Credits & Rewards panel ─── */
+.account-credit-panel {
+  padding: 0 0 8px;
+}
+
+.account-credit-balance {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+  background: var(--n-bg-alt, #f8f8f8);
+  border: 1px solid var(--n-border);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.account-credit-balance-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--n-muted);
+}
+
+.account-credit-balance-amount {
+  font-family: var(--font-display, 'Archivo Black', sans-serif);
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--n-fg, #111);
+  letter-spacing: -0.02em;
+}
+
+.account-credit-balance-note {
+  font-size: 0.68rem;
+  color: var(--n-muted);
+  line-height: 1.4;
+}
+
+.account-credit-tx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.account-credit-tx {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--n-border);
+  font-size: 0.78rem;
+}
+
+.account-credit-tx-desc {
+  color: var(--n-fg, #111);
+  flex: 1;
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.account-credit-tx-amount {
+  font-weight: 700;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.account-credit-tx-amount.positive { color: #16a34a; }
+.account-credit-tx-amount.negative { color: #b91c1c; }
+
+.account-credit-empty {
+  font-size: 0.78rem;
+  color: var(--n-muted);
+  line-height: 1.5;
+  padding: 4px 0;
+  margin: 0;
+}
+
+/* ── Invite panel ─── */
+.account-invite-panel {
+  padding: 0 0 8px;
+}
+
+.account-invite-desc {
+  font-size: 0.82rem;
+  color: var(--n-secondary, #444);
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+.account-invite-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--n-bg-alt, #f8f8f8);
+  border: 1px solid var(--n-border);
+  border-radius: 4px;
+}
+
+.account-invite-link-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-family: 'Courier New', monospace;
+  color: var(--n-fg, #111);
+}
+
+.account-invite-copy {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  background: var(--n-fg, #111);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.account-invite-copy:hover { opacity: 0.75; }
 
 /* Signed-out state */
 .account-signed-out {

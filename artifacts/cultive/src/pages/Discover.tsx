@@ -3,6 +3,9 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_NORMALIZE } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
 import { formatTime, displayDateRange } from '../lib/utils';
+import { useAuth } from '../hooks/useAuth';
+
+const FREE_EVENT_LIMIT = 10;
 
 // Converts any common time string to minutes since midnight for sorting.
 // Unknown / missing times sort last within their day (return Infinity).
@@ -336,7 +339,8 @@ function scrollToTop() {
   document.body.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-export function Discover() {
+export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) => void }) {
+  const { user } = useAuth();
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [activeDateFilter, setActiveDateFilter] = useState('all');
   const [events, setEvents] = useState<Event[]>([]);
@@ -545,32 +549,46 @@ export function Discover() {
       {/* Event List - Editorial Grid */}
       <div className="event-list">
         {loading ? (
-          <div style={{ 
-            padding: '48px 5vw', 
-            textAlign: 'center',
-            color: 'var(--n-muted)',
-            fontSize: '0.9rem'
-          }}>
+          <div style={{ padding: '48px 5vw', textAlign: 'center', color: 'var(--n-muted)', fontSize: '0.9rem' }}>
             Loading events...
           </div>
         ) : pagedEvents.length > 0 ? (
-          pagedEvents.map(({ e, isPast }) => (
-            <EventRow key={e.id} event={e} isPast={isPast} />
-          ))
+          <>
+            {(user ? pagedEvents : pagedEvents.slice(0, FREE_EVENT_LIMIT)).map(({ e, isPast }) => (
+              <EventRow key={e.id} event={e} isPast={isPast} />
+            ))}
+            {!user && filteredEvents.length > FREE_EVENT_LIMIT && (
+              <div className="event-gate">
+                <div className="event-gate-blur">
+                  {pagedEvents.slice(FREE_EVENT_LIMIT, FREE_EVENT_LIMIT + 3).map(({ e, isPast }) => (
+                    <EventRow key={e.id} event={e} isPast={isPast} />
+                  ))}
+                </div>
+                <div className="event-gate-wall">
+                  <p className="event-gate-count">
+                    +{filteredEvents.length - FREE_EVENT_LIMIT} more events
+                  </p>
+                  <h3 className="event-gate-headline">Join CULTIVE to see everything</h3>
+                  <p className="event-gate-body">
+                    Free to join. See all events, save favourites, and submit your own.
+                  </p>
+                  <button className="event-gate-cta" onClick={() => setIsAuthOpen?.(true)}>
+                    Sign Up — It's Free
+                  </button>
+                  <p className="event-gate-sub">Already a member? <button className="event-gate-link" onClick={() => setIsAuthOpen?.(true)}>Sign in</button></p>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
-          <div style={{ 
-            padding: '48px 5vw', 
-            textAlign: 'center',
-            color: 'var(--n-muted)',
-            fontSize: '0.9rem'
-          }}>
+          <div style={{ padding: '48px 5vw', textAlign: 'center', color: 'var(--n-muted)', fontSize: '0.9rem' }}>
             No events found for this filter.
           </div>
         )}
       </div>
 
-      {/* Pagination */}
-      {!loading && totalPages > 1 && (
+      {/* Pagination — hidden for guests (they only see first 10) */}
+      {!loading && totalPages > 1 && !!user && (
         <div style={{
           display: 'flex',
           alignItems: 'center',
