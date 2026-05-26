@@ -1,14 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn, signInWithGoogle, signUp } from '../lib/supabase';
 
 const REMEMBER_ME_KEY = 'cultive-remember-me';
+const INVITE_BANNER_KEY = 'cultive:invite-banner';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+function hasInvitePending(): boolean {
+  try { return sessionStorage.getItem(INVITE_BANNER_KEY) === '1'; } catch { return false; }
+}
+
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const isInvite = hasInvitePending();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,6 +22,13 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  // Switch to Sign Up tab when the modal opens with an invite pending.
+  // We can't rely on useState's initial value because the modal mounts
+  // before the sessionStorage flag is written (effects run after render).
+  useEffect(() => {
+    if (isOpen && hasInvitePending()) setMode('signup');
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -53,6 +66,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <h2>{mode === 'login' ? 'Welcome Back' : 'Join CULTIVE'}</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
+
+        {isInvite && (
+          <div className="auth-invite-notice">
+            You were invited — sign up and <strong>you both get HK$25 credit</strong>
+          </div>
+        )}
 
         <div className="auth-tabs">
           <button

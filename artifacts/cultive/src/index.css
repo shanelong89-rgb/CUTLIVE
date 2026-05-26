@@ -1523,6 +1523,20 @@ h1, h2, h3 {
 }
 
 /* Auth */
+.auth-invite-notice {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 0.82rem;
+  color: #166534;
+  line-height: 1.4;
+}
+.auth-invite-notice strong {
+  color: #15803d;
+}
+
 .auth-tabs {
   display: flex;
   gap: 8px;
