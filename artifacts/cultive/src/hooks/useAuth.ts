@@ -53,9 +53,16 @@ export function useAuth() {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // Clear the OAuth-in-progress flag when the page finishes loading after a
+    // redirect (the session has already been established by this point).
+    sessionStorage.removeItem('cultive-oauth-pending');
+
     // If the user chose not to be remembered, sign them out when the tab closes.
+    // Skip this if an OAuth round-trip is in progress — navigating to Google
+    // triggers beforeunload, and calling signOut() here would wipe the PKCE
+    // code verifier that Supabase stored for the session exchange.
     const handleUnload = () => {
-      if (!isRemembered()) {
+      if (!isRemembered() && !sessionStorage.getItem('cultive-oauth-pending')) {
         supabase.auth.signOut();
       }
     };

@@ -580,13 +580,24 @@ export async function signOut() {
 }
 
 export async function signInWithGoogle() {
+  // Mark that an OAuth round-trip is starting. The beforeunload handler checks
+  // this flag so it doesn't call signOut() (and wipe the PKCE code verifier)
+  // while the browser is navigating to Google.
+  sessionStorage.setItem('cultive-oauth-pending', '1');
+  // Google OAuth always means "keep me logged in" — reset any prior
+  // "don't remember me" flag so the beforeunload handler stays quiet.
+  try { localStorage.setItem('cultive-remember-me', 'true'); } catch { /* ignore */ }
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: window.location.origin,
     },
   });
-  if (error) throw error;
+  if (error) {
+    sessionStorage.removeItem('cultive-oauth-pending');
+    throw error;
+  }
 }
 
 export function onAuthStateChange(callback: (event: string, session: any) => void) {
