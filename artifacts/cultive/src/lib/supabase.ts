@@ -588,11 +588,11 @@ export async function signInWithGoogle() {
   // "don't remember me" flag so the beforeunload handler stays quiet.
   try { localStorage.setItem('cultive-remember-me', 'true'); } catch { /* ignore */ }
 
-  // Use origin + Vite's BASE_URL so the redirect lands on the correct
-  // sub-path in every environment:
-  //   Replit dev  → https://xxx.replit.dev/[base-path]/
-  //   Vercel prod → https://cultive.city/
-  const redirectTo = window.location.origin + (import.meta.env.BASE_URL ?? '/');
+  // Use window.location.origin (no trailing slash) so it matches exactly
+  // the entries in the Supabase allow-list. The SPA rewrite handles any
+  // path after the domain, so root is always the correct landing point.
+  const redirectTo = window.location.origin;
+  console.log('[auth] signInWithGoogle — redirectTo:', redirectTo);
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',

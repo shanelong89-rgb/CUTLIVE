@@ -22,12 +22,18 @@ export function useAuth() {
   useEffect(() => {
     let mounted = true;
 
+    // ── DEBUG ─────────────────────────────────────────────────
+    const rememberVal = localStorage.getItem(REMEMBER_ME_KEY);
+    const sessionFlag = sessionStorage.getItem(SESSION_ACTIVE_KEY);
+    console.log('[auth] startup — cultive-remember-me:', rememberVal,
+      '| cultive-session-active:', sessionFlag,
+      '| URL:', window.location.href);
+    // ─────────────────────────────────────────────────────────
+
     const apply = async (s: Session | null) => {
       if (!mounted) return;
+      console.log('[auth] apply — session:', s ? `user=${s.user.email}` : 'null');
 
-      // Keep the tab-lifetime sessionStorage marker in sync with the session.
-      // This is how "remember me = OFF" knows whether this tab had an active
-      // session before the user closed and reopened the browser.
       if (s) {
         sessionStorage.setItem(SESSION_ACTIVE_KEY, '1');
       } else {
@@ -45,32 +51,21 @@ export function useAuth() {
       if (mounted) setLoading(false);
     };
 
-    // "Remember me = OFF" enforcement — startup check only, no beforeunload.
-    //
-    // How it works: when the user logs in with "remember me" unchecked we store
-    // cultive-remember-me='false' in localStorage AND set a sessionStorage flag
-    // while the tab is alive.  sessionStorage is cleared when the tab/window is
-    // closed but survives refreshes within the same tab.
-    //
-    // So: if "don't remember me" is set AND the sessionStorage flag is gone,
-    // the user must have closed the tab and come back — sign them out now.
-    //
-    // This replaces the old beforeunload approach which was unreliable and broke
-    // Google OAuth by firing signOut() while the browser was navigating to Google.
     if (!isRemembered() && !sessionStorage.getItem(SESSION_ACTIVE_KEY)) {
+      console.log('[auth] startup signOut — remember-me is false and no session flag');
       supabase.auth.signOut();
     }
 
-    supabase.auth.getSession().then(({ data }) => apply(data.session));
+    supabase.auth.getSession().then(({ data }) => {
+      console.log('[auth] getSession returned:', data.session ? `user=${data.session.user.email}` : 'null');
+      apply(data.session);
+    });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((evt, s) => {
+      console.log('[auth] onAuthStateChange —', evt, s ? `user=${s.user.email}` : 'null');
       apply(s);
     });
 
-    // Mobile Safari throttles timers when the tab is backgrounded, so the
-    // auto-refresh token timer never fires while the user is in another app.
-    // When they return, force a session refresh immediately so they stay
-    // logged in instead of seeing the sign-in screen.
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         supabase.auth.getSession().then(({ data }) => {
