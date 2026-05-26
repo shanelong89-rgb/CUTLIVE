@@ -109,6 +109,21 @@ export function Account({ setIsAuthOpen }: AccountProps) {
   // ── Credits & referral code ──────────────────────────────────
   useEffect(() => {
     if (!user) { setCreditBalance(null); setCreditTx([]); setReferralCode(null); return; }
+
+    const balKey  = `cultive:credit-balance:${user.id}`;
+    const txKey   = `cultive:credit-tx:${user.id}`;
+    const codeKey = `cultive:referral-code:${user.id}`;
+
+    // Seed from cache immediately so the UI renders with real numbers on return visits.
+    try {
+      const cachedBal  = localStorage.getItem(balKey);
+      const cachedTx   = localStorage.getItem(txKey);
+      const cachedCode = localStorage.getItem(codeKey);
+      if (cachedBal  !== null) setCreditBalance(Number(cachedBal));
+      if (cachedTx)             setCreditTx(JSON.parse(cachedTx));
+      if (cachedCode)           setReferralCode(cachedCode);
+    } catch { /* ignore */ }
+
     let active = true;
     (async () => {
       const [credits, code] = await Promise.all([getUserCredits(), getOrCreateReferralCode()]);
@@ -116,6 +131,11 @@ export function Account({ setIsAuthOpen }: AccountProps) {
       setCreditBalance(credits.balance);
       setCreditTx(credits.transactions);
       setReferralCode(code);
+      try {
+        localStorage.setItem(balKey,  String(credits.balance));
+        localStorage.setItem(txKey,   JSON.stringify(credits.transactions));
+        if (code) localStorage.setItem(codeKey, code);
+      } catch { /* ignore */ }
     })();
     return () => { active = false; };
   }, [user]);

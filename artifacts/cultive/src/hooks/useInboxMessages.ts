@@ -427,7 +427,6 @@ export function useInboxMessages() {
   const loadRef = useRef<() => Promise<void>>(async () => {});
 
   const load = useCallback(async () => {
-    setLoading(true);
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData?.session?.user;
     if (!user) {
@@ -443,11 +442,44 @@ export function useInboxMessages() {
     setUserId(user.id);
     setSignupAt(user.created_at || null);
 
-    const [remoteKeys, subs, txs] = await Promise.all([
-      listReadItemKeysRemote(),
+    const subsKey = `cultive:inbox-subs:${user.id}`;
+    const txsKey  = `cultive:inbox-txs:${user.id}`;
+
+    // ── Serve from cache immediately so messages appear without any wait ──
+    let seededFromCache = false;
+    try {
+      const cachedSubs = localStorage.getItem(subsKey);
+      const cachedTxs  = localStorage.getItem(txsKey);
+      if (cachedSubs || cachedTxs) {
+        if (cachedSubs) setSubmissions(JSON.parse(cachedSubs));
+        if (cachedTxs)  setCreditTxs(JSON.parse(cachedTxs));
+        setLoading(false);
+        seededFromCache = true;
+      }
+    } catch { /* ignore */ }
+
+    if (!seededFromCache) setLoading(true);
+
+    // ── Fetch everything in parallel, including saved events ─────────────
+    const savedIds = readSavedIds();
+    const [subs, txs, savedResult] = await Promise.all([
       getMySubmissions().catch(() => [] as Submission[]),
       getCreditTransactions().catch(() => [] as CreditTransaction[]),
+      savedIds.length > 0
+        ? supabase.from('events').select('*').in('id', savedIds).then(r => (r.data || []) as Event[])
+        : Promise.resolve([] as Event[]),
     ]);
+
+    setSubmissions(subs);
+    setCreditTxs(txs);
+    setSavedEvents(savedResult);
+    setLoading(false);
+
+    // Persist to cache for next visit
+    try {
+      localStorage.setItem(subsKey, JSON.stringify(subs));
+      localStorage.setItem(txsKey,  JSON.stringify(txs));
+    } catch { /* ignore */ }
 
     // ── Status-change unread tracking ──────────────────────────────────────
     // Load the last known status for each submission from localStorage.
@@ -457,9 +489,6 @@ export function useInboxMessages() {
     // other devices don't pull them back as "read".
     const lastStatuses = readSubmissionStatuses();
     const currentReadIds = readReadIds();
-
-    // Merge remote read keys into local so read state syncs across devices.
-    for (const k of remoteKeys) currentReadIds.add(k);
 
     const newStatuses: Record<string, string> = {};
     const keysToUnread: string[] = [];
@@ -499,25 +528,17 @@ export function useInboxMessages() {
     }
     // ───────────────────────────────────────────────────────────────────────
 
-    setSubmissions(subs);
-    setCreditTxs(txs);
-    try {
-      const savedIds = readSavedIds();
-      if (savedIds.length > 0) {
-        // Query only the IDs that still exist in the DB — validates local list
-        // against the backend and naturally drops any orphaned IDs.
-        const { data } = await supabase
-          .from('events')
-          .select('*')
-          .in('id', savedIds);
-        setSavedEvents((data || []) as Event[]);
-      } else {
-        setSavedEvents([]);
-      }
-    } catch {
-      setSavedEvents([]);
-    }
-    setLoading(false);
+    // ── Sync remote read state in background (non-blocking) ──────────────
+    // We already rendered with local read state — merge remote keys quietly.
+    listReadItemKeysRemote().then((remoteKeys) => {
+      if (remoteKeys.length === 0) return;
+      setReadIds((prev) => {
+        const merged = new Set(prev);
+        for (const k of remoteKeys) merged.add(k);
+        return merged;
+      });
+    }).catch(() => {});
+    // ─────────────────────────────────────────────────────────────────────
   }, []);
 
   const refreshSaved = useCallback(async () => {
