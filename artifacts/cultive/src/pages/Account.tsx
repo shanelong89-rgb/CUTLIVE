@@ -130,6 +130,27 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     });
   };
 
+  const shareViaWhatsApp = () => {
+    if (!inviteLink) return;
+    const msg = encodeURIComponent(
+      `been using CULTIVE to find events in HK — actually curated, no algorithm noise. sign up through my link and we both get HK$25 credit: ${inviteLink}`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank', 'noopener');
+  };
+
+  const shareViaFacebook = () => {
+    if (!inviteLink) return;
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(inviteLink)}`,
+      '_blank',
+      'noopener,width=600,height=400',
+    );
+  };
+
+  const inviteTx = creditTx.filter(tx => tx.type === 'referral_bonus');
+  const friendsJoined = inviteTx.length;
+  const creditsFromInvites = inviteTx.reduce((sum, tx) => sum + tx.amount, 0);
+
   // ── Validated saved count (upcoming only) ────────────────────
   // Cross-checks local saved IDs against the events table, drops orphaned IDs
   // (deleted events), and excludes past events — count reflects upcoming only.
@@ -310,15 +331,43 @@ export function Account({ setIsAuthOpen }: AccountProps) {
       </div>
       <div className="account-invite-panel">
         <p className="account-invite-desc">
-          Share your personal link. When a friend signs up, you both get a head start — you earn <strong>HK$25</strong> in credits the moment they join.
+          Share your personal link. When a friend signs up, you both get a head start — you <strong>both earn HK$25</strong> in credits the moment they join.
         </p>
-        {inviteLink ? (
-          <div className="account-invite-link-row">
-            <span className="account-invite-link-text">{inviteLink}</span>
-            <button className="account-invite-copy" onClick={handleCopyInvite}>
-              {referralCopied ? 'Copied!' : 'Copy'}
-            </button>
+
+        {friendsJoined > 0 && (
+          <div className="account-invite-stats">
+            <div className="account-invite-stat">
+              <span className="account-invite-stat-num">{friendsJoined}</span>
+              <span className="account-invite-stat-label">friend{friendsJoined !== 1 ? 's' : ''} joined</span>
+            </div>
+            <div className="account-invite-stat-divider" />
+            <div className="account-invite-stat">
+              <span className="account-invite-stat-num">HK${creditsFromInvites}</span>
+              <span className="account-invite-stat-label">earned from invites</span>
+            </div>
           </div>
+        )}
+
+        {inviteLink ? (
+          <>
+            <div className="account-invite-link-row">
+              <span className="account-invite-link-text">{inviteLink}</span>
+              <button className="account-invite-copy" onClick={handleCopyInvite}>
+                {referralCopied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <div className="account-invite-share-row">
+              <button className="account-invite-share-btn account-invite-share-btn--wa" onClick={shareViaWhatsApp}>
+                WhatsApp
+              </button>
+              <button className="account-invite-share-btn account-invite-share-btn--fb" onClick={shareViaFacebook}>
+                Facebook
+              </button>
+              <button className="account-invite-share-btn account-invite-share-btn--copy" onClick={handleCopyInvite}>
+                {referralCopied ? 'Copied!' : 'Copy Link'}
+              </button>
+            </div>
+          </>
         ) : (
           <p className="account-credit-empty">Generating your invite link…</p>
         )}

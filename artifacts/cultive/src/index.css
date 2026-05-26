@@ -2157,6 +2157,143 @@ h1, h2, h3 {
 }
 .account-invite-copy:hover { opacity: 0.75; }
 
+/* Invite share row */
+.account-invite-share-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.account-invite-share-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.account-invite-share-btn:hover { opacity: 0.82; }
+
+.account-invite-share-btn--wa {
+  background: #25d366;
+  color: #fff;
+}
+.account-invite-share-btn--fb {
+  background: #1877f2;
+  color: #fff;
+}
+.account-invite-share-btn--copy {
+  background: var(--n-bg-alt, #f0f0f0);
+  color: var(--n-fg, #111);
+  border: 1px solid var(--n-border);
+}
+
+/* Invite stats panel */
+.account-invite-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 14px 16px;
+  background: var(--n-bg-alt, #f8f8f8);
+  border: 1px solid var(--n-border);
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+
+.account-invite-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.account-invite-stat-num {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--n-fg, #111);
+  letter-spacing: -0.02em;
+}
+
+.account-invite-stat-label {
+  font-size: 0.67rem;
+  color: var(--n-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.account-invite-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--n-border);
+  flex-shrink: 0;
+}
+
+/* ── Invite banner (shown when user lands via invite link) ── */
+.invite-banner {
+  background: var(--n-fg, #111);
+  color: #fff;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.invite-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 10px 16px;
+}
+
+.invite-banner-text {
+  flex: 1;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.9);
+}
+.invite-banner-text strong {
+  color: #fff;
+}
+
+.invite-banner-cta {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  background: #fff;
+  color: #111;
+  border: none;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.invite-banner-cta:hover { opacity: 0.85; }
+
+.invite-banner-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+.invite-banner-dismiss:hover { color: #fff; }
+
 /* Signed-out state */
 .account-signed-out {
   text-align: center;

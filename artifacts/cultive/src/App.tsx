@@ -19,8 +19,8 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase, applyReferralCode } from './lib/supabase';
 
 const REF_CODE_KEY = 'cultive:pending-ref';
+const INVITE_BANNER_KEY = 'cultive:invite-banner';
 
-// Scroll to top only on forward navigation — browser handles scroll restoration on back/forward
 function ScrollToTop() {
   const { pathname } = useLocation();
   const navType = useNavigationType();
@@ -32,21 +32,74 @@ function ScrollToTop() {
   return null;
 }
 
+function InviteBanner({ onSignUp }: { onSignUp: () => void }) {
+  const { user } = useAuth();
+  const [visible, setVisible] = useState(() => {
+    try { return sessionStorage.getItem(INVITE_BANNER_KEY) === '1'; } catch { return false; }
+  });
+
+  useEffect(() => {
+    if (user) {
+      setVisible(false);
+      try { sessionStorage.removeItem(INVITE_BANNER_KEY); } catch { /* ignore */ }
+    }
+  }, [user]);
+
+  if (!visible || user) return null;
+
+  return (
+    <div className="invite-banner">
+      <div className="invite-banner-inner">
+        <span className="invite-banner-text">
+          You were invited to CULTIVE — sign up and you <strong>both get HK$25 credit</strong>
+        </span>
+        <button className="invite-banner-cta" onClick={onSignUp}>Sign Up</button>
+        <button
+          className="invite-banner-dismiss"
+          onClick={() => {
+            setVisible(false);
+            try { sessionStorage.removeItem(INVITE_BANNER_KEY); } catch { /* ignore */ }
+          }}
+          aria-label="Dismiss"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
   const { unreadCount } = useInbox();
+  const { user, loading } = useAuth();
   const appliedRef = useRef(false);
+  const autoOpenedRef = useRef(false);
 
-  // Capture ?ref=CODE from the URL and persist it until after signup
+  // Capture ?ref=CODE, set the invite banner flag, and open the auth modal
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref) {
       try { localStorage.setItem(REF_CODE_KEY, ref); } catch { /* ignore */ }
+      try { sessionStorage.setItem(INVITE_BANNER_KEY, '1'); } catch { /* ignore */ }
     }
   }, []);
+
+  // Once auth has resolved: if user is not signed in and came via invite, open the modal once
+  useEffect(() => {
+    if (loading || user || autoOpenedRef.current) return;
+    const hasInvite = (() => {
+      try { return sessionStorage.getItem(INVITE_BANNER_KEY) === '1'; } catch { return false; }
+    })();
+    if (hasInvite) {
+      autoOpenedRef.current = true;
+      const t = setTimeout(() => setIsAuthOpen(true), 700);
+      return () => clearTimeout(t);
+    }
+  }, [loading, user]);
 
   // When a new user signs up, apply any pending referral code
   useEffect(() => {
@@ -54,7 +107,6 @@ function App() {
       if (event === 'SIGNED_IN' && session?.user && !appliedRef.current) {
         const code = localStorage.getItem(REF_CODE_KEY);
         if (!code) return;
-        // Only apply if account was created within last 5 minutes (fresh signup)
         const created = new Date(session.user.created_at).getTime();
         if (Date.now() - created > 5 * 60 * 1000) return;
         appliedRef.current = true;
@@ -69,6 +121,7 @@ function App() {
     <div className="app">
       <ScrollToTop />
       {!isAdminPage && <WebNav setIsAuthOpen={setIsAuthOpen} unreadCount={unreadCount} />}
+      {!isAdminPage && <InviteBanner onSignUp={() => setIsAuthOpen(true)} />}
 
       <Routes>
         <Route path="/" element={<Discover setIsAuthOpen={setIsAuthOpen} />} />
@@ -91,7 +144,6 @@ function App() {
   );
 }
 
-// Web Navigation Component
 function WebNav({
   setIsAuthOpen,
   unreadCount,
