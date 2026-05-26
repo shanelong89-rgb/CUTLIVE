@@ -1,0 +1,25 @@
+[DeepSeek V4 Flash] Great question! That's a frontend / platform-level thing, specifically related to how the page's metadata is structured for Open Graph (OG) tags.
+
+When you share a link on Telegram, WhatsApp, Twitter, Discord, etc., those platforms fetch the page and read the OG meta tags in the <head> to generate the preview card (title, description, thumbnail).
+
+So for your CULTIVE site, different pages need different OG tags:
+
+1. Event pages (/event/some-slug) — should show the event title, date, and the event's flyer image
+2. Invite pages (/join/invite-code) — should show "You've been invited to CULTIVE" with appropriate branding
+3. Home page — should show the general site tagline and logo
+
+It's handled in the frontend — specifically in your React app's route/page components, where you inject meta tags using something like react-helmet-async or Vite's built-in meta handling.
+
+But there's a catch: since CULTIVE is a client-side rendered SPA, the initial HTML served by Vite doesn't contain the dynamic page-specific OG tags — it's all JavaScript that renders after the page loads. Many scrapers (Telegram, Twitter, Discord, WhatsApp) don't execute JavaScript, so they'll just see the generic fallback OG tags from index.html.
+
+Solutions (from simplest to most involved):
+
+1. Vite Plugin (lightweight): Use vite-plugin-ssr or a prerendering plugin that generates static HTML for each page. Works well for sites with not-thousands of pages.
+
+2. Server-Side Rendering (SSR): Switch to a framework like Next.js or Remix, or add a lightweight SSR layer with Express + @vitejs/plugin-react that renders OG tags server-side.
+
+3. Cloudflare Workers / Edge function: For each incoming link preview request, detect the user-agent (TelegramBot, TwitterBot etc.), fetch the page data from Supabase, and return a custom HTML snippet with the right OG tags. This is what many production sites do without full SSR.
+
+4. Hybrid — Static OG image generation: Use a service like @vercel/og or satori to dynamically generate OG images as PNGs. This is often combined with #3.
+
+What would you like to check first? I can look at your current index.html to see what OG tags are already set there, and also look at how your routing is set up to figure out the most pragmatic path forward.
