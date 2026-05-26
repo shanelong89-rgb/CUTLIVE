@@ -4,14 +4,26 @@ import { mockEvents } from '../data/events';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://example.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'dummy-key';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storageKey: 'cultive-auth',
-  },
-});
+// Singleton pattern: re-use the same client instance across HMR hot-reloads.
+// Without this, Vite re-evaluating the module creates a second GoTrueClient
+// that fights over the same auth storage, producing "Multiple GoTrueClient
+// instances" warnings and unpredictable auth state on page navigation.
+const _WIN_KEY = '__cultive_supabase__';
+type WinWithClient = Window & { [_WIN_KEY]?: ReturnType<typeof createClient> };
+export const supabase: ReturnType<typeof createClient> =
+  (window as WinWithClient)[_WIN_KEY] ??
+  (() => {
+    const client = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'cultive-auth',
+      },
+    });
+    (window as WinWithClient)[_WIN_KEY] = client;
+    return client;
+  })();
 
 export type Event = {
   id: string;
@@ -63,6 +75,16 @@ export type Submission = {
   reviewed_at?: string | null;
   published_event_id?: string | null;
 };
+
+// ─── Fast auth helper ─────────────────────────────────────────
+// getUser() validates the JWT with the Supabase server on every call (~150–300 ms).
+// getSession() reads the already-verified session from memory/localStorage in ~0 ms.
+// Supabase RLS validates the JWT server-side for every query regardless, so using
+// the local session for filter-clause user IDs is equally safe and far faster.
+async function getSessionUser() {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user ?? null;
+}
 
 // ─── Events cache ─────────────────────────────────────────────
 // Two layers: module-level memory (fastest, resets on page refresh) +
@@ -200,7 +222,7 @@ export async function submitInstagramLink(
   const sourceId = extractInstagramPostId(instagramUrl);
   // Always resolve the authenticated user so user_id is never omitted when
   // the caller forgets to pass it (e.g. the admin quick-submit path).
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   const resolvedUserId = userId ?? user?.id ?? null;
   const row = {
     id: genId('sub'),
@@ -223,7 +245,7 @@ export async function submitInstagramLink(
 }
 
 export async function submitEvent(input: SubmissionInput) {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   const row = {
     id: genId('sub'),
     status: 'pending' as const,
@@ -251,7 +273,7 @@ export async function submitEvent(input: SubmissionInput) {
 // set up yet (returns [] / swallows errors) so the local-only experience
 // keeps working.
 export async function listSavedEventIdsRemote(): Promise<string[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return [];
   const { data, error } = await supabase
     .from('saved_events')
@@ -262,7 +284,7 @@ export async function listSavedEventIdsRemote(): Promise<string[]> {
 }
 
 export async function addSavedEventRemote(eventId: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return;
   await supabase
     .from('saved_events')
@@ -273,7 +295,7 @@ export async function addSavedEventRemote(eventId: string): Promise<void> {
 }
 
 export async function removeSavedEventRemote(eventId: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return;
   await supabase
     .from('saved_events')
@@ -285,7 +307,7 @@ export async function removeSavedEventRemote(eventId: string): Promise<void> {
 // ─── Inbox read state (cross-device sync) ────────────────────
 export async function listReadItemKeysRemote(): Promise<string[]> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getSessionUser();
     if (!user) return [];
     const { data, error } = await supabase
       .from('user_read_items')
@@ -301,7 +323,7 @@ export async function listReadItemKeysRemote(): Promise<string[]> {
 export async function markReadItemsRemote(keys: string[]): Promise<void> {
   if (!keys.length) return;
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getSessionUser();
     if (!user) return;
     await supabase
       .from('user_read_items')
@@ -317,7 +339,7 @@ export async function markReadItemsRemote(keys: string[]): Promise<void> {
 export async function deleteReadItemsRemote(keys: string[]): Promise<void> {
   if (!keys.length) return;
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getSessionUser();
     if (!user) return;
     await supabase
       .from('user_read_items')
@@ -380,8 +402,7 @@ export async function deleteEvent(id: string) {
 
 // ─── User-facing: my submissions (for inbox) ─────────────────
 export async function getMySubmissions(): Promise<Submission[]> {
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData?.user;
+  const user = await getSessionUser();
   if (!user) return [];
   // Match by user_id (for submissions made while signed in) OR submitter_email
   // (for submissions made before user_id was saved, or from older app versions).
@@ -545,7 +566,7 @@ export async function sendSubmissionPushNotification(opts: {
 const ADMIN_EMAILS = ['shanelong89@gmail.com', 'shanelong@gmail.com'];
 
 export async function isAdmin(): Promise<boolean> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
     return true;
   }
@@ -636,7 +657,7 @@ export type CreditTransaction = {
 };
 
 export async function getCreditTransactions(): Promise<CreditTransaction[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return [];
   const { data } = await supabase
     .from('credit_transactions')
@@ -651,7 +672,7 @@ export async function getUserCredits(): Promise<{
   balance: number;
   transactions: CreditTransaction[];
 }> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { balance: 0, transactions: [] };
 
   const [creditsRes, txRes] = await Promise.all([
