@@ -90,15 +90,14 @@ function App() {
 
   // Once auth has resolved: if user is not signed in and came via invite, open the modal once
   useEffect(() => {
-    if (loading || user || autoOpenedRef.current) return;
+    if (loading || user || autoOpenedRef.current) return undefined;
     const hasInvite = (() => {
       try { return sessionStorage.getItem(INVITE_BANNER_KEY) === '1'; } catch { return false; }
     })();
-    if (hasInvite) {
-      autoOpenedRef.current = true;
-      const t = setTimeout(() => setIsAuthOpen(true), 700);
-      return () => clearTimeout(t);
-    }
+    if (!hasInvite) return undefined;
+    autoOpenedRef.current = true;
+    const t = setTimeout(() => setIsAuthOpen(true), 700);
+    return () => clearTimeout(t);
   }, [loading, user]);
 
   // When a new user signs up, apply any pending referral code
