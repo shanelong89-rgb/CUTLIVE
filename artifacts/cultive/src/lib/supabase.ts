@@ -588,11 +588,15 @@ export async function signInWithGoogle() {
   // "don't remember me" flag so the beforeunload handler stays quiet.
   try { localStorage.setItem('cultive-remember-me', 'true'); } catch { /* ignore */ }
 
+  // Use origin + Vite's BASE_URL so the redirect lands on the correct
+  // sub-path in every environment:
+  //   Replit dev  → https://xxx.replit.dev/[base-path]/
+  //   Vercel prod → https://cultive.city/
+  const redirectTo = window.location.origin + (import.meta.env.BASE_URL ?? '/');
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      redirectTo: window.location.origin,
-    },
+    options: { redirectTo },
   });
   if (error) {
     sessionStorage.removeItem('cultive-oauth-pending');
