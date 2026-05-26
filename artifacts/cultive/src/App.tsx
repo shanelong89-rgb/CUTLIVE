@@ -10,6 +10,7 @@ import { Admin } from './pages/Admin';
 import { Saved } from './pages/Saved';
 import { ResetPassword } from './pages/ResetPassword';
 import { MySubmissions } from './pages/MySubmissions';
+import { AuthCallback } from './pages/AuthCallback';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
@@ -77,6 +78,7 @@ function App() {
         <Route path="/inbox" element={<Inbox />} />
         <Route path="/saved" element={<Saved />} />
         <Route path="/account" element={<Account setIsAuthOpen={setIsAuthOpen} />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/my-submissions" element={<MySubmissions />} />
         <Route path="/admin/*" element={<Admin />} />

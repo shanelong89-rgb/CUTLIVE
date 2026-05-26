@@ -580,28 +580,43 @@ export async function signOut() {
 }
 
 export async function signInWithGoogle() {
-  // Mark that an OAuth round-trip is starting. The beforeunload handler checks
-  // this flag so it doesn't call signOut() (and wipe the PKCE code verifier)
-  // while the browser is navigating to Google.
-  sessionStorage.setItem('cultive-oauth-pending', '1');
-  // Google OAuth always means "keep me logged in" — reset any prior
-  // "don't remember me" flag so the beforeunload handler stays quiet.
   try { localStorage.setItem('cultive-remember-me', 'true'); } catch { /* ignore */ }
 
-  // Use window.location.origin (no trailing slash) so it matches exactly
-  // the entries in the Supabase allow-list. The SPA rewrite handles any
-  // path after the domain, so root is always the correct landing point.
-  const redirectTo = window.location.origin;
-  console.log('[auth] signInWithGoogle — redirectTo:', redirectTo);
+  // Point the popup back to our lightweight callback page, which just
+  // processes the session exchange and closes itself.
+  const redirectTo = `${window.location.origin}/auth/callback`;
+  console.log('[auth] signInWithGoogle popup — redirectTo:', redirectTo);
 
-  const { error } = await supabase.auth.signInWithOAuth({
+  // Ask Supabase for the OAuth URL without auto-navigating.
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo },
+    options: { redirectTo, skipBrowserRedirect: true },
   });
-  if (error) {
-    sessionStorage.removeItem('cultive-oauth-pending');
-    throw error;
+  if (error) throw error;
+  if (!data.url) throw new Error('No OAuth URL returned from Supabase');
+
+  // Open a popup — same origin means popup shares localStorage with this window.
+  // Supabase's onAuthStateChange in the parent fires automatically via storage events.
+  const popup = window.open(
+    data.url,
+    'cultive-google-auth',
+    'width=520,height=620,scrollbars=yes,resizable=yes',
+  );
+
+  if (!popup) {
+    // Popup was blocked by the browser — fall back to full-page redirect.
+    console.log('[auth] popup blocked, falling back to redirect');
+    sessionStorage.setItem('cultive-oauth-pending', '1');
+    window.location.href = data.url;
+    return;
   }
+
+  // Wait for the popup to close before resolving.
+  await new Promise<void>((resolve) => {
+    const timer = setInterval(() => {
+      if (popup.closed) { clearInterval(timer); resolve(); }
+    }, 400);
+  });
 }
 
 export function onAuthStateChange(callback: (event: string, session: any) => void) {

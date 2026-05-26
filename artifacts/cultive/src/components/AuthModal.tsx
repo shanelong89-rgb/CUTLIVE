@@ -74,7 +74,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           onClick={async () => {
             setBusy(true);
             setErr(null);
-            try { await signInWithGoogle(); }
+            try { await signInWithGoogle(); onClose(); }
             catch (e: any) { setErr(e?.message ?? 'Google sign-in failed.'); setBusy(false); }
           }}
           disabled={busy}
