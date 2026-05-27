@@ -12,3 +12,9 @@ id = "2GlWbRmdmUpms5X1izAkk"
 uri = "file://CULTIVE_Press_Overview.md"
 type = "text"
 title = "CULTIVE — Press & Marketing Overview"
+
+[[outputs]]
+id = "_Gk8dV6KvtCabs081wIT-"
+uri = "file://docs/cultive-inbox-referral-system.md"
+type = "text"
+title = "CULTIVE — Inbox, Referral & Credit System"
