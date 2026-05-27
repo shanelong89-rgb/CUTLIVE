@@ -1696,6 +1696,14 @@ h1, h2, h3 {
   background: var(--n-bg-alt);
 }
 
+.message-card:not(.unread) {
+  opacity: 0.55;
+}
+
+.message-card:not(.unread):hover {
+  opacity: 0.85;
+}
+
 .message-header {
   display: flex;
   justify-content: space-between;
