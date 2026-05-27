@@ -1697,11 +1697,11 @@ h1, h2, h3 {
 }
 
 .message-card:not(.unread) {
-  opacity: 0.55;
+  opacity: 0.35;
 }
 
 .message-card:not(.unread):hover {
-  opacity: 0.85;
+  opacity: 0.7;
 }
 
 .message-header {
