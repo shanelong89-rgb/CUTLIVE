@@ -8,22 +8,22 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'dummy-key';
 // Without this, Vite re-evaluating the module creates a second GoTrueClient
 // that fights over the same auth storage, producing "Multiple GoTrueClient
 // instances" warnings and unpredictable auth state on page navigation.
+// Factory function lets TypeScript infer the concrete SupabaseClient type
+// so the cast below is sound and tsc stays happy.
+function _makeClient() {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: 'cultive-auth',
+    },
+  });
+}
 const _WIN_KEY = '__cultive_supabase__';
-type WinWithClient = Window & { [_WIN_KEY]?: ReturnType<typeof createClient> };
-export const supabase: ReturnType<typeof createClient> =
-  (window as WinWithClient)[_WIN_KEY] ??
-  (() => {
-    const client = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storageKey: 'cultive-auth',
-      },
-    });
-    (window as WinWithClient)[_WIN_KEY] = client;
-    return client;
-  })();
+const _w = window as unknown as Record<string, unknown>;
+if (!_w[_WIN_KEY]) _w[_WIN_KEY] = _makeClient();
+export const supabase = _w[_WIN_KEY] as ReturnType<typeof _makeClient>;
 
 export type Event = {
   id: string;
