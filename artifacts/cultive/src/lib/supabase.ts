@@ -567,13 +567,8 @@ const ADMIN_EMAILS = ['shanelong89@gmail.com', 'shanelong@gmail.com'];
 
 export async function isAdmin(): Promise<boolean> {
   const user = await getSessionUser();
-  if (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-    return true;
-  }
-  // Fallback: check DB role if schema is set up
-  const { data, error } = await supabase.rpc('is_admin');
-  if (error) return false;
-  return !!data;
+  if (!user?.email) return false;
+  return ADMIN_EMAILS.includes(user.email.toLowerCase());
 }
 
 // ─── Auth ────────────────────────────────────────────────────

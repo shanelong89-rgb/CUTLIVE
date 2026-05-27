@@ -30,7 +30,7 @@ export function useAuth() {
       '| URL:', window.location.href);
     // ─────────────────────────────────────────────────────────
 
-    const apply = async (s: Session | null) => {
+    const apply = (s: Session | null) => {
       if (!mounted) return;
       console.log('[auth] apply — session:', s ? `user=${s.user.email}` : 'null');
 
@@ -42,13 +42,15 @@ export function useAuth() {
 
       setSession(s);
       setUser(s?.user ?? null);
+      setLoading(false);
+
+      // Admin check is fast (email comparison + localStorage, no network).
+      // Run it async so it never delays auth loading.
       if (s?.user) {
-        const admin = await checkIsAdmin();
-        if (mounted) setIsAdminUser(admin);
+        checkIsAdmin().then(admin => { if (mounted) setIsAdminUser(admin); });
       } else {
         setIsAdminUser(false);
       }
-      if (mounted) setLoading(false);
     };
 
     // Skip the startup signOut when we're inside a popup window (e.g. Google OAuth callback).
