@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigationType, NavLink, Link } from 'react-router-dom';
 import { TabBar } from './components/TabBar';
 import { Discover } from './pages/Discover';
 import { Tickets } from './pages/Tickets';
@@ -162,29 +162,34 @@ function WebNav({
   return (
     <header className="web-nav">
       <div className="web-nav-container">
-        <a href="/" className="web-logo">
+        <Link to="/" className="web-logo">
           <span className="logo-text">CULTIVE</span>
           <span className="logo-sub">文化活</span>
-        </a>
+        </Link>
 
         <nav className="web-nav-links">
           {navItems.map((item) => (
-            <a key={item.path} href={item.path} className="web-nav-link">
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === '/'}
+              className={({ isActive }) => `web-nav-link${isActive ? ' active' : ''}`}
+            >
               {item.label}
               {item.path === '/inbox' && unreadCount > 0 && (
                 <span className="nav-badge">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-            </a>
+            </NavLink>
           ))}
         </nav>
 
         <div className="web-nav-actions">
           {!loading && isAdmin && (
-            <a href="/admin" className="web-nav-link" style={{ marginRight: '8px' }}>
+            <NavLink to="/admin" className="web-nav-link" style={{ marginRight: '8px' }}>
               Admin
-            </a>
+            </NavLink>
           )}
           {!loading && user ? (
             <ProfileMenu />
