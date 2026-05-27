@@ -264,8 +264,11 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
     const hoursUntil = msUntil / 3600000;
 
     if (msUntil <= 0) {
-      // Event has started — skip if it's already ended (single-day ended, or multi-day closed)
-      const stillOpen = !endDate || endDate.getTime() >= todayStart.getTime();
+      // Event has started — skip if it's already ended.
+      // Single-day events (no date_end) are open only if startDate is today.
+      // Multi-day events are open as long as date_end >= today.
+      const effectiveEndForOpen = endDate ?? startDate;
+      const stillOpen = effectiveEndForOpen.getTime() >= todayStart.getTime();
       if (!stillOpen) continue;
 
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((ev.venue || '') + ' Hong Kong')}`;
