@@ -611,9 +611,9 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
 
       {/* Pagination — hidden for guests (they only see first 10) */}
       {!loading && totalPages > 1 && !!user && (() => {
-        // Build a windowed page list: always show 1 and last; show 3 around current; ellipsis for gaps
+        // Windowed: 1 … prev current next … last (max 5 page buttons, prev/next only rendered when applicable)
         const buildPages = (): (number | '...')[] => {
-          if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+          if (totalPages <= 3) return Array.from({ length: totalPages }, (_, i) => i + 1);
           const pages: (number | '...')[] = [];
           const lo = Math.max(2, currentPage - 1);
           const hi = Math.min(totalPages - 1, currentPage + 1);
@@ -625,9 +625,9 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
           return pages;
         };
         const pages = buildPages();
-        const btnBase: React.CSSProperties = {
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '9px 16px',
+        const navBtn: React.CSSProperties = {
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '8px 14px',
           border: '1px solid var(--n-border)',
           borderRadius: 4,
           background: 'transparent',
@@ -638,30 +638,30 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
           color: 'var(--n-text)',
           cursor: 'pointer',
           whiteSpace: 'nowrap',
+          flexShrink: 0,
         };
         return (
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             padding: '20px 5vw',
             borderTop: '1px solid var(--n-border)',
             gap: 8,
           }}>
-            <button
-              onClick={() => { setCurrentPage(p => p - 1); scrollToTop(); }}
-              style={{ ...btnBase, visibility: currentPage > 1 ? 'visible' : 'hidden' }}
-            >
-              ← Prev
-            </button>
+            {currentPage > 1 && (
+              <button onClick={() => { setCurrentPage(p => p - 1); scrollToTop(); }} style={navBtn}>
+                ← Prev
+              </button>
+            )}
 
-            <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
               {pages.map((n, i) =>
                 n === '...'
                   ? (
                     <span key={`ellipsis-${i}`} style={{
-                      width: 28, textAlign: 'center',
-                      fontSize: '0.75rem', color: 'var(--n-secondary)',
+                      width: 24, textAlign: 'center',
+                      fontSize: '0.8rem', color: 'var(--n-secondary)',
                       userSelect: 'none',
                     }}>…</span>
                   ) : (
@@ -669,16 +669,16 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                       key={n}
                       onClick={() => { setCurrentPage(n as number); scrollToTop(); }}
                       style={{
-                        width: 32, height: 32,
-                        flexShrink: 0,
+                        width: 34, height: 34,
                         borderRadius: 4,
                         border: '1px solid',
                         borderColor: n === currentPage ? 'var(--n-text)' : 'var(--n-border)',
                         background: n === currentPage ? 'var(--n-text)' : 'transparent',
                         color: n === currentPage ? '#fff' : 'var(--n-secondary)',
-                        fontSize: '0.7rem',
+                        fontSize: '0.75rem',
                         fontWeight: 600,
                         cursor: 'pointer',
+                        flexShrink: 0,
                       }}
                     >
                       {n}
@@ -687,12 +687,11 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
               )}
             </div>
 
-            <button
-              onClick={() => { setCurrentPage(p => p + 1); scrollToTop(); }}
-              style={{ ...btnBase, visibility: currentPage < totalPages ? 'visible' : 'hidden' }}
-            >
-              Next →
-            </button>
+            {currentPage < totalPages && (
+              <button onClick={() => { setCurrentPage(p => p + 1); scrollToTop(); }} style={navBtn}>
+                Next →
+              </button>
+            )}
           </div>
         );
       })()}
