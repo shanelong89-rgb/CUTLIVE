@@ -610,77 +610,92 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
       </div>
 
       {/* Pagination — hidden for guests (they only see first 10) */}
-      {!loading && totalPages > 1 && !!user && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 5vw',
-          borderTop: '1px solid var(--n-border)',
-        }}>
-          <button
-            onClick={() => { setCurrentPage(p => p - 1); scrollToTop(); }}
-            style={{
-              visibility: currentPage > 1 ? 'visible' : 'hidden',
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '9px 18px',
-              border: '1px solid var(--n-border)',
-              borderRadius: 4,
-              background: 'transparent',
-              fontSize: '0.6rem',
-              fontWeight: 600,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: 'var(--n-text)',
-              cursor: 'pointer',
-            }}
-          >
-            ← Prev
-          </button>
+      {!loading && totalPages > 1 && !!user && (() => {
+        // Build a windowed page list: always show 1 and last; show 3 around current; ellipsis for gaps
+        const buildPages = (): (number | '...')[] => {
+          if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+          const pages: (number | '...')[] = [];
+          const lo = Math.max(2, currentPage - 1);
+          const hi = Math.min(totalPages - 1, currentPage + 1);
+          pages.push(1);
+          if (lo > 2) pages.push('...');
+          for (let i = lo; i <= hi; i++) pages.push(i);
+          if (hi < totalPages - 1) pages.push('...');
+          pages.push(totalPages);
+          return pages;
+        };
+        const pages = buildPages();
+        const btnBase: React.CSSProperties = {
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '9px 16px',
+          border: '1px solid var(--n-border)',
+          borderRadius: 4,
+          background: 'transparent',
+          fontSize: '0.6rem',
+          fontWeight: 600,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--n-text)',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        };
+        return (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '20px 5vw',
+            borderTop: '1px solid var(--n-border)',
+            gap: 8,
+          }}>
+            <button
+              onClick={() => { setCurrentPage(p => p - 1); scrollToTop(); }}
+              style={{ ...btnBase, visibility: currentPage > 1 ? 'visible' : 'hidden' }}
+            >
+              ← Prev
+            </button>
 
-          <div style={{ display: 'flex', gap: 4 }}>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-              <button
-                key={n}
-                onClick={() => { setCurrentPage(n); scrollToTop(); }}
-                style={{
-                  width: 32, height: 32,
-                  borderRadius: 4,
-                  border: '1px solid',
-                  borderColor: n === currentPage ? 'var(--n-text)' : 'var(--n-border)',
-                  background: n === currentPage ? 'var(--n-text)' : 'transparent',
-                  color: n === currentPage ? '#fff' : 'var(--n-secondary)',
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                {n}
-              </button>
-            ))}
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 1, minWidth: 0 }}>
+              {pages.map((n, i) =>
+                n === '...'
+                  ? (
+                    <span key={`ellipsis-${i}`} style={{
+                      width: 28, textAlign: 'center',
+                      fontSize: '0.75rem', color: 'var(--n-secondary)',
+                      userSelect: 'none',
+                    }}>…</span>
+                  ) : (
+                    <button
+                      key={n}
+                      onClick={() => { setCurrentPage(n as number); scrollToTop(); }}
+                      style={{
+                        width: 32, height: 32,
+                        flexShrink: 0,
+                        borderRadius: 4,
+                        border: '1px solid',
+                        borderColor: n === currentPage ? 'var(--n-text)' : 'var(--n-border)',
+                        background: n === currentPage ? 'var(--n-text)' : 'transparent',
+                        color: n === currentPage ? '#fff' : 'var(--n-secondary)',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {n}
+                    </button>
+                  )
+              )}
+            </div>
+
+            <button
+              onClick={() => { setCurrentPage(p => p + 1); scrollToTop(); }}
+              style={{ ...btnBase, visibility: currentPage < totalPages ? 'visible' : 'hidden' }}
+            >
+              Next →
+            </button>
           </div>
-
-          <button
-            onClick={() => { setCurrentPage(p => p + 1); scrollToTop(); }}
-            style={{
-              visibility: currentPage < totalPages ? 'visible' : 'hidden',
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '9px 18px',
-              border: '1px solid var(--n-border)',
-              borderRadius: 4,
-              background: 'transparent',
-              fontSize: '0.6rem',
-              fontWeight: 600,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: 'var(--n-text)',
-              cursor: 'pointer',
-            }}
-          >
-            Next →
-          </button>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
