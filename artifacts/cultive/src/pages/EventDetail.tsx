@@ -361,7 +361,7 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
         <button className="cta-secondary" onClick={() => navigate(-1)}>Back</button>
         <button
           className={`cta-save ${saved ? 'is-saved' : ''}`}
-          onClick={() => id && toggle(id)}
+          onClick={() => event && toggle(event.id)}
           aria-label={saved ? 'Remove from saved' : 'Save event'}
           title={saved ? 'Saved · tap to remove' : 'Save for later'}
         >
