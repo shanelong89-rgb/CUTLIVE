@@ -18,3 +18,9 @@ id = "_Gk8dV6KvtCabs081wIT-"
 uri = "file://docs/cultive-inbox-referral-system.md"
 type = "text"
 title = "CULTIVE — Inbox, Referral & Credit System"
+
+[[outputs]]
+id = "3dscxXCC392naIUWV7j_2"
+uri = "file://docs/cultive-slug-system.md"
+type = "text"
+title = "CULTIVE — Event Slug System"
