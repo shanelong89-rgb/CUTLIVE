@@ -27,6 +27,7 @@ export const supabase = _w[_WIN_KEY] as ReturnType<typeof _makeClient>;
 
 export type Event = {
   id: string;
+  slug?: string | null;
   title: string;
   date: string;
   time: string;
@@ -163,23 +164,26 @@ export async function getEvents(onUpdate?: (data: Event[]) => void): Promise<Eve
   return fetchEventsFromDB();
 }
 
-export async function getEventById(id: string) {
-  const mockEvent = mockEvents.find(e => e.id === id);
+export async function getEventById(slugOrId: string) {
+  // Check mock events by id or slug
+  const mockEvent = mockEvents.find(e => e.id === slugOrId || e.slug === slugOrId);
   if (mockEvent) return mockEvent;
 
   // Check the in-memory/localStorage cache before hitting the DB.
   // If the user arrived from the Discover page the cache is already warm.
   const cached = readEventsCache();
   if (cached) {
-    const found = cached.find(e => e.id === id);
+    const found = cached.find(e => e.id === slugOrId || e.slug === slugOrId);
     if (found) return found;
   }
 
+  // Query by slug OR id so both old (ev_xxx) and new (title-slug) URLs work.
   const { data, error } = await supabase
     .from('events')
     .select('*')
-    .eq('id', id)
-    .single();
+    .or(`slug.eq.${slugOrId},id.eq.${slugOrId}`)
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching event:', error);
@@ -195,6 +199,30 @@ export async function getCategories() {
   }
   const categories = [...new Set(data.map(e => e.category).filter(Boolean))];
   return ['All', ...categories, 'Exclusive'];
+}
+
+// ─── Slug helpers ─────────────────────────────────────────────
+function slugify(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+}
+
+async function generateUniqueSlug(title: string): Promise<string> {
+  const base = slugify(title) || 'event';
+  const { data } = await supabase
+    .from('events')
+    .select('slug')
+    .like('slug', `${base}%`);
+  const taken = new Set((data ?? []).map((r: { slug: string }) => r.slug));
+  if (!taken.has(base)) return base;
+  let i = 2;
+  while (taken.has(`${base}-${i}`)) i++;
+  return `${base}-${i}`;
 }
 
 // ─── Public: submissions (anyone can submit) ─────────────────
@@ -361,8 +389,9 @@ export async function adminListEvents() {
   return (data || []) as Event[];
 }
 
-export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) {
-  const row = { id: genId('event'), ...event };
+export async function createEvent(event: Omit<Event, 'id' | 'slug' | 'created_at' | 'updated_at'>) {
+  const slug = await generateUniqueSlug(event.title);
+  const row = { id: genId('event'), slug, ...event };
   const { data, error } = await supabase
     .from('events')
     .insert([row])

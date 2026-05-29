@@ -27,7 +27,7 @@ function setMetaName(name: string, content: string) {
 }
 
 function applyEventOgTags(event: Event) {
-  const url = `https://cultive.city/event/${event.id}`;
+  const url = `https://cultive.city/event/${event.slug ?? event.id}`;
   const plainDesc = (event.description ?? '')
     .replace(/<[^>]+>/g, '')
     .trim()
@@ -103,24 +103,24 @@ function safeHttpUrl(raw: string | null | undefined): string {
 }
 
 export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const { isSaved, toggle } = useSavedEvents();
-  const saved = id ? isSaved(id) : false;
+  const saved = event ? isSaved(event.id) : false;
 
   useEffect(() => {
     async function fetchEvent() {
-      if (!id) return;
+      if (!slug) return;
       setLoading(true);
-      const data = await getEventById(id);
+      const data = await getEventById(slug);
       setEvent(data);
       setLoading(false);
     }
     fetchEvent();
-  }, [id]);
+  }, [slug]);
 
   // Inject OG / Twitter meta tags while on this page
   useEffect(() => {
@@ -129,7 +129,7 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
     return resetOgTags;
   }, [event]);
 
-  const eventUrl = event ? `https://cultive.city/event/${event.id}` : window.location.href;
+  const eventUrl = event ? `https://cultive.city/event/${event.slug ?? event.id}` : window.location.href;
 
   const handleCopyLink = useCallback(async () => {
     try {

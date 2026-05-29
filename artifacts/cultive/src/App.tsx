@@ -124,7 +124,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Discover setIsAuthOpen={setIsAuthOpen} />} />
-        <Route path="/event/:id" element={<EventDetail setIsAuthOpen={setIsAuthOpen} />} />
+        <Route path="/event/:slug" element={<EventDetail setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/tickets" element={<Tickets />} />
         <Route path="/submit" element={<Submit />} />
         <Route path="/inbox" element={<Inbox />} />

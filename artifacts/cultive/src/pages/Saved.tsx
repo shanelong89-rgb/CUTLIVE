@@ -166,18 +166,18 @@ export function Saved() {
     const isExclusive = event.is_exclusive || event.isExclusive;
     return (
       <div key={event.id} className={`event-row saved-row${isPast ? ' event-row--past' : ''}`}>
-        <Link to={`/event/${event.id}`} className="event-time">
+        <Link to={`/event/${event.slug ?? event.id}`} className="event-time">
           {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end)}</span>}
           <span>{event.time || '—'}</span>
         </Link>
-        <Link to={`/event/${event.id}`} className="event-thumb">
+        <Link to={`/event/${event.slug ?? event.id}`} className="event-thumb">
           {event.image ? (
             <img src={event.image} alt={event.title} loading="lazy" />
           ) : (
             <div className="event-thumb-placeholder">IMG</div>
           )}
         </Link>
-        <Link to={`/event/${event.id}`} className="event-details">
+        <Link to={`/event/${event.slug ?? event.id}`} className="event-details">
           <h4 className="event-title">{event.title}</h4>
           <p className="event-meta">
             {event.category}

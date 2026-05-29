@@ -292,7 +292,7 @@ function EventRow({ event, isPast = false }: { event: Event; isPast?: boolean })
   const isExclusive = event.is_exclusive || event.isExclusive;
 
   return (
-    <Link to={`/event/${event.id}`} className={`event-row${isPast ? ' event-row--past' : ''}`}>
+    <Link to={`/event/${event.slug ?? event.id}`} className={`event-row${isPast ? ' event-row--past' : ''}`}>
       {/* Date + Time Column */}
       <div className="event-time">
         {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end)}</span>}
