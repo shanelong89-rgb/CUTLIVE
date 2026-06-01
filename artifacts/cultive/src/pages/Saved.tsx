@@ -100,15 +100,37 @@ function sortByDate(list: Event[], descending = false): Event[] {
   });
 }
 
+function parseEndDate(raw: string, currentYear: number): Date | null {
+  // ISO: 2026-05-29
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (iso) {
+    const d = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // Text with year already: "May 29, 2026" — try direct parse
+  if (/\d{4}/.test(raw)) {
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) { d.setHours(0, 0, 0, 0); return d; }
+  }
+  // Text without year: "May 29" — assume current year (no future-bump, we want past detection)
+  const d = new Date(`${raw.trim()}, ${currentYear}`);
+  if (!isNaN(d.getTime())) { d.setHours(0, 0, 0, 0); return d; }
+  // Last resort: "Month Day" anywhere in the string
+  const m = raw.match(/([A-Za-z]{3,})\s+(\d{1,2})/);
+  if (m) {
+    const d2 = new Date(`${m[1]} ${m[2]}, ${currentYear}`);
+    if (!isNaN(d2.getTime())) { d2.setHours(0, 0, 0, 0); return d2; }
+  }
+  return null;
+}
+
 function isEventPast(event: Event): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  // Use date_end if available, otherwise fall back to date
   const endRaw = event.date_end || event.date;
   if (!endRaw) return false;
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endRaw.trim());
-  if (!m) return false;
-  const end = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const end = parseEndDate(endRaw, today.getFullYear());
+  if (!end) return false;
   return end < today;
 }
 
