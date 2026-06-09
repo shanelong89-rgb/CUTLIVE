@@ -20,6 +20,12 @@ const BOT_UA =
 const SITE = 'https://cultive.city';
 const LOGO = `${SITE}/favicon.png`;
 
+/** Proxy any external image URL through our own domain so social crawlers can fetch it. */
+function proxyImage(url: string): string {
+  if (!url || url.startsWith(SITE)) return url;
+  return `${SITE}/api/og-proxy?url=${encodeURIComponent(url)}`;
+}
+
 /** Escape a value for safe insertion into an HTML attribute. */
 function esc(s: string): string {
   return String(s ?? '')
@@ -129,7 +135,7 @@ export default async function middleware(request: Request) {
     pageTitle: esc(`${event.title} | CULTIVE`),
     title:     esc(event.title),
     desc:      esc(toPlainText(event.description ?? '')),
-    image:     esc(event.image || LOGO),
+    image:     esc(proxyImage(event.image || LOGO)),
     url:       esc(`${SITE}/event/${canonicalSlug}`),
   });
 }
