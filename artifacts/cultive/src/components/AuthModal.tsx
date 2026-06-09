@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { signIn, signInWithGoogle, signUp } from '../lib/supabase';
+import { track } from '../lib/analytics';
 
 const REMEMBER_ME_KEY = 'cultive-remember-me';
 const INVITE_BANNER_KEY = 'cultive:invite-banner';
@@ -34,6 +35,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    track(mode === 'login' ? 'login_submitted' : 'sign_up_submitted', { method: 'email' });
     setBusy(true);
     setErr(null);
     setNotice(null);
@@ -41,13 +43,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       if (mode === 'login') {
         await signIn(email, password);
         localStorage.setItem(REMEMBER_ME_KEY, String(rememberMe));
+        track('login_completed', { method: 'email' });
         onClose();
       } else {
         const result = await signUp(email, password);
         if (result.session) {
           localStorage.setItem(REMEMBER_ME_KEY, 'true');
+          track('sign_up_completed', { method: 'email' });
           onClose();
         } else {
+          track('sign_up_email_confirm_sent');
           setNotice('Account created. Check your email to confirm, then sign in.');
           setMode('login');
         }
@@ -91,9 +96,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <button
           type="button"
           onClick={async () => {
+            track('google_auth_clicked', { mode });
             setBusy(true);
             setErr(null);
-            try { await signInWithGoogle(); onClose(); }
+            try { await signInWithGoogle(); track('login_completed', { method: 'google' }); onClose(); }
             catch (e: any) { setErr(e?.message ?? 'Google sign-in failed.'); setBusy(false); }
           }}
           disabled={busy}

@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
 import { Link, useSearchParams, useNavigationType } from 'react-router-dom';
 import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_NORMALIZE } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
 import { formatTime, displayDateRange } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
+import { track } from '../lib/analytics';
 
 const FREE_EVENT_LIMIT = 10;
 
@@ -339,6 +340,8 @@ function scrollToTop() {
   document.body.scrollTo({ top: 0, behavior: 'instant' });
 }
 
+const SOFT_HOOK_AFTER = 4; // insert mid-list prompt after the Nth event (0-indexed)
+
 export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) => void }) {
   const { user } = useAuth();
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -349,6 +352,8 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
   const currentPage = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
   const navType = useNavigationType();
   const scrollRestoredRef = useRef(false);
+  const gateRef = useRef<HTMLDivElement>(null);
+  const gateSeenRef = useRef(false);
 
   // Save scroll position when leaving this page
   useEffect(() => {
@@ -396,6 +401,23 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
     if (filterInitRef.current) { filterInitRef.current = false; return; }
     setSearchParams(p => { const s = new URLSearchParams(p); s.set('page', '1'); return s; }, { replace: true });
   }, [activeTags, activeDateFilter]);
+
+  // Fire a GA event the first time the blur wall scrolls into view.
+  useEffect(() => {
+    const el = gateRef.current;
+    if (!el || user) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !gateSeenRef.current) {
+          gateSeenRef.current = true;
+          track('blur_wall_seen');
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [user]);
 
   const filteredEvents = useMemo(() => {
     let filtered = events;
@@ -510,10 +532,28 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
           <h1 className="masthead-title">What's On</h1>
           
           <p className="masthead-subtitle">
-            Hong Kong's curated events. What's worth leaving the house for.
+            Don't miss your next great night out. Hand-picked by Hong Kong's curators.
           </p>
         </div>
       </header>
+
+      {/* Above-fold sign-up hook — only shown to guests */}
+      {!user && !loading && (
+        <div className="above-fold-hook">
+          <span className="above-fold-hook-text">
+            ✦ Curated by Hong Kong locals — join free to save events and get reminded before they sell out
+          </span>
+          <button
+            className="above-fold-hook-cta"
+            onClick={() => {
+              track('cta_clicked', { location: 'above_fold' });
+              setIsAuthOpen?.(true);
+            }}
+          >
+            Join Free
+          </button>
+        </div>
+      )}
 
       {/* Date Filter Strip */}
       <div className="filter-strips-container">
@@ -576,11 +616,29 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
           </div>
         ) : pagedEvents.length > 0 ? (
           <>
-            {(user ? pagedEvents : pagedEvents.slice(0, FREE_EVENT_LIMIT)).map(({ e, isPast }) => (
-              <EventRow key={e.id} event={e} isPast={isPast} />
+            {(user ? pagedEvents : pagedEvents.slice(0, FREE_EVENT_LIMIT)).map(({ e, isPast }, idx) => (
+              <Fragment key={e.id}>
+                <EventRow event={e} isPast={isPast} />
+                {!user && idx === SOFT_HOOK_AFTER && (
+                  <div className="mid-list-hook">
+                    <span className="mid-list-hook-text">
+                      Save events &amp; get notified before they sell out
+                    </span>
+                    <button
+                      className="mid-list-hook-cta"
+                      onClick={() => {
+                        track('cta_clicked', { location: 'mid_list' });
+                        setIsAuthOpen?.(true);
+                      }}
+                    >
+                      Join Free →
+                    </button>
+                  </div>
+                )}
+              </Fragment>
             ))}
             {!user && filteredEvents.length > FREE_EVENT_LIMIT && (
-              <div className="event-gate">
+              <div className="event-gate" ref={gateRef}>
                 <div className="event-gate-blur">
                   {pagedEvents.slice(FREE_EVENT_LIMIT, FREE_EVENT_LIMIT + 3).map(({ e, isPast }) => (
                     <EventRow key={e.id} event={e} isPast={isPast} />
@@ -588,14 +646,20 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                 </div>
                 <div className="event-gate-wall">
                   <p className="event-gate-count">
-                    +{filteredEvents.length - FREE_EVENT_LIMIT} more events
+                    +{filteredEvents.length - FREE_EVENT_LIMIT} events you'll kick yourself for missing
                   </p>
-                  <h3 className="event-gate-headline">Join CULTIVE to see everything</h3>
+                  <h3 className="event-gate-headline">The best nights in HK are behind this wall.</h3>
                   <p className="event-gate-body">
-                    Free to join. See all events, save favourites, and submit your own.
+                    Curated for Hong Kong. Free to join. We'll remind you before it sells out.
                   </p>
-                  <button className="event-gate-cta" onClick={() => setIsAuthOpen?.(true)}>
-                    Sign Up — It's Free
+                  <button
+                    className="event-gate-cta"
+                    onClick={() => {
+                      track('cta_clicked', { location: 'blur_wall' });
+                      setIsAuthOpen?.(true);
+                    }}
+                  >
+                    See Everything — It's Free
                   </button>
                   <p className="event-gate-sub">Already a member? <button className="event-gate-link" onClick={() => setIsAuthOpen?.(true)}>Sign in</button></p>
                 </div>

@@ -517,6 +517,78 @@ h1, h2, h3 {
 }
 
 /* =====================================================
+   ABOVE-FOLD SIGN-UP HOOK (guests only, between masthead and filters)
+   ===================================================== */
+.above-fold-hook {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 5vw;
+  border-bottom: 1px solid var(--n-border-subtle);
+  background: var(--n-bg-alt);
+}
+
+.above-fold-hook-text {
+  font-size: 0.72rem;
+  color: var(--n-secondary);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.above-fold-hook-cta {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  background: var(--n-text);
+  color: var(--n-bg);
+  border: none;
+  border-radius: 3px;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.above-fold-hook-cta:hover { opacity: 0.75; }
+
+/* =====================================================
+   MID-LIST SOFT SIGN-UP HOOK (between events)
+   ===================================================== */
+.mid-list-hook {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 5vw;
+  border-top: 1px solid var(--n-border-subtle);
+  border-bottom: 1px solid var(--n-border-subtle);
+  background: var(--n-bg-alt);
+}
+
+.mid-list-hook-text {
+  font-size: 0.78rem;
+  color: var(--n-secondary);
+  line-height: 1.4;
+}
+
+.mid-list-hook-cta {
+  flex-shrink: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--n-text);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mid-list-hook-cta:hover { opacity: 0.6; }
+
+/* =====================================================
    FILTER STRIPS CONTAINER
    ===================================================== */
 .filter-strips-container {

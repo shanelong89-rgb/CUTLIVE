@@ -4,6 +4,7 @@ import { getEventById } from '../lib/supabase';
 import type { Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 import { formatTime, displayDateRange } from '../lib/utils';
+import { track } from '../lib/analytics';
 
 // ─── OG / Twitter meta injection ────────────────────────────
 function setMetaProperty(property: string, content: string) {
@@ -126,12 +127,14 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
   useEffect(() => {
     if (!event) return;
     applyEventOgTags(event);
+    track('event_viewed', { event_id: event.id, event_title: event.title, event_slug: event.slug ?? event.id });
     return resetOgTags;
   }, [event]);
 
   const eventUrl = event ? `https://cultive.city/event/${event.slug ?? event.id}` : window.location.href;
 
   const handleCopyLink = useCallback(async () => {
+    track('event_shared', { method: 'copy', event_id: event?.id });
     try {
       await navigator.clipboard.writeText(eventUrl);
       setCopied(true);
@@ -147,10 +150,11 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-  }, [eventUrl]);
+  }, [event?.id, eventUrl]);
 
   const handleNativeShare = useCallback(async () => {
     if (!event) return;
+    track('event_shared', { method: 'native', event_id: event.id });
     try {
       await navigator.share({
         title: event.title,
@@ -165,15 +169,17 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
 
   const shareOnX = useCallback(() => {
     if (!event) return;
+    track('event_shared', { method: 'x', event_id: event.id });
     const text = encodeURIComponent(`${event.title} — ${event.venue}`);
     const url = encodeURIComponent(eventUrl);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'noopener');
   }, [event, eventUrl]);
 
   const shareOnLinkedIn = useCallback(() => {
+    track('event_shared', { method: 'linkedin', event_id: event?.id });
     const url = encodeURIComponent(eventUrl);
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'noopener');
-  }, [eventUrl]);
+  }, [event?.id, eventUrl]);
 
   const canNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
 
