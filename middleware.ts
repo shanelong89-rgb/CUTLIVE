@@ -102,7 +102,7 @@ export default async function middleware(request: Request) {
   const eventMatch = url.pathname.match(/^\/event\/([^/]+)$/);
   if (!eventMatch) return undefined;
 
-  const id          = eventMatch[1];
+  const slugOrId    = eventMatch[1];
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
@@ -110,8 +110,10 @@ export default async function middleware(request: Request) {
 
   let event: Record<string, string> | null = null;
   try {
+    // Query by slug OR id so both new (title-slug) and old (ev_xxx) URLs work.
+    const enc = encodeURIComponent(slugOrId);
     const res  = await fetch(
-      `${supabaseUrl}/rest/v1/events?id=eq.${encodeURIComponent(id)}&select=id,title,description,image,venue,date&limit=1`,
+      `${supabaseUrl}/rest/v1/events?or=(slug.eq.${enc},id.eq.${enc})&select=id,slug,title,description,image,venue,date&limit=1`,
       { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } },
     );
     const rows = await res.json();
@@ -122,11 +124,12 @@ export default async function middleware(request: Request) {
 
   if (!event) return undefined;
 
+  const canonicalSlug = event.slug || event.id;
   return ogHtml({
     pageTitle: esc(`${event.title} | CULTIVE`),
     title:     esc(event.title),
     desc:      esc(toPlainText(event.description ?? '')),
     image:     esc(event.image || LOGO),
-    url:       esc(`${SITE}/event/${event.id}`),
+    url:       esc(`${SITE}/event/${canonicalSlug}`),
   });
 }

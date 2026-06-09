@@ -15,8 +15,9 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   try {
+    const enc = encodeURIComponent(id);
     const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/events?id=eq.${encodeURIComponent(id)}&select=title,description,image,venue,date&limit=1`,
+      `${SUPABASE_URL}/rest/v1/events?or=(slug.eq.${enc},id.eq.${enc})&select=id,slug,title,description,image,venue,date&limit=1`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -42,7 +43,7 @@ export default async function handler(req, res) {
       .join(' ');
     const desc = escHtml((rawDesc.length >= 20 ? rawDesc : fallbackDesc).slice(0, 300));
     const image = escHtml(ev.image || '');
-    const url = `https://cultive.city/event/${id}`;
+    const url = `https://cultive.city/event/${ev.slug || ev.id || id}`;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
