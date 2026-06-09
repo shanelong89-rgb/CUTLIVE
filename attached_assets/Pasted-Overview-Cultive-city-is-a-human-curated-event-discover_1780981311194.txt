@@ -1,0 +1,54 @@
+Overview
+Cultive.city is a human-curated event discovery platform for Hong Kong. The current design is strong — clean Swiss minimalism, good typography, solid visual hierarchy. The curated angle is the actual moat. The recommendations below focus on increasing account sign-ups and sharpening the messaging to drive FOMO and urgency.
+
+1. Increasing Account Sign-Ups
+1A. Add a Hero CTA Above the Fold
+The only sign-up prompt today is the blur wall after scrolling past 10 events. A first-time visitor lands on 'What's On' with zero context of what to do. Add a persistent sticky CTA or a subtle hero banner — something like 'Get curated picks in your inbox' with a single email input. Captures people before they start browsing.
+
+1B. Offer a No-Account Preview Tier
+The hard blur wall is aggressive. A softer gate — 'Sign up to save events' or 'Set reminders so you never miss the ones you care about' — converts the mildly interested. Let people bookmark 3 events before hitting the wall; that investment makes them more likely to create an account to keep them.
+
+1C. Hook Into the Event Detail Page
+Every event detail page should have a floating CTA: 'Add to your Cultive calendar' or 'Notify me when this starts' — locked behind sign-up. Contextual conversion points at the moment of intent convert far better than generic 'join' banners.
+
+1D. Email Capture Before Full Sign-Up
+A single-field email input ('Notify me when good events come up in [neighbourhood]') is radically lower friction than email + password + Google auth. Collect the email, send a magic link, and you have them in the funnel.
+
+1E. Use the Curation Angle as Social Proof
+Every event is tagged with a curator name (e.g. ✦ SHANE). That is a feature most event apps do not have. Lead with it: 'Hand-picked by Hong Kong's curators. Join X members who never miss a good night out.'
+
+2. Improving the Messaging
+2A. Hero Line Rewrite
+Current: 'Hong Kong's curated events. What's worth leaving the house for.' This is decent but passive. It describes what the site is, not what the user gains. Consider:
+'Don't miss your next great night out.'
+'The one thing you'll actually regret missing this week.'
+'Your friends already bought tickets. You just haven't found out yet.'
+
+2B. Blur Wall / Paywall Copy
+Current: 'Join Cultive to see everything' — generic. This is your second-biggest messaging moment. Options:
+'155 more events you'll kick yourself for missing. See them all.'
+'You've scrolled past 10 tonight. Don't scroll past the one.'
+'The best events are behind this wall. The FOMO is real.'
+
+2C. Sign-Up Prompt Copy
+Current: 'Free to join. See all events, save favourites, and submit your own.' Blander than unseasoned congee. Try:
+'Curated for Hong Kong. Free to join. We'll remind you before it sells out.'
+
+2D. Scarcity Signals
+Add 'Only X spots left' badges on events that are likely to sell out (club nights, limited-capacity dinners, gallery openings). This drives sign-ups from FOMO alone — people will create an account just to see availability.
+
+2E. Weekly Email Digest
+'Your Weekly Cultive' — a digest of 3 hand-picked events sent weekly. Gate it behind account creation. The promise of curated picks landing in your inbox every Monday is a powerful sign-up driver.
+
+3. Quick Tactical Wins
+The 'Tickets' nav item is a ghost link for non-members. Change it to 'Get Early Access' and redirect to sign-up. People who click Tickets have purchase intent — don't waste that traffic.
+The search bar is missing. If a user wants a specific artist or venue, they have to scroll through 165+ events. Add search in the header.
+Event poster thumbnails are small. For a visual-heavy audience (art, design, culture), larger images would increase engagement. Consider a grid view toggle alongside the list view.
+Truncation on mobile event titles is too aggressive. 'JUNE SESSIONS — HE...' forces users to click through. Surface the full title or use a secondary info line.
+
+4. Messaging Framework Summary
+Where | Current | Proposed
+Hero | 'What's worth leaving the house for' | 'Don't miss your next great night out'
+Wall CTA | 'Join Cultive to see everything' | '155 more events you'll kick yourself for missing'
+Sign-up prompt | 'Free to join...' | 'Curated for Hong Kong. We'll remind you before it sells out.'
+Saved events (locked) | (empty state) | 'Set reminders so you never show up to an empty gallery opening again'
