@@ -541,7 +541,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
       {!user && !loading && (
         <div className="above-fold-hook">
           <span className="above-fold-hook-text">
-            ✦ Curated by Hong Kong locals — join free to save events and get reminded before they sell out
+            ✦ Curated by Hong Kong locals — join free to save events and never miss the ones you care about
           </span>
           <button
             className="above-fold-hook-cta"
@@ -622,7 +622,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                 {!user && idx === SOFT_HOOK_AFTER && (
                   <div className="mid-list-hook">
                     <span className="mid-list-hook-text">
-                      Save events &amp; get notified before they sell out
+                      Save events &amp; get reminded before the night arrives
                     </span>
                     <button
                       className="mid-list-hook-cta"
@@ -650,7 +650,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                   </p>
                   <h3 className="event-gate-headline">The best nights in HK are behind this wall.</h3>
                   <p className="event-gate-body">
-                    Curated for Hong Kong. Free to join. We'll remind you before it sells out.
+                    Curated for Hong Kong. Free to join. We'll remind you before the night arrives.
                   </p>
                   <button
                     className="event-gate-cta"
