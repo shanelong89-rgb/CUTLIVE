@@ -947,6 +947,60 @@ h1, h2, h3 {
 }
 
 /* =====================================================
+   SITE FOOTER
+   ===================================================== */
+.site-footer {
+  border-top: 1px solid var(--n-border);
+  padding: 28px 5vw;
+  margin-top: 48px;
+  margin-bottom: 60px; /* clear mobile tab bar */
+}
+
+.site-footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.site-footer-brand {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--n-muted);
+}
+
+.site-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.site-footer-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--n-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.site-footer-link:hover {
+  color: var(--n-text);
+}
+
+@media (min-width: 768px) {
+  .site-footer {
+    margin-bottom: 0;
+  }
+}
+
+/* =====================================================
    MOBILE TAB BAR (Hidden on Desktop)
    ===================================================== */
 .tab-bar {

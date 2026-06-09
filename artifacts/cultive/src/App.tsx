@@ -136,6 +136,7 @@ function App() {
         <Route path="/admin/*" element={<Admin />} />
       </Routes>
 
+      {!isAdminPage && <SiteFooter />}
       {!isAdminPage && <TabBar unreadCount={unreadCount} />}
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
@@ -201,6 +202,32 @@ function WebNav({
         </div>
       </div>
     </header>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="site-footer-inner">
+        <span className="site-footer-brand">CULTIVE 文化活</span>
+        <div className="site-footer-links">
+          <a
+            href="https://www.instagram.com/cultive.city/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="site-footer-link"
+            aria-label="Instagram"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+            </svg>
+            Instagram
+          </a>
+        </div>
+      </div>
+    </footer>
   );
 }
 
