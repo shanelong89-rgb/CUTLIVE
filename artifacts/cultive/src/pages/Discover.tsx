@@ -540,18 +540,20 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
       {/* Above-fold sign-up hook — only shown to guests */}
       {!user && !loading && (
         <div className="above-fold-hook">
-          <span className="above-fold-hook-text">
-            ✦ Every event on CULTIVE is reviewed by a real person. Join free to save, get reminders, and never miss the ones that matter.
-          </span>
-          <button
-            className="above-fold-hook-cta"
-            onClick={() => {
-              track('cta_clicked', { location: 'above_fold' });
-              setIsAuthOpen?.(true);
-            }}
-          >
-            Get started →
-          </button>
+          <div className="above-fold-hook-inner">
+            <span className="above-fold-hook-text">
+              ✦ Every event on CULTIVE is reviewed by a real person. Join free to save, get reminders, and never miss the ones that matter.
+            </span>
+            <button
+              className="above-fold-hook-cta"
+              onClick={() => {
+                track('cta_clicked', { location: 'above_fold' });
+                setIsAuthOpen?.(true);
+              }}
+            >
+              Get started →
+            </button>
+          </div>
         </div>
       )}
 
