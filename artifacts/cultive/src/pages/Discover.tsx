@@ -663,6 +663,10 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                   >
                     See what you're missing →
                   </button>
+                  <p className="event-gate-sub-earn">
+                    Know an event we're missing?{' '}
+                    <a href="/submit" className="event-gate-link">Submit it and earn HK$50</a> when we approve it.
+                  </p>
                   <p className="event-gate-sub">Already a member? <button className="event-gate-link" onClick={() => setIsAuthOpen?.(true)}>Sign in</button></p>
                 </div>
               </div>

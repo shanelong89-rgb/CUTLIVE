@@ -173,20 +173,19 @@ export function Submit() {
               <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <h2 className="submit-auth-title">Sign in to submit events</h2>
+          <h2 className="submit-auth-title">Know an event we're missing?</h2>
           <p className="submit-auth-body">
-            CULTIVE relies on community contributors to keep the listings fresh.
-            Create a free account to submit events and help the city discover what's on.
+            Add it. You'll earn <strong>HK$50 in credits</strong> when we approve it — our thank you for keeping the city's calendar sharp.
           </p>
           <div className="submit-auth-actions">
             <button className="submit-auth-btn-primary" onClick={() => setAuthModalOpen(true)}>
-              Sign up free
+              Create your free account →
             </button>
             <button className="submit-auth-btn-secondary" onClick={() => setAuthModalOpen(true)}>
               I already have an account
             </button>
           </div>
-          <p className="submit-auth-note">Your account lets us keep track of your submissions and notify you when they go live.</p>
+          <p className="submit-auth-note">We'll notify you when your submission goes live.</p>
         </div>
         <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       </div>
@@ -208,14 +207,20 @@ export function Submit() {
           <p className="submit-thankyou-body">
             {isIg
               ? "We've got your Instagram link. Our team will extract the event details and publish it once reviewed — usually within 24 hours."
-              : "Thanks for the submission. Our team will review it and publish the event within 24 hours."}
+              : "Thanks for the tip. Our team will review it and publish the event within 24 hours."}
           </p>
+          <div className="submit-thankyou-credit-nudge">
+            <span className="submit-thankyou-credit-badge">HK$50</span>
+            <p className="submit-thankyou-credit-text">
+              You'll earn HK$50 in credits when we approve it. Credits can be used on future events — we'll let you know when it goes live.
+            </p>
+          </div>
           <div className="submit-thankyou-actions">
             <button className="submit-auth-btn-primary" onClick={resetForm}>
               Submit another event
             </button>
-            <a href="/" className="submit-auth-btn-secondary" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', padding: '14px', border: '1px solid var(--n-border)', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 600, color: 'var(--n-text)' }}>
-              Back to events
+            <a href="/account" className="submit-auth-btn-secondary" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', padding: '14px', border: '1px solid var(--n-border)', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 600, color: 'var(--n-text)' }}>
+              See your credits &amp; invite friends →
             </a>
           </div>
         </div>

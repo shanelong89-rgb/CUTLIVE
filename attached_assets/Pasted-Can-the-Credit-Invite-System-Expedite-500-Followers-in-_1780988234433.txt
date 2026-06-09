@@ -1,0 +1,35 @@
+Can the Credit/Invite System Expedite 500 Followers in 3 Months? Naturally?
+
+Yes, but not with the current visibility. Right now it's a backend tool that only activates after someone signs up. It needs to be a reason to sign up in the first place.
+
+The way to make it not feel forced:
+
+Don't lead with "earn money." Lead with social value. The credit system works best when it's:
+
+1. Referral as a recommendation, not an incentive. "Share this event with a friend" → friend signs up naturally → both get HK$25 as a surprise bonus, not as the pitch. The invite link should feel like you're sharing something good, not spamming for cash.
+
+2. Submission as contribution, not a gig. "Know an event we don't? Add it." The HK$50 is a thank you after approval, not a bounty. The submit page currently says "Create a free account to submit events" — it doesn't say "earn HK$50 when we approve it." That one sentence change could shift everything.
+
+3. The viral loop is already designed — gateway → sign-up → sees credits → submits → earn HK$50 → sees invites → shares → friend signs up → HK$25 each. The loop just needs its entry points to mention the rewards so people know they exist.
+
+To get 500 in 3 months naturally (not forced):
+
+Event tagging
+• Current State: Not used systematically
+• What Would Activate It: Every event post tags venue + organiser. They reshare → their followers discover CULTIVE
+• Estimated Impact: 150-250 followers
+
+Submission incentive hidden
+• Current State: HK$50 not mentioned in gateway or submit flow
+• What Would Activate It: Add "Submit an event → earn HK$50 credit" to the blur wall CTA and submit page
+• Estimated Impact: 30-50 sign-ups → maybe 50 followers from their sharing
+
+Invite link invisible
+• Current State: Code exists, banner doesn't show
+• What Would Activate It: Prominent "Invite friends" link on account page with share-to-WhatsApp shortcut
+• Estimated Impact: 50-100 followers from invites
+
+Curator cross-promotion
+• Current State: Not started yet
+• What Would Activate It: 2-3 curators with engaged followings post their picks → their audience follows CULTIVE
+• Estimated Impact: 100-200 followers
