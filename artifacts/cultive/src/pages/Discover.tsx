@@ -532,7 +532,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
           <h1 className="masthead-title">What's On</h1>
           
           <p className="masthead-subtitle">
-            Don't miss your next great night out. Hand-picked by Hong Kong's curators.
+            Don't miss your next great night out — curated by Hong Kong's locals.
           </p>
         </div>
       </header>
@@ -541,7 +541,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
       {!user && !loading && (
         <div className="above-fold-hook">
           <span className="above-fold-hook-text">
-            ✦ Curated by Hong Kong locals — join free to save events and never miss the ones you care about
+            ✦ Every event on CULTIVE is reviewed by a real person. Join free to save, get reminders, and never miss the ones that matter.
           </span>
           <button
             className="above-fold-hook-cta"
@@ -550,7 +550,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
               setIsAuthOpen?.(true);
             }}
           >
-            Join Free
+            Get started →
           </button>
         </div>
       )}
@@ -622,7 +622,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                 {!user && idx === SOFT_HOOK_AFTER && (
                   <div className="mid-list-hook">
                     <span className="mid-list-hook-text">
-                      Save events &amp; get reminded before the night arrives
+                      You've been browsing for a minute. Save them now — we'll remind you before the night.
                     </span>
                     <button
                       className="mid-list-hook-cta"
@@ -631,7 +631,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                         setIsAuthOpen?.(true);
                       }}
                     >
-                      Join Free →
+                      Create your free account →
                     </button>
                   </div>
                 )}
@@ -650,7 +650,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                   </p>
                   <h3 className="event-gate-headline">The best nights in HK are behind this wall.</h3>
                   <p className="event-gate-body">
-                    Curated for Hong Kong. Free to join. We'll remind you before the night arrives.
+                    We've been thinking about what to do this weekend so you don't have to. Every event hand-picked. Every detail triple-checked. Yours free.
                   </p>
                   <button
                     className="event-gate-cta"
@@ -659,7 +659,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                       setIsAuthOpen?.(true);
                     }}
                   >
-                    See Everything — It's Free
+                    See what you're missing →
                   </button>
                   <p className="event-gate-sub">Already a member? <button className="event-gate-link" onClick={() => setIsAuthOpen?.(true)}>Sign in</button></p>
                 </div>

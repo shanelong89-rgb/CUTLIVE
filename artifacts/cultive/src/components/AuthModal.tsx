@@ -16,7 +16,7 @@ function hasInvitePending(): boolean {
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const isInvite = hasInvitePending();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<'login' | 'signup'>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -68,7 +68,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{mode === 'login' ? 'Welcome Back' : 'Join CULTIVE'}</h2>
+          <h2>{mode === 'login' ? 'Good to see you again' : 'Create your account'}</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
@@ -92,6 +92,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             Sign Up
           </button>
         </div>
+
+        {mode === 'signup' && (
+          <p style={{ fontSize: '0.8rem', color: 'var(--n-muted)', marginBottom: 16, lineHeight: 1.5 }}>
+            One tap. Saves you from scrambling Friday night.
+          </p>
+        )}
 
         <button
           type="button"

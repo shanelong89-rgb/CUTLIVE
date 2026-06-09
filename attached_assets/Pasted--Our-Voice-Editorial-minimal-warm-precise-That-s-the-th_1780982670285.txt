@@ -1,0 +1,106 @@
+...Our Voice
+
+Editorial-minimal, warm, precise. That's the three-word internal brief.
+
+We're not a listings aggregator (TimeOut, Klook) and we're not a social app. We're a cultural curator — a human with taste who points you to things you'd actually love but might miss. Our voice should feel like a text from a friend who always knows what's good, in a city that makes discovery hard.
+
+What that sounds like vs. what it doesn't:
+
+"Hand-picked by Hong Kong's curators"
+• Not our voice: "Over 172 events this week!"
+
+"The best nights in HK are behind this wall"
+• Not our voice: "Sign up to unlock unlimited access"
+
+"We'll remind you before it sells out"
+• Not our voice: "Create an account for exclusive benefits"
+
+"Curated by Hong Kong locals"
+• Not our voice: "Powered by AI"
+
+"Don't miss your next great night out"
+• Not our voice: "Don't miss out on amazing events!"
+
+Warm but never desperate. Precise but never cold. We assume our audience is smart — we're not explaining what an art exhibition is, we're telling them why this one matters.
+
+---
+
+Current Copy Audit
+
+The existing copy is actually surprisingly solid in places and breakable in others:
+
+Working:
+- "Don't miss your next great night out. Hand-picked by Hong Kong's curators." — warm, clear, human
+- "Curated by Hong Kong locals — join free to save events and get reminded before they sell out" — clear value exchange
+- "The best nights in HK are behind this wall" — confident, has edge
+
+Not working:
+- "Join Free" / "SEE EVERYTHING — IT'S FREE" — these say "free" twice but don't say what I actually get. Free is a price, not a benefit
+- "Save events & get notified before they sell out" — the mid-page CTA is better but still functional, not magnetic
+- The sign-in modal says "Welcome Back" to first-time visitors — small but wrong signal
+- The blur wall copy is good but the CTA ("SEE EVERYTHING") is generic — "everything" is vague and not compelling
+
+---
+
+Rewritten Copy
+
+Hero Subheadline (above the fold)
+Current: "Don't miss your next great night out. Hand-picked by Hong Kong's curators."
+>...
+Keep it. It's working. The only tweak I'd make is swapping "hand-picked by" for "curated by" to match your IG brand:
+>...
+"Don't miss your next great night out — curated by Hong Kong's locals."
+Value Prop Banner (the grey strip)
+Current: "✦ Curated by Hong Kong locals — join free to save events and get reminded before they sell out"
+>...
+This is decent. The frame is right but it's a list of features, not one compelling reason. Options:
+>...
+Slight polish: "✦ Every event on CULTIVE is reviewed by a real person. Join free to save, get reminders, and never miss the ones that matter."
+>...
+Bolder rewrite: "✦ 172 events, one taste. Each one reviewed by a human who actually goes to these things."
+Mid-Page CTA (the inline prompt after event 5)
+Current: "Save events & get notified before they sell out" → [Join Free →]
+>...
+This is the biggest missed opportunity. Someone who's scrolled through 5 events is interested. They need a nudge that's specific, not generic.
+>...
+Rewrite: "You've been browsing for a minute. The ones that sell out fast won't wait. Save them now — we'll text you before they're gone." → [Create your free account →]
+Blur Wall Headline + CTA
+Current headline: "The best nights in HK are behind this wall."
+>...
+This is actually good. Keep it.
+Current supporting copy: "Curated for Hong Kong. Free to join. We'll remind you before it sells out."
+>...
+Rewrite: "We've been thinking about what to do this weekend so you don't have to. Every event hand-picked. Every detail triple-checked. Yours free."
+Current CTA: "SEE EVERYTHING — IT'S FREE"
+>...
+The problem: "Everything" is empty. What am I seeing? Better to sell the experience, not the quantity.
+>...
+Rewrite option A (editorial): "See what you're missing →"
+>  (1/2)
+
+
+Rewrite option B (benefit-led): "Find your thing →"
+>...
+Rewrite option C (confidence): "We know you'll find something good →"
+Sign-Up Tab (from the modal)
+Current title: "Sign Up"
+>...
+Rewrite: "Create your free account" — warmer, more specific than a bare "Sign Up"
+>...
+Subheadline (add above the Google button): "You'll get event reminders, saved lists, and early access to the ones that'll sell out."
+>...
+Or even simpler: "One tap. Saves you from scrambling Friday night."
+Instagram Bio Link CTA
+Eugene mentioned rewriting this. If you want my draft:
+>...
+"172 events, one taste. Each listing reviewed by a real person who actually goes. cultive.city"
+>...
+Or more direct:
+ "Friday plans? We have 172 events for you, reviewed by real HK locals. Free. cultive.city"
+---
+
+The One-Sentence Philosophy
+
+Our voice says: "We did the work so you can just show up."
+
+Every CTA should feel like an invitation to a better weekend, not a transaction. That's the difference between "Join Free" (transactional, cost-framed) and "Find your thing" (aspirational, benefit-framed)....
