@@ -78,13 +78,26 @@ function App() {
   const appliedRef = useRef(false);
   const autoOpenedRef = useRef(false);
 
-  // Capture ?ref=CODE, set the invite banner flag, and open the auth modal
+  // Capture ?ref=CODE + UTM params, set the invite banner flag, open the auth modal
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
+    const utmSource   = params.get('utm_source');
+    const utmMedium   = params.get('utm_medium');
+    const utmCampaign = params.get('utm_campaign');
+
     if (ref) {
       try { localStorage.setItem(REF_CODE_KEY, ref); } catch { /* ignore */ }
       try { sessionStorage.setItem(INVITE_BANNER_KEY, '1'); } catch { /* ignore */ }
+    }
+
+    // Store UTM / inferred source so sign_up events can report where the user came from.
+    // A ?ref= link with no explicit UTM is treated as 'invite'.
+    const source = utmSource ?? (ref ? 'invite' : null);
+    if (source) {
+      try { sessionStorage.setItem('cultive:utm_source', source); } catch { /* ignore */ }
+      if (utmMedium)   try { sessionStorage.setItem('cultive:utm_medium', utmMedium); } catch { /* ignore */ }
+      if (utmCampaign) try { sessionStorage.setItem('cultive:utm_campaign', utmCampaign); } catch { /* ignore */ }
     }
   }, []);
 

@@ -411,6 +411,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
         if (entry.isIntersecting && !gateSeenRef.current) {
           gateSeenRef.current = true;
           track('blur_wall_seen');
+          track('gateway_view', { events_browsed: FREE_EVENT_LIMIT });
         }
       },
       { threshold: 0.1 },

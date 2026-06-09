@@ -1,0 +1,74 @@
+hose are all React internal ref references, not analytics tracking. The app has GA4 pageview tracking only — no custom events, no UTM capture, no conversion tracking. Here's what you'd need to add on the frontend for meaningful metrics:
+
+---
+
+What's Missing vs. What You Need
+
+Already there: Basic GA4 pageview tracking (G-X0RYEGB96W) — you can see visits, bounce rate, session duration.
+
+Missing — these would let your weekly metrics report tell you why things happen, not just what happened:
+
+1. UTM Parameter Capture (for invite links)
+
+Every invite link has ?ref=CODE but there's no UTM fallback. When someone shares a link in WhatsApp vs. IG vs. email, you can't tell which channel performed. Add:
+
+- Parse ?ref=CODE AND ?utm_source=whatsapp&utm_medium=invite from URL
+- Fire a GA event: gtag('event', 'invite_link_click', { ref: 'CODE', source: 'whatsapp' })
+- Store the UTM data alongside the user's sign-up in Supabase
+
+2. Sign-Up Conversion Event
+
+When someone signs up:
+gtag('event', 'sign_up', { method: 'google' })  // or 'email'
+This tells GA how many sign-ups happened, which source (direct, invite, social), and lets you see conversion rates in the GA dashboard.
+
+3. Gateway Impression Event
+
+When the blur wall appears:
+gtag('event', 'gateway_view', { events_browsed: 10 })
+This tells you how many people hit the 10-event wall vs. how many signed up — the conversion rate of your primary funnel.
+
+4. Event View / Save Events
+
+When someone saves an event or views a detail page:
+gtag('event', 'view_event', { category: 'music', district: 'central' })
+gtag('event', 'save_event', { event_id: 'xxx', category: 'art' })
+This tells you what categories and districts actually engage people — feeds directly into your demographic analysis.
+
+5. Invite Link Copy + Share Events
+gtag('event', 'share_invite', { platform: 'whatsapp' })
+gtag('event', 'share_event', { event_id: 'xxx' })
+6. Page Scroll Depth (built into GA4)
+
+Enable this in the GA4 admin panel — tells you what % of users actually scroll past the first 5 events to the blur wall.
+
+---
+
+What to Ask Replit to Add
+
+Here's the concise list for your Replit developer:
+1. Add UTM/ref param capture to sign-up flow
+   - Parse URL params, store in Supabase profile (sign_up_source, referred_by)
+   - Fire gtag event: sign_up with source
+
+2. Add these GA4 custom events:
+   - gateway_view (when blur wall appears)
+   - view_event (when opening event detail)
+   - save_event (when bookmarking)
+   - share_invite / share_event
+   - sign_up with method + source
+
+3. Enable scroll depth in GA4 admin
+
+4. Add UTM params to invite link sharing templates:
+   - WhatsApp → utm_source=whatsapp&utm_medium=invite
+   - IG DM → utm_source=instagram&utm_medium=invite
+   - Direct copy → utm_source=direct&utm_medium=invite
+With those, your Monday metrics report goes from:
+Sign-ups this week: +3
+To:
+Sign-ups this week: +3 (2 from invite links via WhatsApp, 1 from direct)
+ Gateway shown 47 times, 3 conversions = 6.4% rate
+ Most viewed category: Music (23 views)
+ Most clicked invite source: WhatsApp (67%)
+Want me to write up the exact code snippets for Replit?

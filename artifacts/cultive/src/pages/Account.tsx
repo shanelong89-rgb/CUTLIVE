@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { signOut, supabase, getUserCredits, getOrCreateReferralCode, type CreditTransaction } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 import { useInbox } from '../contexts/InboxContext';
+import { track } from '../lib/analytics';
 
 interface AccountProps {
   setIsAuthOpen?: (open: boolean) => void;
@@ -140,31 +141,40 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     return () => { active = false; };
   }, [user]);
 
-  const inviteLink = referralCode ? `${window.location.origin}?ref=${referralCode}` : null;
+  const inviteBase = referralCode ? `${window.location.origin}?ref=${referralCode}` : null;
+
+  const inviteLinks = inviteBase ? {
+    whatsapp: `${inviteBase}&utm_source=whatsapp&utm_medium=invite`,
+    facebook: `${inviteBase}&utm_source=facebook&utm_medium=invite`,
+    copy:     `${inviteBase}&utm_source=direct&utm_medium=invite`,
+  } : null;
 
   const handleCopyInvite = () => {
-    if (!inviteLink) return;
-    navigator.clipboard.writeText(inviteLink).then(() => {
+    if (!inviteLinks) return;
+    navigator.clipboard.writeText(inviteLinks.copy).then(() => {
       setReferralCopied(true);
       setTimeout(() => setReferralCopied(false), 2000);
     });
+    track('share_invite', { platform: 'copy' });
   };
 
   const shareViaWhatsApp = () => {
-    if (!inviteLink) return;
+    if (!inviteLinks) return;
     const msg = encodeURIComponent(
-      `been using CULTIVE to find events in HK — actually curated, no algorithm noise. sign up through my link and we both get HK$25 credit: ${inviteLink}`
+      `been using CULTIVE to find events in HK — actually curated, no algorithm noise. sign up through my link and we both get HK$25 credit: ${inviteLinks.whatsapp}`
     );
     window.open(`https://wa.me/?text=${msg}`, '_blank', 'noopener');
+    track('share_invite', { platform: 'whatsapp' });
   };
 
   const shareViaFacebook = () => {
-    if (!inviteLink) return;
+    if (!inviteLinks) return;
     window.open(
-      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(inviteLink)}`,
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(inviteLinks.facebook)}`,
       '_blank',
       'noopener,width=600,height=400',
     );
+    track('share_invite', { platform: 'facebook' });
   };
 
   const inviteTx = creditTx.filter(tx => tx.type === 'referral_bonus');
@@ -313,7 +323,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
           </div>
         )}
 
-        {inviteLink ? (
+        {inviteLinks ? (
           <>
             <button className="account-invite-wa-primary" onClick={shareViaWhatsApp}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -322,7 +332,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
               Share on WhatsApp
             </button>
             <div className="account-invite-link-row">
-              <span className="account-invite-link-text">{inviteLink}</span>
+              <span className="account-invite-link-text">{inviteLinks.copy}</span>
               <button className="account-invite-copy" onClick={handleCopyInvite}>
                 {referralCopied ? 'Copied!' : 'Copy'}
               </button>
