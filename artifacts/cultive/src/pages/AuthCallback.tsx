@@ -4,31 +4,41 @@ import { supabase } from '../lib/supabase';
 /**
  * Minimal page that the Google OAuth popup lands on.
  * Supabase detects the ?code= in the URL (detectSessionInUrl: true),
- * exchanges it for a session, and fires onAuthStateChange(SIGNED_IN)
- * in both this popup and the parent window (shared localStorage).
- * Once that fires — or after a short timeout — the popup closes itself.
+ * exchanges it for a session, and stores it in localStorage.
+ *
+ * Once the session is confirmed we post a message to the parent (opener)
+ * window so it can explicitly re-read its auth state — more reliable than
+ * relying on storage events which can be dropped in cross-frame environments.
  */
 export function AuthCallback() {
   useEffect(() => {
     let closed = false;
 
-    const close = () => {
+    const notifyAndClose = () => {
       if (closed) return;
       closed = true;
+      // Signal the opener so it can force a getSession() re-read.
       if (window.opener) {
-        window.close();
+        try {
+          window.opener.postMessage(
+            { type: 'CULTIVE_AUTH_COMPLETE' },
+            window.location.origin,
+          );
+        } catch { /* ignore cross-origin errors */ }
       }
+      // Small delay to let the message land before the window disappears.
+      setTimeout(() => { try { window.close(); } catch { /* ignore */ } }, 150);
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         sub.subscription.unsubscribe();
-        close();
+        notifyAndClose();
       }
     });
 
-    // Safety fallback — close after 8 s even if the event never fires.
-    const fallback = setTimeout(close, 8000);
+    // Safety fallback — close after 10 s even if the event never fires.
+    const fallback = setTimeout(notifyAndClose, 10_000);
 
     return () => {
       sub.subscription.unsubscribe();

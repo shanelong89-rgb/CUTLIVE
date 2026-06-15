@@ -656,12 +656,33 @@ export async function signInWithGoogle() {
     return;
   }
 
-  // Wait for the popup to close before resolving.
+  // Wait for the popup to signal completion (via postMessage) or close on its own.
+  // postMessage is more reliable than storage events in cross-frame environments
+  // (e.g. Replit's iframe preview) where storage events can arrive late or be dropped.
   await new Promise<void>((resolve) => {
-    const timer = setInterval(() => {
-      if (popup.closed) { clearInterval(timer); resolve(); }
+    const done = () => {
+      window.removeEventListener('message', onMessage);
+      clearInterval(pollTimer);
+      resolve();
+    };
+
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin === window.location.origin && e.data?.type === 'CULTIVE_AUTH_COMPLETE') {
+        done();
+      }
+    };
+    window.addEventListener('message', onMessage);
+
+    // Fallback: poll for popup closing in case the message never arrives.
+    const pollTimer = setInterval(() => {
+      if (popup.closed) done();
     }, 400);
   });
+
+  // Force this window's Supabase client to re-read the session from localStorage.
+  // The popup wrote the session there after the PKCE code exchange; without this
+  // explicit re-read the parent window's in-memory state stays stale.
+  await supabase.auth.getSession();
 }
 
 export function onAuthStateChange(callback: (event: string, session: any) => void) {
