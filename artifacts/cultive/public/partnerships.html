@@ -218,7 +218,12 @@ body {
   transform: scale(1.35);
 }
 @media (max-width: 768px) {
-  #radialCanvas, .radial-hint { display: none; }
+  #radialCanvas, .radial-hint {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
   .mobile-partner-carousel-wrap { display: block; }
 }
 @media (max-width: 480px) {
