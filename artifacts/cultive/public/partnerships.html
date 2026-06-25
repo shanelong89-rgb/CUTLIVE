@@ -1474,8 +1474,8 @@ document.querySelectorAll('.nav-dot').forEach(dot => {
   });
 
   canvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
     if (focusedIndex >= 0) {
+      e.preventDefault();
       if (e.deltaY > 0) focusedIndex = (focusedIndex + 1) % CARDS.length;
       else focusedIndex = (focusedIndex - 1 + CARDS.length) % CARDS.length;
       const targetAngle = -Math.PI / 2 - (focusedIndex / CARDS.length) * Math.PI * 2;
@@ -1487,8 +1487,6 @@ document.querySelectorAll('.nav-dot').forEach(dot => {
         else globalAngle = targetAngle;
       };
       snap();
-    } else {
-      targetVelocity += e.deltaY * 0.0001;
     }
   }, { passive: false });
 
