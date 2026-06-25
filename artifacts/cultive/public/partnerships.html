@@ -566,9 +566,10 @@ p { font-size: 11pt; margin-bottom: 10px; }
 .floating-section .trust-list li { color: #4a4a5a; }
 .floating-section .trust-list li::before { color: #717182; }
 
-/* Radial carousel */
+/* Radial carousel — internal canvas is 1500×800 so use aspect-ratio to scale */
 #radialCanvas {
-  width: 100%; max-width: 1100px; height: 600px;
+  width: 100%; max-width: 1100px;
+  aspect-ratio: 1500 / 800;
   cursor: grab; display: block; margin: 0 auto; touch-action: none;
 }
 #radialCanvas:active { cursor: grabbing; }
@@ -1233,73 +1234,71 @@ document.querySelectorAll('.nav-dot').forEach(dot => {
   document.head.appendChild(gsapScript);
 })();
 
-// Radial Carousel
+// Radial Carousel — ported faithfully from the original Brik canvas component
 (function() {
   const canvas = document.getElementById('radialCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  function resize() {
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio, 2);
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-  }
-  resize();
-  window.addEventListener('resize', resize);
+  // Fixed internal resolution matching the original component (1500×800)
+  canvas.width = 1500;
+  canvas.height = 800;
 
-  const CARDS = [
+  // ── Config (matches original defaultProps) ──
+  const RADIUS    = 280;
+  const IMAGE_SIZE = 280;
+  const CARD_ASPECT = 1.4;   // slightly taller for more text room
+  const FRICTION  = 0.9;
+  const DRIFT     = 1.0;
+  const TENSION   = 0.19;
+  const SENSITIVITY = 2.4;
+  const HEADING_FONT = 'Archivo Black';
+  const BODY_FONT    = 'Inter';
+
+  // Partnership card text — tagged format matching the original layoutCardText system
+  const SLIDES = [
     {
-      title: 'Curated Placement',
-      desc: 'Your venue gets recommended inside the WhatsApp conversation. Not as a listing — as a specific reason to go there tonight.',
-      example: '"There\'s a new cocktail bar in Sheung Wan. The team behind it used to run [notable spot]. The negroni is worth the trip."'
+      text: '[Label] 01 — CURATED PLACEMENT\n[H2] When we recommend you, someone walks in that night.\n[Body] Your venue gets mentioned inside the WhatsApp conversation — not as a listing, but as a specific reason to go there tonight.\n[Body] "There\'s a new cocktail bar in Sheung Wan. The team behind it used to run [notable spot]. The negroni is worth the trip."',
+      opacity: 30
     },
     {
-      title: 'Insider Access',
-      desc: 'CULTIVE members get a small but meaningful upgrade at your venue. A welcome drink. Priority booking. Something that makes the WhatsApp message feel like a secret worth having.',
-      example: '"Show this message for a welcome drink."'
+      text: '[Label] 02 — INSIDER ACCESS\n[H2] Make the message feel like a secret worth having.\n[Body] CULTIVE members get a small but meaningful upgrade at your venue — a welcome drink, priority booking, something real.\n[Body] "Show this message for a welcome drink."',
+      opacity: 30
     },
     {
-      title: 'Cultural Trails',
-      desc: 'Your venue becomes part of a multi-stop itinerary. Dim sum in the morning. Your gallery in the afternoon. Live music at night. The person gets a full day\'s plan, not a single pin on a map.',
-      example: ''
+      text: '[Label] 03 — CULTURAL TRAILS\n[H2] Your venue is part of the full day\'s plan.\n[Body] Dim sum in the morning. Your gallery in the afternoon. Live music at night. A full itinerary — not a single pin on a map.',
+      opacity: 30
     },
     {
-      title: 'Co-Branded Evenings',
-      desc: 'We curate and host an event together. Your brand gets associated with culture. We handle the curation, the audience, and the experience. You get the right people in the room.',
-      example: ''
+      text: '[Label] 04 — CO-BRANDED EVENINGS\n[H2] We bring the right people into the room.\n[Body] We curate and host an event together. Your brand gets associated with culture. We handle the curation, the audience, the experience.',
+      opacity: 30
     }
   ];
 
-  const IMAGES = [
+  const IMAGE_URLS = [
     'https://iili.io/Cugoogt.jpg',
     'https://iili.io/CugAfXs.jpg',
     'https://iili.io/Cug5Txe.jpg',
     'https://iili.io/CugacJ4.jpg'
   ];
 
-  const images = IMAGES.map(url => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = url;
-    return img;
-  });
+  // ── Helpers ──
+  function drawCoverImage(ctx, img, x, y, w, h) {
+    const imgAspect = img.width / img.height;
+    const containerAspect = w / h;
+    let sx, sy, sw, sh;
+    if (imgAspect > containerAspect) {
+      sh = img.height; sw = img.height * containerAspect;
+      sx = (img.width - sw) / 2; sy = 0;
+    } else {
+      sw = img.width; sh = img.width / containerAspect;
+      sx = 0; sy = (img.height - sh) / 2;
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  }
 
-  let globalAngle = 0;
-  let scrollVelocity = 0;
-  let targetVelocity = 0.001;
-  let isDragging = false;
-  let startX = 0;
-  let startAngle = 0;
-  let lastPointerX = 0;
-  let lastPointerTime = 0;
-  let hoveredIndex = -1;
-  let focusedIndex = -1;
-  const radius = 300;
-
-  function wrapText(text, maxWidth) {
+  function wrapText(ctx, text, maxWidth) {
     const words = text.split(' ');
     const lines = [];
     let current = words[0] || '';
@@ -1315,195 +1314,278 @@ document.querySelectorAll('.nav-dot').forEach(dot => {
     return lines;
   }
 
-  function drawCard(item, idx, cx, cy) {
-    const angle = (idx / CARDS.length) * Math.PI * 2 + globalAngle;
-    const isFocused = idx === focusedIndex;
-    const x = cx + Math.cos(angle) * (isFocused ? 0 : radius);
-    const y = cy + Math.sin(angle) * (isFocused ? 0 : radius);
-    const scale = isFocused ? 1.3 : 1;
-    const w = 280 * scale, h = 370 * scale, r = 16;
-    const isHovered = idx === hoveredIndex;
+  function getStyleConfig(tag, scale) {
+    const t = tag.toLowerCase();
+    if (t === 'label')     return { font: BODY_FONT,    size: 9*scale,  weight:'700', color:'#717182',  lineH:1.3 };
+    if (t === 'h1')        return { font: HEADING_FONT, size: 22*scale, weight:'900', color:'#030213',  lineH:1.15 };
+    if (t === 'h2')        return { font: HEADING_FONT, size: 15*scale, weight:'900', color:'#030213',  lineH:1.2 };
+    if (t === 'body')      return { font: BODY_FONT,    size: 10*scale, weight:'400', color:'#4a4a5a',  lineH:1.55 };
+    if (t === 'stat')      return { font: HEADING_FONT, size: 22*scale, weight:'900', color:'#030213',  lineH:1.0 };
+    if (t === 'statlabel') return { font: BODY_FONT,    size: 8*scale,  weight:'700', color:'#717182',  lineH:1.3 };
+    return                        { font: BODY_FONT,    size: 10*scale, weight:'400', color:'#4a4a5a',  lineH:1.55 };
+  }
+
+  function layoutCardText(ctx, textBlock, maxWidth, scale) {
+    const lines = [];
+    let totalHeight = 0;
+    if (!textBlock) return { lines, totalHeight };
+
+    const rawLines = textBlock.split('\n');
+    rawLines.forEach(rawLine => {
+      const trimmed = rawLine.trim();
+      if (!trimmed) return;
+      const match = trimmed.match(/^\[([A-Za-z0-9]+)\]\s*(.*)/);
+      const tag  = match ? match[1] : 'Body';
+      const text = match ? match[2] : trimmed;
+      const style = getStyleConfig(tag, scale);
+
+      ctx.font = `${style.weight} ${style.size}px "${style.font}", sans-serif`;
+      const wrapped = wrapText(ctx, text, maxWidth);
+      wrapped.forEach((wText, idx) => {
+        lines.push({ text: wText, style, isFirst: idx === 0, tag });
+      });
+    });
+
+    let currentY = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (i > 0 && line.isFirst) {
+        currentY += line.style.size * 0.65;
+      } else if (i > 0) {
+        currentY += line.style.size * 0.22;
+      }
+      line.yOffset = currentY;
+      currentY += line.style.size * line.style.lineH;
+    }
+    totalHeight = currentY;
+    return { lines, totalHeight };
+  }
+
+  // ── Item initialisation ──
+  const items = SLIDES.map((slide, i) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = IMAGE_URLS[i % IMAGE_URLS.length];
+    const item = {
+      img,
+      loaded: false,
+      textBlock: slide.text,
+      index: i,
+      baseAngle: (i / SLIDES.length) * Math.PI * 2,
+      currentRadius: RADIUS,
+      velocityRadius: 0,
+      weight: 0.6 + (i % 3) * 0.4,
+      hoverScale: 1.0,
+      localOpacity: (slide.opacity !== undefined ? slide.opacity : 30) / 100
+    };
+    img.onload = () => { item.loaded = true; };
+    return item;
+  });
+
+  // ── Physics update (faithful to source) ──
+  function updateItem(item, velocity, isHovered) {
+    const driftIntensity = DRIFT;
+    const targetDrift = Math.abs(velocity) * driftIntensity * 400 * item.weight;
+    const targetRadius = RADIUS + targetDrift;
+    const force = (targetRadius - item.currentRadius) * TENSION;
+    item.velocityRadius += force;
+    item.velocityRadius *= 0.85;
+    item.currentRadius += item.velocityRadius;
+
+    const targetScale = isHovered ? 1.08 : 1.0;
+    item.hoverScale += (targetScale - item.hoverScale) * 0.15;
+  }
+
+  // ── Draw one card (faithful Glassmorphism style) ──
+  function drawItem(item, centerX, centerY, globalAngle) {
+    const angle    = item.baseAngle + globalAngle;
+    const x        = centerX + Math.cos(angle) * item.currentRadius;
+    const y        = centerY + Math.sin(angle) * item.currentRadius;
+    const scale    = IMAGE_SIZE / 280;                   // normalised scale
+    const cardW    = IMAGE_SIZE * item.hoverScale;
+    const cardH    = IMAGE_SIZE * CARD_ASPECT * item.hoverScale;
+    const corner   = 16 * scale;
+    const isHov    = hoveredIndex === item.index;
+    const overlay  = item.localOpacity;
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.shadowBlur = isFocused ? 40 : (isHovered ? 30 : 20);
-    ctx.shadowColor = isFocused ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.12)';
-    ctx.shadowOffsetY = isFocused ? 12 : 8;
+    ctx.shadowBlur    = isHov ? 25 : 15;
+    ctx.shadowColor   = 'rgba(3,2,19,0.15)';
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 8;
 
     ctx.beginPath();
-    ctx.roundRect(-w/2, -h/2, w, h, r);
+    ctx.roundRect(-cardW/2, -cardH/2, cardW, cardH, corner);
     ctx.closePath();
 
     ctx.save();
     ctx.clip();
     ctx.shadowColor = 'transparent';
 
-    const img = images[idx];
-    if (img && img.complete && img.naturalWidth > 0) {
-      const imgAspect = img.width / img.height;
-      const cardAspect = w / h;
-      let sx, sy, sw, sh;
-      if (imgAspect > cardAspect) {
-        sh = img.height; sw = img.height * cardAspect;
-        sx = (img.width - sw) / 2; sy = 0;
-      } else {
-        sw = img.width; sh = img.width / cardAspect;
-        sx = 0; sy = (img.height - sh) / 2;
-      }
-      ctx.drawImage(img, sx, sy, sw, sh, -w/2, -h/2, w, h);
+    // Background image
+    if (item.loaded && item.img.complete && item.img.naturalWidth > 0) {
+      drawCoverImage(ctx, item.img, -cardW/2, -cardH/2, cardW, cardH);
     } else {
       ctx.fillStyle = '#f0f0f3';
-      ctx.fillRect(-w/2, -h/2, w, h);
+      ctx.fillRect(-cardW/2, -cardH/2, cardW, cardH);
     }
 
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
-    ctx.fillRect(-w/2, -h/2, w, h);
-    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
-    ctx.lineWidth = 1;
+    // White glass overlay
+    ctx.fillStyle = `rgba(255,255,255,${overlay})`;
+    ctx.fillRect(-cardW/2, -cardH/2, cardW, cardH);
+
+    // Border
+    ctx.strokeStyle = 'rgba(3,2,19,0.08)';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    const pad = 24;
-    const maxTextW = w - pad * 2;
-    let ty = -h/2 + pad;
+    // Text
+    if (item.textBlock) {
+      const padding   = 24 * scale;
+      const usableW   = cardW - padding * 2;
+      const layout    = layoutCardText(ctx, item.textBlock, usableW, scale);
+      const vertOff   = Math.max(0, (cardH - padding*2 - layout.totalHeight) / 2);
+      const startY    = -cardH/2 + padding + vertOff;
 
-    ctx.font = '900 16px "Archivo Black", sans-serif';
-    ctx.fillStyle = '#030213';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    wrapText(item.title, maxTextW).forEach(line => { ctx.fillText(line, -w/2 + pad, ty); ty += 20; });
-    ty += 8;
-
-    ctx.font = '400 11px "Inter", sans-serif';
-    ctx.fillStyle = '#4a4a5a';
-    wrapText(item.desc, maxTextW).forEach(line => { ctx.fillText(line, -w/2 + pad, ty); ty += 16; });
-    ty += 8;
-
-    if (item.example) {
-      ctx.font = 'italic 400 10px "Inter", sans-serif';
-      ctx.fillStyle = '#717182';
-      wrapText(item.example, maxTextW).forEach(line => { ctx.fillText(line, -w/2 + pad, ty); ty += 15; });
+      ctx.textAlign    = 'left';
+      ctx.textBaseline = 'top';
+      layout.lines.forEach(line => {
+        ctx.font      = `${line.style.weight} ${line.style.size}px "${line.style.font}", sans-serif`;
+        ctx.fillStyle = line.style.color;
+        ctx.fillText(line.text, -cardW/2 + padding, startY + line.yOffset);
+      });
     }
 
-    ctx.restore();
-    ctx.restore();
+    ctx.restore(); // unclip
+    ctx.restore(); // untranslate
   }
 
-  function animate() {
-    requestAnimationFrame(animate);
-    const rect = canvas.getBoundingClientRect();
-    const W = rect.width, H = rect.height;
-    ctx.clearRect(0, 0, W, H);
+  // ── Hit test ──
+  function containsPoint(item, px, py, centerX, centerY, globalAngle) {
+    const angle  = item.baseAngle + globalAngle;
+    const x      = centerX + Math.cos(angle) * item.currentRadius;
+    const y      = centerY + Math.sin(angle) * item.currentRadius;
+    const cardW  = IMAGE_SIZE;
+    const cardH  = IMAGE_SIZE * CARD_ASPECT;
+    return px >= x - cardW/2 && px <= x + cardW/2 &&
+           py >= y - cardH/2 && py <= y + cardH/2;
+  }
 
+  function getMousePos(e) {
+    const rect   = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top)  * scaleY
+    };
+  }
+
+  // ── State ──
+  let globalAngle    = 0;
+  let scrollVelocity = 0;
+  let targetVelocity = 0;
+  let isDragging     = false;
+  let startX         = 0;
+  let startAngle     = 0;
+  let lastPointerX   = 0;
+  let lastPointerTime = 0;
+  let dragVelocity   = 0;
+  let hoveredIndex   = -1;
+  let lastTime       = performance.now();
+
+  // Auto-nudge (slow gentle spin when idle)
+  const AUTO_SPEED = 0.00018;
+
+  // ── Main loop ──
+  function loop(time) {
+    requestAnimationFrame(loop);
+    const dt = Math.min((time - lastTime) / 1000, 0.05);
+    lastTime = time;
+
+    const CX = canvas.width  / 2;
+    const CY = canvas.height / 2;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Physics
     scrollVelocity += (targetVelocity - scrollVelocity) * 0.1;
-    targetVelocity *= 0.995;
-    globalAngle += scrollVelocity;
+    targetVelocity *= FRICTION;
 
-    if (Math.abs(scrollVelocity) < 0.001 && !isDragging && focusedIndex < 0) {
-      targetVelocity += 0.00005;
+    // Auto-spin when nearly still and not dragging
+    if (!isDragging && Math.abs(scrollVelocity) < 0.0005) {
+      globalAngle += AUTO_SPEED;
+    } else {
+      globalAngle += scrollVelocity;
     }
 
-    const cx = W / 2, cy = H / 2;
-
-    const sorted = CARDS.map((card, i) => {
-      const angle = (i / CARDS.length) * Math.PI * 2 + globalAngle;
-      return { card, idx: i, y: Math.sin(angle) };
-    }).sort((a, b) => {
-      if (a.idx === focusedIndex) return 1;
-      if (b.idx === focusedIndex) return -1;
-      return a.y - b.y;
+    items.forEach((item, idx) => {
+      updateItem(item, scrollVelocity, idx === hoveredIndex);
+      drawItem(item, CX, CY, globalAngle);
     });
-
-    sorted.forEach(({ card, idx }) => drawCard(card, idx, cx, cy));
   }
+  requestAnimationFrame(loop);
 
-  function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  }
-
-  let dragDist = 0;
+  // ── Event listeners ──
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    targetVelocity += e.deltaY * 0.0001 * SENSITIVITY;
+  }, { passive: false });
 
   canvas.addEventListener('pointerdown', (e) => {
-    isDragging = true; dragDist = 0;
-    const pos = getPos(e);
-    startX = pos.x; startAngle = globalAngle;
-    lastPointerX = pos.x; lastPointerTime = performance.now();
-    scrollVelocity = 0; targetVelocity = 0;
+    const pos = getMousePos(e);
+    isDragging     = true;
+    startX         = pos.x;
+    startAngle     = globalAngle;
+    lastPointerX   = pos.x;
+    lastPointerTime = performance.now();
+    scrollVelocity = 0;
+    targetVelocity = 0;
+    canvas.style.cursor = 'grabbing';
     canvas.setPointerCapture(e.pointerId);
   });
 
   canvas.addEventListener('pointermove', (e) => {
-    const pos = getPos(e);
-    if (isDragging) {
-      const dx = pos.x - startX;
-      dragDist += Math.abs(pos.x - lastPointerX);
-      globalAngle = startAngle + dx / (radius * 1.5);
-      const now = performance.now();
-      const dt = now - lastPointerTime;
-      if (dt > 0) scrollVelocity = (pos.x - lastPointerX) / (radius * 1.5) / (dt / 16.66);
-      lastPointerX = pos.x; lastPointerTime = now;
-    }
-  });
+    const pos = getMousePos(e);
+    const now = performance.now();
+    const CX  = canvas.width  / 2;
+    const CY  = canvas.height / 2;
 
-  canvas.addEventListener('pointerup', (e) => {
-    isDragging = false;
-    if (dragDist < 5) {
-      const pos = getPos(e);
-      const rect = canvas.getBoundingClientRect();
-      const W = rect.width, H = rect.height;
-      const cx = W / 2, cy = H / 2;
-      let clicked = -1;
-      for (let i = 0; i < CARDS.length; i++) {
-        const angle = (i / CARDS.length) * Math.PI * 2 + globalAngle;
-        const cardX = cx + Math.cos(angle) * radius;
-        const cardY = cy + Math.sin(angle) * radius;
-        if (pos.x > cardX - 140 && pos.x < cardX + 140 && pos.y > cardY - 185 && pos.y < cardY + 185) {
-          clicked = i; break;
+    if (isDragging) {
+      const dx      = pos.x - startX;
+      const change  = (dx / RADIUS) * 1.2;
+      globalAngle   = startAngle + change;
+      const dt      = now - lastPointerTime;
+      if (dt > 0) {
+        dragVelocity   = (pos.x - lastPointerX) / RADIUS / (dt / 16.66);
+        scrollVelocity = dragVelocity;
+      }
+      lastPointerX    = pos.x;
+      lastPointerTime = now;
+    } else {
+      let found = -1;
+      for (let i = 0; i < items.length; i++) {
+        if (containsPoint(items[i], pos.x, pos.y, CX, CY, globalAngle)) {
+          found = i; break;
         }
       }
-      if (clicked === focusedIndex) {
-        focusedIndex = -1; targetVelocity = 0.001;
-      } else if (clicked >= 0) {
-        focusedIndex = clicked;
-        const targetAngle = -Math.PI / 2 - (clicked / CARDS.length) * Math.PI * 2;
-        while (globalAngle - targetAngle > Math.PI) globalAngle -= Math.PI * 2;
-        while (targetAngle - globalAngle > Math.PI) globalAngle += Math.PI * 2;
-        targetVelocity = 0; scrollVelocity = 0;
-        const snap = () => {
-          globalAngle += (targetAngle - globalAngle) * 0.12;
-          if (Math.abs(targetAngle - globalAngle) > 0.001) requestAnimationFrame(snap);
-          else globalAngle = targetAngle;
-        };
-        snap();
-      } else {
-        focusedIndex = -1; targetVelocity = 0.001;
-      }
-    } else {
-      targetVelocity = scrollVelocity * 0.3;
-      focusedIndex = -1;
+      hoveredIndex = found;
+      canvas.style.cursor = found !== -1 ? 'grab' : 'default';
     }
   });
 
-  canvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    if (focusedIndex >= 0) {
-      if (e.deltaY > 0) focusedIndex = (focusedIndex + 1) % CARDS.length;
-      else focusedIndex = (focusedIndex - 1 + CARDS.length) % CARDS.length;
-      const targetAngle = -Math.PI / 2 - (focusedIndex / CARDS.length) * Math.PI * 2;
-      while (globalAngle - targetAngle > Math.PI) globalAngle -= Math.PI * 2;
-      while (targetAngle - globalAngle > Math.PI) globalAngle += Math.PI * 2;
-      const snap = () => {
-        globalAngle += (targetAngle - globalAngle) * 0.12;
-        if (Math.abs(targetAngle - globalAngle) > 0.001) requestAnimationFrame(snap);
-        else globalAngle = targetAngle;
-      };
-      snap();
-    } else {
-      targetVelocity += e.deltaY * 0.0001;
-    }
-  }, { passive: false });
+  canvas.addEventListener('pointerup', () => {
+    if (!isDragging) return;
+    isDragging     = false;
+    targetVelocity = scrollVelocity * 0.8;
+    canvas.style.cursor = hoveredIndex !== -1 ? 'grab' : 'default';
+  });
 
-  animate();
+  canvas.addEventListener('pointercancel', () => {
+    isDragging = false;
+    canvas.style.cursor = 'default';
+  });
 })();
 
 // Floating Cards Background
