@@ -27,9 +27,27 @@ if (!rawBasePath && !isBuild) {
 }
 const basePath = rawBasePath ?? "/";
 
+const staticPageRewrites: { from: RegExp; to: string }[] = [
+  { from: /^\/partnerships$/, to: '/partnerships.html' },
+];
+
 export default defineConfig({
   base: basePath,
   plugins: [
+    {
+      name: 'static-page-rewrites',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          for (const rule of staticPageRewrites) {
+            if (req.url && rule.from.test(req.url.split('?')[0])) {
+              req.url = rule.to + (req.url.includes('?') ? '?' + req.url.split('?')[1] : '');
+              break;
+            }
+          }
+          next();
+        });
+      },
+    },
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
