@@ -1,0 +1,2354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CULTIVE — Brand Partnership Introduction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --white: #ffffff;
+  --text-primary: #030213;
+  --text-body: #4a4a5a;
+  --text-meta: #717182;
+  --divider: rgba(0,0,0,0.1);
+  --divider-thick: rgba(0,0,0,0.2);
+  --font-display: 'Archivo Black', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-body);
+  background: var(--white);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Section System ── */
+.section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-inner {
+  max-width: 680px;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Parallax BG layers (disabled) ── */
+.parallax-bg { display: none; }
+
+/* ── Animations ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.reveal-right {
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger children */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stagger-children.visible > *:nth-child(1) { transition-delay: 0s; }
+.stagger-children.visible > *:nth-child(2) { transition-delay: 0.1s; }
+.stagger-children.visible > *:nth-child(3) { transition-delay: 0.2s; }
+.stagger-children.visible > *:nth-child(4) { transition-delay: 0.3s; }
+.stagger-children.visible > *:nth-child(5) { transition-delay: 0.4s; }
+.stagger-children.visible > *:nth-child(6) { transition-delay: 0.5s; }
+.stagger-children.visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Typography ── */
+.section-label {
+  font-family: var(--font-body);
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: +0.18em;
+  color: var(--text-meta);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-size: 28pt;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-bottom: 22px;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-size: 16pt;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  margin-top: 32px;
+}
+
+p {
+  font-size: 11pt;
+  margin-bottom: 10px;
+}
+
+.pullquote {
+  font-family: var(--font-body);
+  font-size: 13pt;
+  font-weight: 500;
+  color: var(--text-primary);
+  border-left: 3px solid var(--text-primary);
+  padding-left: 20px;
+  margin: 32px 0;
+  line-height: 1.5;
+}
+
+/* ── Dividers ── */
+.divider {
+  height: 1px;
+  background: var(--divider);
+  margin: 24px 0;
+}
+.divider-thick {
+  height: 1px;
+  background: var(--divider-thick);
+  margin: 32px 0;
+}
+.cover-line {
+  width: 60px;
+  height: 2px;
+  background: var(--text-primary);
+  margin: 24px 0;
+}
+
+/* ── Stats Grid ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin: 32px 0;
+}
+.stat-item {
+  text-align: center;
+  padding: 20px 0;
+}
+.stat-number {
+  font-family: var(--font-display);
+  font-size: 22pt;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.stat-label {
+  font-family: var(--font-body);
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: +0.12em;
+  color: var(--text-meta);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* ── WhatsApp Phone Mockup ── */
+.phone-frame {
+  width: 340px;
+  margin: 40px auto;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.08);
+  position: relative;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.phone-frame.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* WhatsApp Header */
+.wa-header {
+  background: #075E54;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wa-header .wa-back {
+  color: #fff;
+  font-size: 18px;
+  opacity: 0.9;
+}
+.wa-header .wa-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #25D366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.wa-header .wa-info {
+  flex: 1;
+  min-width: 0;
+}
+.wa-header .wa-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.wa-header .wa-status {
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  line-height: 1.2;
+}
+.wa-header .wa-actions {
+  display: flex;
+  gap: 14px;
+  color: #fff;
+  opacity: 0.85;
+}
+.wa-header .wa-actions span { font-size: 16px; cursor: default; }
+
+/* WhatsApp Chat Area */
+.wa-chat {
+  background: #E5DDD5;
+  background-image:
+    radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px);
+  background-size: 20px 20px, 14px 14px;
+  background-position: 0 0, 7px 7px;
+  padding: 12px 14px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Date chip */
+.wa-date-chip {
+  align-self: center;
+  background: #E1F2FB;
+  color: #5C6B75;
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+  margin: 4px 0 8px;
+}
+
+/* Bubbles */
+.wa-bubble-row {
+  display: flex;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.wa-bubble-row.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.wa-bubble-row.incoming { justify-content: flex-start; }
+.wa-bubble-row.outgoing { justify-content: flex-end; }
+
+.wa-bubble {
+  max-width: 82%;
+  padding: 6px 9px 5px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+  font-size: 13px;
+  line-height: 18px;
+  color: #111B21;
+  word-break: break-word;
+}
+.wa-bubble.incoming {
+  background: #FFFFFF;
+  border-bottom-left-radius: 2px;
+}
+.wa-bubble.outgoing {
+  background: #DCF8C6;
+  border-bottom-right-radius: 2px;
+}
+
+/* Bubble tail */
+.wa-bubble.incoming::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 0;
+  width: 0; height: 0;
+  border-top: 8px solid #FFFFFF;
+  border-left: 8px solid transparent;
+}
+.wa-bubble.outgoing::before {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: 0;
+  width: 0; height: 0;
+  border-top: 8px solid #DCF8C6;
+  border-right: 8px solid transparent;
+}
+
+.wa-bubble-text { margin-bottom: 2px; }
+.wa-bubble-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 3px;
+  color: #667781;
+  font-size: 10px;
+  line-height: 10px;
+  margin-top: 2px;
+}
+.wa-checkmarks { display: inline-flex; }
+.wa-checkmarks svg { display: block; }
+
+/* Composer */
+.wa-composer {
+  background: #F0F2F5;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.wa-composer-input {
+  flex: 1;
+  background: #FFFFFF;
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: #667781;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wa-composer-icons {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+  color: #667781;
+}
+.wa-composer-icons span { font-size: 16px; cursor: default; }
+.wa-mic-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: #25D366;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+/* Typing indicator */
+.wa-typing {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 12px;
+}
+.wa-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8696A0;
+  animation: typingBounce 1.4s infinite;
+}
+.wa-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.wa-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ── Opportunity Blocks ── */
+.opp-block {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.opp-block:last-child { border-bottom: none; }
+.opp-title {
+  font-family: var(--font-body);
+  font-size: 11pt;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.opp-desc {
+  font-size: 10pt;
+  color: var(--text-body);
+  margin-bottom: 6px;
+}
+.opp-example {
+  font-size: 10pt;
+  font-style: italic;
+  color: var(--text-meta);
+}
+
+/* ── Trust List ── */
+.trust-list {
+  list-style: none;
+  margin: 16px 0;
+}
+.trust-list li {
+  font-size: 11pt;
+  color: var(--text-body);
+  padding: 8px 0;
+  padding-left: 20px;
+  position: relative;
+}
+.trust-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--text-meta);
+}
+
+/* ── Why List ── */
+.why-list {
+  list-style: none;
+  margin: 16px 0;
+}
+.why-list li {
+  font-size: 10.5pt;
+  color: var(--text-body);
+  padding: 8px 0;
+  padding-left: 20px;
+  position: relative;
+  border-bottom: 1px solid var(--divider);
+}
+.why-list li:last-child { border-bottom: none; }
+.why-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: 8px;
+  height: 1px;
+  background: var(--text-primary);
+}
+
+/* ── Contact Block ── */
+.contact-block {
+  margin: 40px 0;
+}
+.contact-email {
+  font-family: var(--font-display);
+  font-size: 16pt;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-decoration: none;
+  display: inline-block;
+  transition: opacity 0.3s;
+}
+.contact-email:hover { opacity: 0.7; }
+.contact-web {
+  font-family: var(--font-body);
+  font-size: 12pt;
+  color: var(--text-body);
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 4px;
+  transition: opacity 0.3s;
+}
+.contact-web:hover { opacity: 0.7; }
+
+/* ── Closing ── */
+.closing-brand {
+  font-family: var(--font-display);
+  font-size: 14pt;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.closing-tagline {
+  font-family: var(--font-body);
+  font-size: 10pt;
+  font-weight: 400;
+  color: var(--text-meta);
+  margin-top: 4px;
+}
+
+/* ── Cover Section ── */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+.cover-inner {
+  position: relative;
+  z-index: 2;
+}
+.cover .logo {
+  font-family: var(--font-display);
+  font-size: 64pt;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.cover .tagline {
+  font-family: var(--font-body);
+  font-size: 13pt;
+  font-weight: 500;
+  color: var(--text-body);
+  margin-bottom: 32px;
+}
+#logoCanvas {
+  display: block;
+  margin: 0 auto 32px;
+  max-width: 600px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/1;
+}
+.cover .meta {
+  font-family: var(--font-body);
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: +0.18em;
+  color: var(--text-meta);
+  text-transform: uppercase;
+}
+
+/* ── Scroll Progress ── */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--text-primary);
+  z-index: 1000;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* ── Nav Dots ── */
+.nav-dots {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--text-primary);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+.nav-dot.active {
+  background: var(--text-primary);
+  transform: scale(1.3);
+}
+.nav-dot:hover {
+  background: rgba(3, 2, 19, 0.3);
+}
+
+/* ── Floating Accent ── */
+.float-accent {
+  position: absolute;
+  width: 60px;
+  height: 2px;
+  background: var(--text-primary);
+  opacity: 0.15;
+}
+
+/* ── 3D Cube Section ── */
+.cube-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.cube-section .section-inner {
+  max-width: 100%;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+.cube-section .section-label,
+.cube-section h1,
+.cube-section h2 {
+  color: var(--text-primary);
+}
+.cube-section .section-label { color: var(--text-meta); }
+.cube-section p { color: var(--text-body); }
+.cube-section .pullquote { color: #fff; border-left-color: rgba(255,255,255,0.3); }
+.cube-section .divider { background: rgba(255,255,255,0.1); }
+.cube-section .divider-thick { background: rgba(255,255,255,0.15); }
+
+#cubeContainer {
+  width: 90vw;
+  max-width: 900px;
+  height: 70vh;
+  margin: 40px auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  touch-action: none;
+}
+#cubeContainer canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── Floating Cards Background Section ── */
+.floating-section {
+  position: relative;
+  min-height: 100vh;
+  padding: 0 24px 100px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: -40px;
+}
+.floating-section #floatingCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.floating-section .dark-overlay {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  z-index: 1;
+}
+.floating-section .section-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 680px;
+  width: 100%;
+}
+.floating-section .section-label { color: rgba(3,2,19,0.5); }
+.floating-section h1,
+.floating-section h2 { color: #030213; }
+.floating-section p { color: #4a4a5a; }
+.floating-section .stat-number { color: #030213; }
+.floating-section .stat-label { color: rgba(3,2,19,0.5); }
+.floating-section .divider { background: rgba(0,0,0,0.1); }
+.floating-section .trust-list li { color: #4a4a5a; }
+.floating-section .trust-list li::before { color: #717182; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  h1 { font-size: 22pt; }
+  h2 { font-size: 14pt; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .section { padding: 60px 20px; }
+  .nav-dots { right: 8px; gap: 8px; }
+  .nav-dot { width: 6px; height: 6px; }
+  .stat-number { font-size: 18pt; }
+
+  /* Logo canvas */
+  #logoCanvas { max-width: 90vw; height: auto; }
+
+  /* WhatsApp phone */
+  .phone-frame { width: 90vw; max-width: 340px; }
+
+  /* Floating cards */
+  .floating-section { padding: 40px 16px 80px; }
+  .floating-section .section-inner { padding: 0 8px; }
+
+  /* Radial carousel */
+  #radialCanvas { height: 400px; }
+
+  /* Cube section */
+  .cube-section { padding: 60px 16px; }
+  #cubeContainer { width: 95vw; height: 50vh; }
+
+  /* Pullquote */
+  .pullquote { font-size: 11pt; margin: 24px 0; padding-left: 16px; }
+
+  /* Chat */
+  .wa-chat { min-height: 250px; }
+  .wa-bubble { max-width: 90%; }
+
+  /* Quick facts */
+  .qf-row { flex-direction: column; gap: 4px; }
+  .qf-value { text-align: left; }
+
+  /* Contact */
+  .contact-email { font-size: 14pt; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 18pt; }
+  h2 { font-size: 13pt; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-number { font-size: 16pt; }
+  .section-label { font-size: 8pt; }
+
+  /* Logo canvas */
+  #logoCanvas { max-width: 95vw; }
+
+  /* WhatsApp phone */
+  .phone-frame { width: 95vw; border-radius: 24px; }
+  .wa-header { padding: 8px 10px; }
+  .wa-header .wa-name { font-size: 13px; }
+  .wa-bubble { font-size: 12px; }
+
+  /* Radial carousel */
+  #radialCanvas { height: 350px; }
+
+  /* Cube section */
+  #cubeContainer { height: 45vh; }
+
+  /* Nav dots - hide on very small screens */
+  .nav-dots { display: none; }
+
+  /* Recog cards */
+  .recog-card { padding: 12px 0; font-size: 10pt; }
+
+  /* Trust list */
+  .trust-list li { font-size: 10pt; }
+  .why-list li { font-size: 10pt; }
+
+  /* Opp blocks */
+  .opp-block { padding: 16px 0; }
+  .opp-title { font-size: 10pt; }
+  .opp-desc { font-size: 9pt; }
+}
+
+/* ── Touch-friendly tap targets ── */
+@media (hover: none) {
+  .nav-dot { width: 12px; height: 12px; }
+  .contact-email, .contact-web { padding: 8px 0; }
+}
+
+/* ── Smooth section transitions ── */
+.section:nth-child(even) {
+  background: #fafafa;
+}
+
+/* ── Recognition cards ── */
+.recog-cards {
+  margin: 24px 0;
+}
+.recog-card {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--divider);
+  font-size: 11pt;
+  color: var(--text-body);
+  line-height: 1.55;
+}
+.recog-card:last-child { border-bottom: none; }
+.recog-card strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ── Quick facts ── */
+.quick-facts {
+  margin: 24px 0;
+}
+.qf-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+  font-size: 10.5pt;
+}
+.qf-row:last-child { border-bottom: none; }
+.qf-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.qf-value {
+  color: var(--text-body);
+  text-align: right;
+}
+
+/* ── Radial Carousel ── */
+#radialCanvas {
+  width: 100%;
+  max-width: 1100px;
+  height: 600px;
+  cursor: grab;
+  display: block;
+  margin: 0 auto;
+  touch-action: none;
+}
+#radialCanvas:active { cursor: grabbing; }
+.radial-hint {
+  text-align: center;
+  font-size: 9pt;
+  color: var(--text-meta);
+  margin-top: 12px;
+  letter-spacing: +0.05em;
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Nav Dots -->
+<nav class="nav-dots" id="navDots">
+  <button class="nav-dot active" data-section="0" aria-label="Cover"></button>
+  <button class="nav-dot" data-section="1" aria-label="Problem & Product"></button>
+  <button class="nav-dot" data-section="2" aria-label="Who This Is For"></button>
+  <button class="nav-dot" data-section="3" aria-label="Stats & Trust"></button>
+  <button class="nav-dot" data-section="4" aria-label="Partnerships"></button>
+  <button class="nav-dot" data-section="5" aria-label="Events"></button>
+  <button class="nav-dot" data-section="6" aria-label="Next Steps"></button>
+</nav>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- COVER -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="cover section" id="sec-0">
+  <div class="cover-inner">
+    <canvas id="logoCanvas" width="800" height="200"></canvas>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- THE PROBLEM + THE PRODUCT -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="sec-1">
+  <div class="section-inner">
+
+    <div class="reveal">
+      <div class="section-label">The Problem</div>
+      <h1>You keep finding out too late.</h1>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.15s;">
+      <p>You scroll Instagram on Friday afternoon. You see friends at an exhibition that opened Tuesday. A pop-up dinner that happened Wednesday. A screening that was Thursday.</p>
+      <p>You were home. The group chat went quiet. You ended up at the same bar.</p>
+      <p>That's not a discovery problem. You have apps for discovery. It's a <strong style="color:var(--text-primary)">timing problem</strong>. You hear about the good things after they happened.</p>
+    </div>
+
+    <div class="pullquote reveal" style="transition-delay:0.3s;">
+      "I would've gone if I'd known." — everyone, every week
+    </div>
+
+    <div class="divider-thick reveal"></div>
+
+    <div class="reveal">
+      <div class="section-label">The Product</div>
+      <h1>A WhatsApp friend who already went.</h1>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.15s;">
+      <p>Not a platform. Not an app. Not a newsletter you'll delete. A person inside WhatsApp who already looked, already went, and can tell you what's worth your Friday night — before it happens.</p>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.25s;">
+      <p style="color:var(--text-meta);font-size:10pt;font-weight:600;letter-spacing:+0.08em;text-transform:uppercase;margin-top:24px;">It works like this</p>
+    </div>
+
+    <!-- WhatsApp Phone Mockup -->
+    <div class="phone-frame reveal-scale" id="phoneFrame">
+      <!-- Header -->
+      <div class="wa-header">
+        <span class="wa-back">‹</span>
+        <div class="wa-avatar">C</div>
+        <div class="wa-info">
+          <div class="wa-name">CULTIVE</div>
+          <div class="wa-status">online</div>
+        </div>
+        <div class="wa-actions">
+          <span style="font-size:14px;">⋯</span>
+        </div>
+      </div>
+
+      <!-- Chat Area -->
+      <div class="wa-chat" id="waChat">
+        <div class="wa-date-chip">Today</div>
+
+        <!-- Typing indicator (shows first, then disappears) -->
+        <div class="wa-bubble-row incoming" id="waTyping" style="opacity:0;">
+          <div class="wa-bubble incoming">
+            <div class="wa-typing">
+              <div class="wa-typing-dot"></div>
+              <div class="wa-typing-dot"></div>
+              <div class="wa-typing-dot"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 1: You -->
+        <div class="wa-bubble-row outgoing" data-delay="600">
+          <div class="wa-bubble outgoing">
+            <div class="wa-bubble-text">what's good this weekend</div>
+            <div class="wa-bubble-meta">
+              <span>6:14 PM</span>
+              <span class="wa-checkmarks">
+                <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M1 5.5L4 8.5L8 3.5" stroke="#53BDEB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 5.5L9 8.5L15 1.5" stroke="#53BDEB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 2: CULTIVE -->
+        <div class="wa-bubble-row incoming" data-delay="1200">
+          <div class="wa-bubble incoming">
+            <div class="wa-bubble-text">There's a ceramic exhibition in Wong Chuk Hang that closes Sunday. The artist spent 6 months working with local clay. Free entry. Opens 11.</div>
+            <div class="wa-bubble-meta"><span>6:14 PM</span></div>
+          </div>
+        </div>
+
+        <!-- Message 3: You -->
+        <div class="wa-bubble-row outgoing" data-delay="1800">
+          <div class="wa-bubble outgoing">
+            <div class="wa-bubble-text">need a booking?</div>
+            <div class="wa-bubble-meta">
+              <span>6:15 PM</span>
+              <span class="wa-checkmarks">
+                <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M1 5.5L4 8.5L8 3.5" stroke="#53BDEB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 5.5L9 8.5L15 1.5" stroke="#53BDEB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 4: CULTIVE -->
+        <div class="wa-bubble-row incoming" data-delay="2400">
+          <div class="wa-bubble incoming">
+            <div class="wa-bubble-text">Walk-in. If you go Saturday there's a kiln demo at 3.</div>
+            <div class="wa-bubble-meta"><span>6:15 PM</span></div>
+          </div>
+        </div>
+
+        <!-- Typing again at end -->
+        <div class="wa-bubble-row incoming" id="waTypingEnd" data-delay="3200" style="opacity:0;">
+          <div class="wa-bubble incoming">
+            <div class="wa-typing">
+              <div class="wa-typing-dot"></div>
+              <div class="wa-typing-dot"></div>
+              <div class="wa-typing-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Composer -->
+      <div class="wa-composer">
+        <div style="color:#667781;font-size:16px;cursor:default;">☺</div>
+        <div class="wa-composer-input">
+          <span>Message</span>
+          <div class="wa-composer-icons">
+            <span style="font-size:14px;">＋</span>
+          </div>
+        </div>
+        <button class="wa-mic-btn" aria-label="Voice message">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 0 0 3-3V8a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3z" stroke="#fff" stroke-width="1.8"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3M9 20h6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.2s;">
+      <p>That's the whole product. A person who already looked it up. You save the 45 minutes of scrolling and the regret of finding out late.</p>
+      <p style="margin-top:12px;"><strong style="color:var(--text-primary)">No app download. No sign-up. Just a contact in your phone.</strong></p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- WHO THIS IS FOR + STATS + TRUST -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="sec-2">
+  <div class="section-inner">
+
+    <div class="reveal">
+      <div class="section-label">Who This Is For</div>
+      <h1>You're the person who needs this if…</h1>
+    </div>
+
+    <div class="recog-cards stagger-children reveal">
+      <div class="recog-card"><strong>You just moved here.</strong> You don't know which neighbourhoods have the good stuff. Everyone you ask says "follow these accounts" — but that's 50 accounts, not an answer.</div>
+      <div class="recog-card"><strong>You've been here 5 years.</strong> You're tired of the same 3 bars. You know there's more happening — you just don't know where.</div>
+      <div class="recog-card"><strong>You found out about something good too late</strong> — at least once in the last month.</div>
+      <div class="recog-card"><strong>You want to support local</strong> but don't know what's real and what's just well-marketed.</div>
+      <div class="recog-card"><strong>You'd rather text one person</strong> than scroll Instagram for 20 minutes hoping something catches your eye.</div>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.2s;">
+      <p style="margin-top:20px;">CULTIVE is for people who go out 2–4 times a month — or want to. They're 25–40. They're tired of algorithms and newsletters. They want someone to just <em>tell them</em>.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- WHAT WE'VE DONE + TRUST (floating cards bg) -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="floating-section" id="sec-3">
+  <canvas id="floatingCanvas"></canvas>
+  <div class="dark-overlay"></div>
+  <div class="section-inner">
+
+    <div class="reveal">
+      <div class="section-label">What We've Done</div>
+      <h2>Already building the map.</h2>
+    </div>
+
+    <div class="stats-grid reveal" id="statsGrid1">
+      <div class="stat-item">
+        <div class="stat-number" data-target="254">0</div>
+        <div class="stat-label">Events Reviewed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="50">0</div>
+        <div class="stat-label">Districts</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="21">0</div>
+        <div class="stat-label">Categories</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="10">0</div>
+        <div class="stat-label">People Texting</div>
+      </div>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.15s;">
+      <p>254 events, every one checked by a real person. 50 districts across HK. 21 categories — from ceramic kiln demos to midnight jazz sets. 10 people already texting us for their Friday plans.</p>
+    </div>
+
+    <div class="divider reveal"></div>
+
+    <div class="reveal">
+      <div class="section-label">Why They Trust Us</div>
+      <h2>Not an algorithm. A person who goes out.</h2>
+    </div>
+
+    <ul class="trust-list stagger-children reveal">
+      <li>We don't accept payment to recommend something. If it's in our list, someone went and it was worth it.</li>
+      <li>We tell you when something's actually free vs "free with purchase."</li>
+      <li>If we haven't been there yet, we say so. "Haven't checked this one yet — the menu looks good though."</li>
+      <li>We remember what you like. Text us "more art shows" and the next rec will be art.</li>
+    </ul>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PARTNERSHIPS -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="sec-4">
+  <div class="section-inner">
+
+    <div class="reveal">
+      <div class="section-label">Why Brands Work With Us</div>
+      <h1>When we recommend you, someone walks in that night.</h1>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.15s;">
+      <p>Here's the mechanism. It's simple:</p>
+      <p>Someone texts us "looking for a drink spot in Sheung Wan." We mention your cocktail bar — with a specific reason. They walk in that night, already knowing your story. They're not scrolling for 20 minutes and ending up at wherever's loudest. They arrived with intent.</p>
+    </div>
+
+    <div class="pullquote reveal" style="transition-delay:0.25s;">
+      An ad reaches someone on the couch. A CULTIVE recommendation reaches someone who's already looking for a plan.
+    </div>
+
+    <div class="divider-thick reveal"></div>
+
+    <div class="reveal">
+      <h2>Partnership Opportunities</h2>
+    </div>
+
+    <canvas id="radialCanvas" class="reveal-scale"></canvas>
+    <div class="radial-hint reveal">Drag to explore</div>
+
+    <div class="divider reveal"></div>
+
+    <div class="reveal">
+      <h2>Why a CULTIVE Recommendation Matters</h2>
+    </div>
+
+    <ul class="why-list stagger-children reveal">
+      <li>Your venue gets mentioned to someone who is actively looking for a plan — not passively scrolling</li>
+      <li>The recommendation comes with context (your story, not just your name)</li>
+      <li>The person arrives already interested, not cold</li>
+      <li>No banner ads. No "featured" tags. Just a real recommendation from a trusted source</li>
+      <li>We can measure how many people we sent your way through WhatsApp interactions</li>
+      <li>You're part of the city's cultural fabric, not a sponsored placement</li>
+    </ul>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- EVENTS / 3D CUBE -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="cube-section" id="sec-5">
+  <div class="section-inner">
+
+    <div class="reveal">
+      <div class="section-label">From Our Socials</div>
+      <h1>Every event. Real coverage.</h1>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.15s;">
+      <p>254 events reviewed across 50 districts. We don't list — we attend. Every photo below is a real event we covered in Hong Kong.</p>
+    </div>
+
+    <div id="cubeContainer" class="reveal-scale"></div>
+
+
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- NEXT STEPS / CLOSING -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="sec-6">
+  <div class="section-inner" style="text-align:center;">
+
+    <div class="reveal">
+      <div class="section-label">Next Steps</div>
+      <h1>Let's start with one event.</h1>
+    </div>
+
+    <div class="reveal" style="transition-delay:0.15s;">
+      <p>We have 254 events in our database from 50 districts. Every one checked by a real person. When someone texts us "what's good," we give them a real answer — not a search result, an opinion.</p>
+      <p>We're not asking for a long-term commitment. Let's try one recommendation. We feature your venue, you see who walks in, and we decide what's next from there.</p>
+    </div>
+
+    <div class="pullquote reveal" style="transition-delay:0.25s; text-align:left;">
+      If your brand is part of what makes Hong Kong worth going out for — let's talk.
+    </div>
+
+    <div class="divider-thick reveal"></div>
+
+    <div class="contact-block reveal">
+      <a href="mailto:connect@cultive.city" class="contact-email">connect@cultive.city</a><br>
+      <a href="https://www.cultive.city" class="contact-web" target="_blank">www.cultive.city</a>
+    </div>
+
+    <div class="divider reveal"></div>
+
+    <div class="reveal">
+      <div class="section-label">Quick Facts</div>
+    </div>
+
+    <div class="stats-grid reveal" id="statsGrid2">
+      <div class="stat-item">
+        <div class="stat-number" data-target="254">0</div>
+        <div class="stat-label">Events</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="50">0</div>
+        <div class="stat-label">Districts</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="21">0</div>
+        <div class="stat-label">Categories</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="10">0</div>
+        <div class="stat-label">Members</div>
+      </div>
+    </div>
+
+    <div class="quick-facts reveal" style="text-align:left; max-width:400px; margin:32px auto;">
+      <div class="qf-row"><span class="qf-label">How it works</span><span class="qf-value">Text us on WhatsApp. We send 3 curated picks. You go out.</span></div>
+      <div class="qf-row"><span class="qf-label">Who's behind it</span><span class="qf-value">Real people in HK who actually attend these events</span></div>
+      <div class="qf-row"><span class="qf-label">Market</span><span class="qf-value">Hong Kong</span></div>
+      <div class="qf-row"><span class="qf-label">Instagram reach</span><span class="qf-value">6,000+ accounts/week (organic)</span></div>
+      <div class="qf-row"><span class="qf-label">Pricing</span><span class="qf-value">Free for users · Partnership pricing case-by-case</span></div>
+    </div>
+
+    <div class="divider-thick reveal"></div>
+
+    <div class="reveal" style="margin-top:32px;">
+      <div class="closing-brand">CULTIVE</div>
+      <div class="closing-tagline">Your cultural connector</div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+// ── Intersection Observer for reveals ──
+const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -50px 0px' };
+
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale, .stagger-children').forEach(el => {
+  revealObserver.observe(el);
+});
+
+// ── WhatsApp bubbles sequential reveal ──
+const phoneObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      // Show typing indicator first
+      const typing = document.getElementById('waTyping');
+      typing.style.transition = 'opacity 0.3s ease';
+      typing.style.opacity = '1';
+
+      // Hide initial typing, show bubbles one by one
+      const bubbles = entry.target.querySelectorAll('.wa-bubble-row[data-delay]');
+      const typingEnd = document.getElementById('waTypingEnd');
+
+      setTimeout(() => {
+        typing.style.opacity = '0';
+      }, 500);
+
+      bubbles.forEach((bubble) => {
+        const delay = parseInt(bubble.dataset.delay) || 0;
+        setTimeout(() => {
+          bubble.style.opacity = '1';
+          bubble.style.transform = 'translateY(0)';
+          bubble.classList.add('visible');
+        }, delay);
+      });
+
+      // Show final typing after last message
+      setTimeout(() => {
+        typingEnd.style.opacity = '1';
+        typingEnd.style.transform = 'translateY(0)';
+        typingEnd.classList.add('visible');
+      }, 3200);
+
+      phoneObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+phoneObserver.observe(document.getElementById('phoneFrame'));
+
+// ── Animated counter ──
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  const duration = 1200;
+  const start = performance.now();
+
+  function update(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+const statsObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.stat-number[data-target]').forEach(el => animateCounter(el));
+      statsObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.4 });
+
+document.querySelectorAll('.stats-grid').forEach(g => statsObserver.observe(g));
+
+// ── Scroll parallax movement ──
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      const scrollY = window.scrollY;
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+
+      // Progress bar
+      document.getElementById('progressBar').style.width = (scrollY / docH * 100) + '%';
+
+      // Nav dots
+      const sections = document.querySelectorAll('.section');
+      let current = 0;
+      sections.forEach((sec, i) => {
+        if (scrollY >= sec.offsetTop - window.innerHeight / 2) current = i;
+      });
+      document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === current);
+      });
+
+      ticking = false;
+    });
+    ticking = true;
+  }
+});
+
+// ── Nav dot clicks ──
+document.querySelectorAll('.nav-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    const idx = parseInt(dot.dataset.section);
+    document.getElementById('sec-' + idx).scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// ── Parallax cover logo ──
+const coverLogo = document.querySelector('.cover .logo');
+window.addEventListener('scroll', () => {
+  if (window.scrollY < window.innerHeight) {
+    const ratio = window.scrollY / window.innerHeight;
+    coverLogo.style.transform = `translateY(${ratio * 60}px) scale(${1 - ratio * 0.15})`;
+    coverLogo.style.opacity = 1 - ratio * 0.8;
+  }
+});
+
+// ── Animated Logo (GSAP) ──
+(function() {
+  const canvas = document.getElementById('logoCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // High DPI
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  canvas.width = 800 * dpr;
+  canvas.height = 200 * dpr;
+  ctx.scale(dpr, dpr);
+
+  const anim = {
+    t1_scale: 0,
+    t1_alpha: 0,
+    shift_progress: 0,
+    t2_scale: 0,
+    t2_alpha: 0,
+  };
+
+  function draw() {
+    requestAnimationFrame(draw);
+    const w = 800;
+    const h = 200;
+
+    // Parallax - only fade after scrolling past the cover
+    const scrollY = window.scrollY;
+    const viewH = window.innerHeight;
+    const scrollRatio = Math.max(0, scrollY / viewH);
+    const parallaxY = -scrollRatio * 60;
+    const parallaxScale = 1 - scrollRatio * 0.15;
+    const parallaxAlpha = Math.max(0, 1 - scrollRatio * 1.2);
+
+    canvas.style.transform = `translateY(${parallaxY}px) scale(${parallaxScale})`;
+    canvas.style.opacity = parallaxAlpha;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const text1 = 'CULTIVE';
+    const text2 = 'Your cultural connector';
+    const fontSize = 110;
+    const shrinkFactor = 0.55;
+    const gap = 16;
+
+    ctx.font = `900 ${fontSize}px "Archivo Black", sans-serif`;
+    const w1 = ctx.measureText(text1).width;
+
+    ctx.font = `500 ${fontSize * shrinkFactor * 0.5}px "Inter", sans-serif`;
+    const w2 = ctx.measureText(text2).width;
+
+    // Recalc with actual sizes
+    ctx.font = `900 ${fontSize}px "Archivo Black", sans-serif`;
+    const w1a = ctx.measureText(text1).width;
+
+    const totalWidth = w1a * shrinkFactor + gap + w2;
+    const startX = (w - totalWidth) / 2;
+
+    const t1_startX = w / 2;
+    const t1_startY = h / 2;
+
+    const t1_endX = startX + (w1a * shrinkFactor) / 2;
+    const t2_endX = startX + w1a * shrinkFactor + gap + w2 / 2;
+
+    const current_t1_x = t1_startX + (t1_endX - t1_startX) * anim.shift_progress;
+    const current_t1_scale = 1 + (shrinkFactor - 1) * anim.shift_progress;
+
+    // Draw CULTIVE
+    if (anim.t1_alpha > 0) {
+      ctx.save();
+      ctx.translate(current_t1_x, t1_startY);
+      ctx.scale(current_t1_scale * anim.t1_scale, current_t1_scale * anim.t1_scale);
+      ctx.globalAlpha = anim.t1_alpha;
+      ctx.fillStyle = '#030213';
+      ctx.font = `900 ${fontSize}px "Archivo Black", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text1, 0, 0);
+      ctx.restore();
+    }
+
+    // Draw tagline
+    if (anim.t2_alpha > 0) {
+      ctx.save();
+      ctx.translate(t2_endX, t1_startY);
+      ctx.scale(anim.t2_scale, anim.t2_scale);
+      ctx.globalAlpha = anim.t2_alpha;
+      ctx.fillStyle = '#4a4a5a';
+      ctx.font = `500 ${fontSize * shrinkFactor * 0.5}px "Inter", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text2, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  // Load GSAP and animate
+  const gsapScript = document.createElement('script');
+  gsapScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js';
+  gsapScript.onload = function() {
+    const tl = gsap.timeline({ repeat: 0 });
+
+    tl.to(anim, { t1_scale: 1, t1_alpha: 1, duration: 1, ease: 'back.out(1.5)' })
+      .to(anim, { shift_progress: 1, duration: 0.8, ease: 'power2.inOut' }, '+=0.5')
+      .to(anim, { t2_scale: 1, t2_alpha: 1, duration: 0.8, ease: 'back.out(1.5)' }, '<0.2');
+
+    draw();
+  };
+  document.head.appendChild(gsapScript);
+})();
+
+// ── Radial Carousel (Partnerships) ──
+(function() {
+  const canvas = document.getElementById('radialCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // High DPI
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const CARDS = [
+    {
+      title: 'Curated Placement',
+      desc: 'Your venue gets recommended inside the WhatsApp conversation. Not as a listing — as a specific reason to go there tonight.',
+      example: '"There\'s a new cocktail bar in Sheung Wan. The team behind it used to run [notable spot]. The negroni is worth the trip."'
+    },
+    {
+      title: 'Insider Access',
+      desc: 'CULTIVE members get a small but meaningful upgrade at your venue. A welcome drink. Priority booking. Something that makes the WhatsApp message feel like a secret worth having.',
+      example: '"Show this message for a welcome drink."'
+    },
+    {
+      title: 'Cultural Trails',
+      desc: 'Your venue becomes part of a multi-stop itinerary. Dim sum in the morning. Your gallery in the afternoon. Live music at night. The person gets a full day\'s plan, not a single pin on a map.',
+      example: ''
+    },
+    {
+      title: 'Co-Branded Evenings',
+      desc: 'We curate and host an event together. Your brand gets associated with culture. We handle the curation, the audience, and the experience. You get the right people in the room.',
+      example: ''
+    }
+  ];
+
+  const IMAGES = [
+    'https://iili.io/Cugoogt.jpg',
+    'https://iili.io/CugAfXs.jpg',
+    'https://iili.io/Cug5Txe.jpg',
+    'https://iili.io/CugacJ4.jpg'
+  ];
+
+  const images = IMAGES.map(url => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = url;
+    return img;
+  });
+
+  let globalAngle = 0;
+  let scrollVelocity = 0;
+  let targetVelocity = 0.001;
+  let isDragging = false;
+  let startX = 0;
+  let startAngle = 0;
+  let lastPointerX = 0;
+  let lastPointerTime = 0;
+  let hoveredIndex = -1;
+  let focusedIndex = -1;
+  const radius = 300;
+
+  function wrapText(text, maxWidth) {
+    const words = text.split(' ');
+    const lines = [];
+    let current = words[0] || '';
+    for (let i = 1; i < words.length; i++) {
+      if (ctx.measureText(current + ' ' + words[i]).width < maxWidth) {
+        current += ' ' + words[i];
+      } else {
+        lines.push(current);
+        current = words[i];
+      }
+    }
+    if (current) lines.push(current);
+    return lines;
+  }
+
+  function drawCard(item, idx, cx, cy) {
+    const angle = (idx / CARDS.length) * Math.PI * 2 + globalAngle;
+    const isFocused = idx === focusedIndex;
+
+    // Focused card moves to center, others stay in orbit
+    const targetR = isFocused ? 0 : radius;
+    const currentR = isFocused ? 0 : radius;
+    const x = cx + Math.cos(angle) * currentR;
+    const y = cy + Math.sin(angle) * currentR;
+
+    const scale = isFocused ? 1.3 : 1;
+    const w = 280 * scale;
+    const h = 370 * scale;
+    const r = 16;
+    const isHovered = idx === hoveredIndex;
+
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Focused card is always on top
+    if (isFocused) {
+      ctx.shadowBlur = 40;
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowOffsetY = 12;
+    } else {
+      ctx.shadowBlur = isHovered ? 30 : 20;
+      ctx.shadowColor = 'rgba(0,0,0,0.12)';
+      ctx.shadowOffsetY = 8;
+    }
+
+    // Rounded rect
+    ctx.beginPath();
+    ctx.roundRect(-w/2, -h/2, w, h, r);
+    ctx.closePath();
+
+    // Clip for image
+    ctx.save();
+    ctx.clip();
+    ctx.shadowColor = 'transparent';
+
+    // Background image
+    const img = images[idx];
+    if (img && img.complete && img.naturalWidth > 0) {
+      const imgAspect = img.width / img.height;
+      const cardAspect = w / h;
+      let sx, sy, sw, sh;
+      if (imgAspect > cardAspect) {
+        sh = img.height; sw = img.height * cardAspect;
+        sx = (img.width - sw) / 2; sy = 0;
+      } else {
+        sw = img.width; sh = img.width / cardAspect;
+        sx = 0; sy = (img.height - sh) / 2;
+      }
+      ctx.drawImage(img, sx, sy, sw, sh, -w/2, -h/2, w, h);
+    } else {
+      ctx.fillStyle = '#f0f0f3';
+      ctx.fillRect(-w/2, -h/2, w, h);
+    }
+
+    // Glass overlay
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.fillRect(-w/2, -h/2, w, h);
+
+    // Border
+    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Text content
+    const pad = 24;
+    const maxTextW = w - pad * 2;
+    let ty = -h/2 + pad;
+
+    // Title (H2)
+    ctx.font = '900 16px Archivo Black';
+    ctx.fillStyle = '#030213';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    const titleLines = wrapText(item.title, maxTextW);
+    titleLines.forEach(line => {
+      ctx.fillText(line, -w/2 + pad, ty);
+      ty += 20;
+    });
+    ty += 8;
+
+    // Description (Body)
+    ctx.font = '400 11px Inter';
+    ctx.fillStyle = '#4a4a5a';
+    const descLines = wrapText(item.desc, maxTextW);
+    descLines.forEach(line => {
+      ctx.fillText(line, -w/2 + pad, ty);
+      ty += 16;
+    });
+    ty += 8;
+
+    // Example (italic)
+    if (item.example) {
+      ctx.font = 'italic 400 10px Inter';
+      ctx.fillStyle = '#717182';
+      const exLines = wrapText(item.example, maxTextW);
+      exLines.forEach(line => {
+        ctx.fillText(line, -w/2 + pad, ty);
+        ty += 15;
+      });
+    }
+
+    ctx.restore(); // unclip
+    ctx.restore(); // translate
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width;
+    const H = rect.height;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Physics
+    scrollVelocity += (targetVelocity - scrollVelocity) * 0.1;
+    targetVelocity *= 0.995;
+    globalAngle += scrollVelocity;
+
+    // Auto-rotate nudge (only when not focused)
+    if (Math.abs(scrollVelocity) < 0.001 && !isDragging && focusedIndex < 0) {
+      targetVelocity += 0.00005;
+    }
+
+    const cx = W / 2;
+    const cy = H / 2;
+
+    // Draw back-to-front, focused card last (on top)
+    const sorted = CARDS.map((card, i) => {
+      const angle = (i / CARDS.length) * Math.PI * 2 + globalAngle;
+      return { card, idx: i, y: Math.sin(angle) };
+    }).sort((a, b) => {
+      if (a.idx === focusedIndex) return 1;
+      if (b.idx === focusedIndex) return -1;
+      return a.y - b.y;
+    });
+
+    sorted.forEach(({ card, idx }) => drawCard(card, idx, cx, cy));
+  }
+
+  // Interaction
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  let dragDist = 0;
+
+  canvas.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    dragDist = 0;
+    const pos = getPos(e);
+    startX = pos.x;
+    startAngle = globalAngle;
+    lastPointerX = pos.x;
+    lastPointerTime = performance.now();
+    scrollVelocity = 0;
+    targetVelocity = 0;
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    const pos = getPos(e);
+    if (isDragging) {
+      const dx = pos.x - startX;
+      dragDist += Math.abs(pos.x - lastPointerX);
+      globalAngle = startAngle + dx / (radius * 1.5); // less sensitive
+      const now = performance.now();
+      const dt = now - lastPointerTime;
+      if (dt > 0) scrollVelocity = (pos.x - lastPointerX) / (radius * 1.5) / (dt / 16.66);
+      lastPointerX = pos.x;
+      lastPointerTime = now;
+    }
+  });
+
+  canvas.addEventListener('pointerup', (e) => {
+    isDragging = false;
+    // If it was a click (not a drag), toggle focus
+    if (dragDist < 5) {
+      const pos = getPos(e);
+      const rect = canvas.getBoundingClientRect();
+      const W = rect.width;
+      const H = rect.height;
+      const cx = W / 2;
+      const cy = H / 2;
+
+      // Check if clicked on a card
+      let clicked = -1;
+      for (let i = 0; i < CARDS.length; i++) {
+        const angle = (i / CARDS.length) * Math.PI * 2 + globalAngle;
+        const cardX = cx + Math.cos(angle) * radius;
+        const cardY = cy + Math.sin(angle) * radius;
+        if (pos.x > cardX - 140 && pos.x < cardX + 140 &&
+            pos.y > cardY - 185 && pos.y < cardY + 185) {
+          clicked = i;
+          break;
+        }
+      }
+
+      if (clicked === focusedIndex) {
+        focusedIndex = -1; // unfocus
+        targetVelocity = 0.001;
+      } else if (clicked >= 0) {
+        focusedIndex = clicked;
+        // Rotate so focused card is at top (angle = -PI/2)
+        const targetAngle = -Math.PI / 2 - (clicked / CARDS.length) * Math.PI * 2;
+        // Snap to nearest equivalent angle
+        while (globalAngle - targetAngle > Math.PI) globalAngle -= Math.PI * 2;
+        while (targetAngle - globalAngle > Math.PI) globalAngle += Math.PI * 2;
+        targetVelocity = 0;
+        scrollVelocity = 0;
+        // Smooth transition
+        const snap = () => {
+          globalAngle += (targetAngle - globalAngle) * 0.12;
+          if (Math.abs(targetAngle - globalAngle) > 0.001) requestAnimationFrame(snap);
+          else globalAngle = targetAngle;
+        };
+        snap();
+      } else {
+        focusedIndex = -1; // click empty space = unfocus
+        targetVelocity = 0.001;
+      }
+    } else {
+      targetVelocity = scrollVelocity * 0.3;
+      focusedIndex = -1; // drag = unfocus
+    }
+  });
+
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (focusedIndex >= 0) {
+      // Navigate between cards when focused
+      if (e.deltaY > 0) focusedIndex = (focusedIndex + 1) % CARDS.length;
+      else focusedIndex = (focusedIndex - 1 + CARDS.length) % CARDS.length;
+      // Snap to focused card
+      const targetAngle = -Math.PI / 2 - (focusedIndex / CARDS.length) * Math.PI * 2;
+      while (globalAngle - targetAngle > Math.PI) globalAngle -= Math.PI * 2;
+      while (targetAngle - globalAngle > Math.PI) globalAngle += Math.PI * 2;
+      const snap = () => {
+        globalAngle += (targetAngle - globalAngle) * 0.12;
+        if (Math.abs(targetAngle - globalAngle) > 0.001) requestAnimationFrame(snap);
+        else globalAngle = targetAngle;
+      };
+      snap();
+    } else {
+      targetVelocity += e.deltaY * 0.0001;
+    }
+  }, { passive: false });
+
+  animate();
+})();
+
+// ── Floating Cards Background ──
+(function() {
+  const CARD_IMAGES = [
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/95ff3b6bf_images_0_mq6q4waq.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/3338e66d1_images_1_mq6q4wat.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/8db4ee27e_images_2_mq6q4wau.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/daa7420de_images_3_mq6q4wav.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/bc642a903_images_4_mq6q4wax.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/925399de3_images_5_mq6q4wb1.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/a1596dcd2_images_6_mq6q4wb1.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/b116c410b_images_7_mq6q4wbc.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/11cd1f168_images_8_mq6q4wbd.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/20b1b8cf7_images_9_mq6q4wbe.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/8a7ee390e_images_10_mq6q4wbr.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/6c6fe4ffd_images_11_mq6q4wbr.jpg'
+  ];
+
+  const canvas = document.getElementById('floatingCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // Config matching the Framer component
+  const CARD_COUNT = 7;
+  const SPACING = 100;
+  const SWIRL = 0.14;
+  const ASPECT_RATIO = 0.7;
+  const RADIUS = 10;
+  const DIR = { x: -0.03, y: -0.03 };
+  const SPEED = 1.3;
+
+  // Load images
+  const images = [];
+  let loadedCount = 0;
+  CARD_IMAGES.forEach((url) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => { loadedCount++; };
+    img.src = url;
+    images.push(img);
+  });
+
+  function resize() {
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth;
+    canvas.height = parent.clientHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function drawRoundedRect(x, y, w, h, r) {
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(x, y, w, h, r);
+    } else {
+      r = Math.min(r, w / 2, h / 2);
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.arcTo(x + w, y, x + w, y + r, r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+      ctx.lineTo(x + r, y + h);
+      ctx.arcTo(x, y + h, x, y + h - r, r);
+      ctx.lineTo(x, y + r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    }
+  }
+
+  let frameCount = 0;
+  let enteredView = false;
+  let enterTime = 0;
+  let pauseUntil = 0;
+
+  const section = canvas.closest('.floating-section');
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !enteredView) {
+        enteredView = true;
+        enterTime = performance.now();
+      }
+    });
+  }, { threshold: 0.3 });
+  if (section) sectionObserver.observe(section);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const W = canvas.width;
+    const H = canvas.height;
+
+    if (!enteredView) {
+      ctx.clearRect(0, 0, W, H);
+      return;
+    }
+
+    frameCount++;
+    const now = performance.now();
+
+    if (now < pauseUntil) {
+      ctx.clearRect(0, 0, W, H);
+      return;
+    }
+
+    const elapsed = (now - enterTime) / 1000;
+    const time = elapsed * SPEED;
+
+    // Detect when all cards are at bottom (sine wave near 0)
+    const lastStagger = (CARD_COUNT - 1) * 0.15;
+    const firstT = (Math.sin(time) + 1) / 2;
+    const lastT = (Math.sin(time - lastStagger * Math.PI) + 1) / 2;
+    const midT = (Math.sin(time - lastStagger * 0.5 * Math.PI) + 1) / 2;
+
+    if (firstT < 0.05 && lastT < 0.05 && midT < 0.05 && elapsed > 3) {
+      pauseUntil = now + 10000;
+      ctx.clearRect(0, 0, W, H);
+      return;
+    }
+
+    drawCards(ctx, W, H, time, now);
+  }
+
+  function drawCards(ctx, W, H, time, now) {
+    ctx.clearRect(0, 0, W, H);
+
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const viewH = window.innerHeight;
+    const scrollProgress = 1 - (rect.top / viewH);
+    const scrollClamped = Math.max(0, Math.min(1, scrollProgress));
+    const parallaxY = (scrollClamped - 0.5) * H * 0.15;
+    const parallaxRot = (scrollClamped - 0.5) * 0.05;
+
+    const baseWidth = Math.min(W, H) * 0.4;
+    const baseHeight = baseWidth / ASPECT_RATIO;
+
+    ctx.save();
+    ctx.translate(W / 2, H / 2 + parallaxY);
+
+    const totalOffsetX = (CARD_COUNT - 1) * SPACING * (DIR.x / 10);
+    const totalOffsetY = (CARD_COUNT - 1) * SPACING * (DIR.y / 10);
+    ctx.translate(-totalOffsetX / 2, -totalOffsetY / 2);
+
+    for (let i = CARD_COUNT - 1; i >= 0; i--) {
+      ctx.save();
+
+      const stagger = i * 0.15;
+      const t = (Math.sin(time - stagger * Math.PI) + 1) / 2;
+
+      const animOffset = H * (1 - t);
+
+      const offsetX = i * SPACING * (DIR.x / 10);
+      const offsetY = i * SPACING * (DIR.y / 10);
+      const rotation = i * SWIRL + parallaxRot;
+
+      const idleX = Math.sin(now * 0.001 + i * 0.5) * 5;
+      const idleY = Math.cos(now * 0.0008 + i * 0.3) * 5;
+
+      const depthOffset = (CARD_COUNT - i) * parallaxY * 0.08;
+
+      ctx.translate(offsetX + idleX, offsetY + animOffset + idleY + depthOffset);
+      ctx.rotate(rotation);
+
+      // Shadow
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+
+      // Card background
+      drawRoundedRect(-baseWidth / 2, -baseHeight / 2, baseWidth, baseHeight, RADIUS);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Image
+      const img = images[i % CARD_IMAGES.length];
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.save();
+        drawRoundedRect(-baseWidth / 2, -baseHeight / 2, baseWidth, baseHeight, RADIUS);
+        ctx.clip();
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const cardRatio = baseWidth / baseHeight;
+        let dw, dh;
+        if (imgRatio > cardRatio) {
+          dh = baseHeight;
+          dw = dh * imgRatio;
+        } else {
+          dw = baseWidth;
+          dh = dw / imgRatio;
+        }
+        ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
+        ctx.restore();
+      }
+
+      // Border
+      drawRoundedRect(-baseWidth / 2, -baseHeight / 2, baseWidth, baseHeight, RADIUS);
+      ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  animate();
+})();
+
+// ── 3D Photo Cube ──
+(function() {
+  const IMAGE_URLS = [
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/95ff3b6bf_images_0_mq6q4waq.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/3338e66d1_images_1_mq6q4wat.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/8db4ee27e_images_2_mq6q4wau.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/daa7420de_images_3_mq6q4wav.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/bc642a903_images_4_mq6q4wax.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/925399de3_images_5_mq6q4wb1.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/a1596dcd2_images_6_mq6q4wb1.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/b116c410b_images_7_mq6q4wbc.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/11cd1f168_images_8_mq6q4wbd.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/20b1b8cf7_images_9_mq6q4wbe.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/8a7ee390e_images_10_mq6q4wbr.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/6c6fe4ffd_images_11_mq6q4wbr.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/364324afb_images_12_mq6q4wbt.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/3bf1b07e6_images_13_mq6q4wbu.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/53c9cbc7f_images_14_mq6q4wbx.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/7fe8ca0c2_images_15_mq6q4wbz.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/0894daf23_images_16_mq6q4wc0.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/d06f9e2dd_images_17_mq6q4wc1.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/6c6157ee0_images_18_mq6q4wc2.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/8582bb745_images_19_mq6q4wc4.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/f233c9f31_images_20_mq6q4wc4.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/9a093866f_images_21_mq6q4wc7.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/eac48b87d_images_22_mq6q4wc7.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/f4c3ee6a4_images_23_mq6q4wc8.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/491a7e440_images_24_mq6q4wc9.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/e7082f047_images_25_mq6q4wcd.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/238f8e858_images_26_mq6q4wcf.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/fcdab3a1c_images_27_mq6q4wcg.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/e722f37fa_images_28_mq6q4wci.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/6ddc3708e_images_29_mq6q4wcs.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/ca4d767f6_images_30_mq6q4wcu.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/b13e240d7_images_31_mq6q4wcw.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/d65714260_images_32_mq6q4wcz.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/c75276996_images_33_mq6q4wd0.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/199e83590_images_34_mq6q4wd0.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/62b2918bf_images_35_mq6q4wd3.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/ed716b459_images_36_mq6q4wd5.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/12a13bd3a_images_37_mq6q4wd6.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/862dc2693_images_38_mq6q4wd7.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/8f0583b7e_images_39_mq6q4wd9.jpg',
+    'https://base44.app/api/apps/69cbcd44d3da2a5cef013f5e/files/mp/public/69cbcd44d3da2a5cef013f5e/bcc91b17d_images_40_mq6q4wdc.jpg'
+  ];
+
+  const container = document.getElementById('cubeContainer');
+  if (!container) return;
+
+  // Load Three.js dynamically (r128 has global builds)
+  const script1 = document.createElement('script');
+  script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  script1.onload = function() {
+    const script2 = document.createElement('script');
+    script2.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
+    script2.onload = initCube;
+    script2.onerror = function() { console.error('OrbitControls load failed'); };
+    document.head.appendChild(script2);
+  };
+  script1.onerror = function() { console.error('Three.js load failed'); };
+  document.head.appendChild(script1);
+
+  function initCube() {
+    const W = container.clientWidth || 500;
+    const H = container.clientHeight || 667;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#ffffff');
+
+    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 1000);
+    camera.position.set(5, 4, 6);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.enableRotate = false;
+    controls.enabled = false;
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const textureLoader = new THREE.TextureLoader();
+    const textures = [];
+    const photoPlanes = [];
+
+    // Vertex/fragment shaders for rounded-rect planes
+    const vertexShader = `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
+    const fragmentShader = `
+      uniform sampler2D uTexture;
+      uniform bool uHasTexture;
+      uniform vec3 uColor;
+      uniform float uRadius;
+      uniform float uBrightness;
+      uniform float uAspect;
+      uniform float uOpacity;
+      varying vec2 vUv;
+
+      float roundedBoxSDF(vec2 p, vec2 b, float r) {
+        vec2 q = abs(p) - b + r;
+        return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+      }
+
+      void main() {
+        vec2 p = vUv - 0.5;
+        float d = roundedBoxSDF(p, vec2(0.5), uRadius);
+        if (d > 0.0) discard;
+
+        vec2 uv = vUv;
+        if (uHasTexture && uAspect != 1.0) {
+          if (uAspect > 1.0) uv.x = (vUv.x - 0.5) / uAspect + 0.5;
+          else uv.y = (vUv.y - 0.5) * uAspect + 0.5;
+        }
+
+        vec4 texColor = uHasTexture ? texture2D(uTexture, uv) : vec4(uColor, 1.0);
+        gl_FragColor = vec4(texColor.rgb * uBrightness, texColor.a * uOpacity);
+      }
+    `;
+
+    // Create 54 planes (6 faces x 9 tiles)
+    const geometry = new THREE.PlaneGeometry(1, 1);
+    const faceNormals = [
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(0, 0, -1),
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(1, 0, 0)
+    ];
+
+    let planeIdx = 0;
+    faceNormals.forEach((normal, faceIdx) => {
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          const mat = new THREE.ShaderMaterial({
+            uniforms: {
+              uTexture: { value: null },
+              uHasTexture: { value: false },
+              uColor: { value: new THREE.Color(0x222222) },
+              uRadius: { value: 0.08 },
+              uBrightness: { value: 0.85 },
+              uAspect: { value: 1.0 },
+              uOpacity: { value: 1.0 }
+            },
+            vertexShader, fragmentShader,
+            transparent: true, side: THREE.DoubleSide
+          });
+
+          const plane = new THREE.Mesh(geometry, mat);
+          const x = col - 1;
+          const y = 1 - row;
+
+          // Cube position
+          const cubePos = new THREE.Vector3();
+          const cubeRot = new THREE.Euler();
+          if (faceIdx === 0) { cubePos.set(x, y, 1.5); cubeRot.set(0, 0, 0); }
+          if (faceIdx === 1) { cubePos.set(-x, y, -1.5); cubeRot.set(0, Math.PI, 0); }
+          if (faceIdx === 2) { cubePos.set(x, 1.5, -y); cubeRot.set(-Math.PI/2, 0, 0); }
+          if (faceIdx === 3) { cubePos.set(x, -1.5, y); cubeRot.set(Math.PI/2, 0, 0); }
+          if (faceIdx === 4) { cubePos.set(-1.5, y, -x); cubeRot.set(0, -Math.PI/2, 0); }
+          if (faceIdx === 5) { cubePos.set(1.5, y, x); cubeRot.set(0, Math.PI/2, 0); }
+
+          // Tube position
+          const ringIdx = Math.floor(planeIdx / 18);
+          const angleIdx = planeIdx % 18;
+          const angle = (angleIdx / 18) * Math.PI * 2;
+          const radius = 2.8;
+          const tubePos = new THREE.Vector3(
+            Math.cos(angle) * radius,
+            (ringIdx - 1) * 1.1,
+            Math.sin(angle) * radius
+          );
+          const tubeRot = new THREE.Euler(0, -angle + Math.PI/2, 0);
+
+          plane.userData = { cubePos, cubeRot, tubePos, tubeRot, faceIdx, row, col };
+          photoPlanes.push(plane);
+          group.add(plane);
+          planeIdx++;
+        }
+      }
+    });
+
+    // Load textures
+    IMAGE_URLS.forEach((url, i) => {
+      const tex = textureLoader.load(url, (t) => {
+        photoPlanes.forEach((plane, pi) => {
+          if (pi % IMAGE_URLS.length === i) {
+            plane.material.uniforms.uTexture.value = t;
+            plane.material.uniforms.uHasTexture.value = true;
+            plane.material.uniforms.uAspect.value = t.image.width / t.image.height;
+          }
+        });
+      });
+    tex.encoding = THREE.sRGBEncoding;
+      textures.push(tex);
+    });
+
+    // Assign textures to planes
+    photoPlanes.forEach((plane, i) => {
+      const texIdx = i % IMAGE_URLS.length;
+      if (textures[texIdx]) {
+        plane.material.uniforms.uTexture.value = textures[texIdx];
+        plane.material.uniforms.uHasTexture.value = true;
+      }
+    });
+
+    // CULTIVE center text
+    const textCanvas = document.createElement('canvas');
+    textCanvas.width = 2048;
+    textCanvas.height = 1024;
+    const textCtx = textCanvas.getContext('2d');
+    textCtx.fillStyle = '#030213';
+    textCtx.font = '900 280px Archivo Black, sans-serif';
+    textCtx.textAlign = 'center';
+    textCtx.textBaseline = 'middle';
+    textCtx.fillText('CULTIVE', 1024, 512);
+    const textTex = new THREE.CanvasTexture(textCanvas);
+    textTex.encoding = THREE.sRGBEncoding;
+    const textMat = new THREE.MeshBasicMaterial({
+      map: textTex, transparent: true, side: THREE.DoubleSide, depthWrite: false
+    });
+    const textMesh = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), textMat);
+    scene.add(textMesh);
+
+    // Animation
+    let autoMorph = 0;
+    let lastTime = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const now = performance.now();
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      // Scroll-based parallax
+      const rect = container.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const scrollProgress = 1 - (rect.top / viewH);
+      const clamped = Math.max(0, Math.min(1, scrollProgress));
+
+      // Auto morph between cube and tube
+      autoMorph += dt * 0.55;
+      const morph = (Math.sin(autoMorph - Math.PI/2) + 1) / 2;
+
+      // Scroll-driven rotation
+      const baseRotY = now * 0.0004;
+      group.rotation.y = baseRotY + clamped * Math.PI * 0.3;
+      group.rotation.x = 0.15 + clamped * 0.2;
+
+      // Camera parallax shift
+      camera.position.x = 5 + (clamped - 0.5) * 3;
+      camera.position.y = 4 - (clamped - 0.5) * 2;
+      camera.lookAt(0, 0, 0);
+
+      // Text always faces camera (flat billboard)
+      textMesh.quaternion.copy(camera.quaternion);
+      const textScale = 1.0 + (clamped - 0.5) * 0.1;
+      textMesh.scale.setScalar(textScale);
+
+      // Morph planes
+      let currentOpacity = Math.max(0, Math.min(1, (1.0 - morph) * 10));
+      photoPlanes.forEach((plane) => {
+        const { cubePos, cubeRot, tubePos, tubeRot } = plane.userData;
+        const targetPos = new THREE.Vector3().lerpVectors(
+          cubePos.clone().multiplyScalar(2.5),
+          tubePos, morph
+        );
+        plane.position.copy(targetPos);
+        const qCube = new THREE.Quaternion().setFromEuler(cubeRot);
+        const qTube = new THREE.Quaternion().setFromEuler(tubeRot);
+        plane.quaternion.slerpQuaternions(qCube, qTube, morph);
+        plane.material.uniforms.uOpacity.value = currentOpacity;
+      });
+
+      group.scale.setScalar(1.3);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Resize
+    window.addEventListener('resize', () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

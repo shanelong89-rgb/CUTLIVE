@@ -225,6 +225,12 @@ function SiteFooter() {
         <span className="site-footer-brand">CULTIVE 文化活</span>
         <div className="site-footer-links">
           <a
+            href="/partnerships.html"
+            className="site-footer-link"
+          >
+            Partnerships
+          </a>
+          <a
             href="https://www.instagram.com/cultive.city/"
             target="_blank"
             rel="noopener noreferrer"
