@@ -129,43 +129,106 @@ body {
 }
 .site-footer-bar-link:hover { color: #030213; }
 
-/* ── Mobile partnership cards (shown instead of canvas on small screens) ── */
-.mobile-partner-cards {
+/* ── Mobile partnership carousel ── */
+.mobile-partner-carousel-wrap {
   display: none;
+  margin: 16px -24px 24px;
+  position: relative;
+}
+.mobile-partner-carousel {
+  display: flex;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   gap: 0;
-  margin: 8px 0 24px;
+  padding: 0 24px;
 }
-.mobile-partner-card {
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 12px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+.mobile-partner-carousel::-webkit-scrollbar { display: none; }
+.mobile-partner-slide {
+  flex: 0 0 calc(100vw - 64px);
+  max-width: 360px;
+  scroll-snap-align: center;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  height: 420px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
 }
-.mobile-partner-card-num {
+.mobile-partner-slide:last-child { margin-right: 0; }
+.mobile-partner-slide-img {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  width: 100%; height: 100%;
+}
+.mobile-partner-slide-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,0.15) 35%,
+    rgba(0,0,0,0.78) 100%
+  );
+}
+.mobile-partner-slide-content {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 24px 20px 28px;
+  color: #fff;
+}
+.mobile-partner-slide-num {
   font-size: 8pt; font-weight: 700;
-  letter-spacing: +0.15em; text-transform: uppercase;
-  color: #717182; margin-bottom: 8px;
+  letter-spacing: +0.18em; text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 6px;
 }
-.mobile-partner-card-title {
+.mobile-partner-slide-title {
   font-family: 'Archivo Black', sans-serif;
-  font-size: 13pt; font-weight: 900;
-  color: #030213; margin-bottom: 10px; line-height: 1.2;
+  font-size: 16pt; font-weight: 900;
+  line-height: 1.15; margin-bottom: 10px;
+  letter-spacing: -0.02em;
 }
-.mobile-partner-card-desc {
-  font-size: 10.5pt; color: #4a4a5a;
-  line-height: 1.55; margin-bottom: 10px;
+.mobile-partner-slide-desc {
+  font-size: 10pt; line-height: 1.5;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 10px;
 }
-.mobile-partner-card-example {
-  font-size: 9.5pt; font-style: italic;
-  color: #717182; line-height: 1.5;
-  border-left: 2px solid rgba(0,0,0,0.15);
-  padding-left: 12px;
+.mobile-partner-slide-example {
+  font-size: 9pt; font-style: italic;
+  color: rgba(255,255,255,0.65);
+  border-left: 2px solid rgba(255,255,255,0.35);
+  padding-left: 10px; line-height: 1.5;
+}
+.mobile-partner-dots {
+  display: flex; justify-content: center;
+  gap: 7px; margin-top: 14px;
+}
+.mobile-partner-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.2);
+  transition: all 0.25s;
+  border: none; padding: 0; cursor: pointer;
+}
+.mobile-partner-dot.active {
+  background: #030213;
+  transform: scale(1.35);
 }
 @media (max-width: 768px) {
   #radialCanvas, .radial-hint { display: none; }
-  .mobile-partner-cards { display: block; }
+  .mobile-partner-carousel-wrap { display: block; }
+}
+@media (max-width: 480px) {
+  .mobile-partner-slide {
+    flex: 0 0 calc(100vw - 48px);
+    max-width: none;
+    height: 400px;
+  }
+  .mobile-partner-carousel { padding: 0 20px; }
+  .mobile-partner-carousel-wrap { margin: 16px -20px 24px; }
 }
 
 .section {
@@ -916,29 +979,58 @@ p { font-size: 11pt; margin-bottom: 10px; }
     <canvas id="radialCanvas" class="reveal-scale"></canvas>
     <div class="radial-hint reveal">Drag to explore</div>
 
-    <!-- Mobile fallback: readable cards instead of canvas carousel -->
-    <div class="mobile-partner-cards reveal">
-      <div class="mobile-partner-card">
-        <div class="mobile-partner-card-num">01</div>
-        <div class="mobile-partner-card-title">Curated Placement</div>
-        <div class="mobile-partner-card-desc">Your venue gets recommended inside the WhatsApp conversation. Not as a listing — as a specific reason to go there tonight.</div>
-        <div class="mobile-partner-card-example">"There's a new cocktail bar in Sheung Wan. The team behind it used to run [notable spot]. The negroni is worth the trip."</div>
+    <!-- Mobile swipe carousel -->
+    <div class="mobile-partner-carousel-wrap reveal">
+      <div class="mobile-partner-carousel" id="partnerCarousel">
+
+        <div class="mobile-partner-slide">
+          <div class="mobile-partner-slide-img" style="background-image:url('https://iili.io/Cugoogt.jpg')"></div>
+          <div class="mobile-partner-slide-overlay"></div>
+          <div class="mobile-partner-slide-content">
+            <div class="mobile-partner-slide-num">01 / 04</div>
+            <div class="mobile-partner-slide-title">Curated Placement</div>
+            <div class="mobile-partner-slide-desc">Your venue gets recommended inside the WhatsApp conversation — not as a listing, but as a specific reason to go there tonight.</div>
+            <div class="mobile-partner-slide-example">"There's a new cocktail bar in Sheung Wan. The team behind it used to run [notable spot]. The negroni is worth the trip."</div>
+          </div>
+        </div>
+
+        <div class="mobile-partner-slide">
+          <div class="mobile-partner-slide-img" style="background-image:url('https://iili.io/CugAfXs.jpg')"></div>
+          <div class="mobile-partner-slide-overlay"></div>
+          <div class="mobile-partner-slide-content">
+            <div class="mobile-partner-slide-num">02 / 04</div>
+            <div class="mobile-partner-slide-title">Insider Access</div>
+            <div class="mobile-partner-slide-desc">CULTIVE members get a small but meaningful upgrade at your venue. A welcome drink. Priority booking. Something that makes the message feel like a secret worth having.</div>
+            <div class="mobile-partner-slide-example">"Show this message for a welcome drink."</div>
+          </div>
+        </div>
+
+        <div class="mobile-partner-slide">
+          <div class="mobile-partner-slide-img" style="background-image:url('https://iili.io/Cug5Txe.jpg')"></div>
+          <div class="mobile-partner-slide-overlay"></div>
+          <div class="mobile-partner-slide-content">
+            <div class="mobile-partner-slide-num">03 / 04</div>
+            <div class="mobile-partner-slide-title">Cultural Trails</div>
+            <div class="mobile-partner-slide-desc">Your venue becomes part of a multi-stop itinerary. Dim sum in the morning. Your gallery in the afternoon. Live music at night. A full day's plan, not a single pin on a map.</div>
+          </div>
+        </div>
+
+        <div class="mobile-partner-slide">
+          <div class="mobile-partner-slide-img" style="background-image:url('https://iili.io/CugacJ4.jpg')"></div>
+          <div class="mobile-partner-slide-overlay"></div>
+          <div class="mobile-partner-slide-content">
+            <div class="mobile-partner-slide-num">04 / 04</div>
+            <div class="mobile-partner-slide-title">Co-Branded Evenings</div>
+            <div class="mobile-partner-slide-desc">We curate and host an event together. We handle the curation, the audience, and the experience. You get the right people in the room.</div>
+          </div>
+        </div>
+
       </div>
-      <div class="mobile-partner-card">
-        <div class="mobile-partner-card-num">02</div>
-        <div class="mobile-partner-card-title">Insider Access</div>
-        <div class="mobile-partner-card-desc">CULTIVE members get a small but meaningful upgrade at your venue. A welcome drink. Priority booking. Something that makes the WhatsApp message feel like a secret worth having.</div>
-        <div class="mobile-partner-card-example">"Show this message for a welcome drink."</div>
-      </div>
-      <div class="mobile-partner-card">
-        <div class="mobile-partner-card-num">03</div>
-        <div class="mobile-partner-card-title">Cultural Trails</div>
-        <div class="mobile-partner-card-desc">Your venue becomes part of a multi-stop itinerary. Dim sum in the morning. Your gallery in the afternoon. Live music at night. The person gets a full day's plan, not a single pin on a map.</div>
-      </div>
-      <div class="mobile-partner-card">
-        <div class="mobile-partner-card-num">04</div>
-        <div class="mobile-partner-card-title">Co-Branded Evenings</div>
-        <div class="mobile-partner-card-desc">We curate and host an event together. Your brand gets associated with culture. We handle the curation, the audience, and the experience. You get the right people in the room.</div>
+      <div class="mobile-partner-dots" id="partnerDots">
+        <button class="mobile-partner-dot active" data-idx="0"></button>
+        <button class="mobile-partner-dot" data-idx="1"></button>
+        <button class="mobile-partner-dot" data-idx="2"></button>
+        <button class="mobile-partner-dot" data-idx="3"></button>
       </div>
     </div>
 
@@ -1047,6 +1139,29 @@ p { font-size: 11pt; margin-bottom: 10px; }
 </section>
 
 <script>
+// Mobile partner carousel dot sync
+(function() {
+  const carousel = document.getElementById('partnerCarousel');
+  const dots = document.querySelectorAll('.mobile-partner-dot');
+  if (!carousel || !dots.length) return;
+
+  function updateDots() {
+    const slideW = carousel.querySelector('.mobile-partner-slide').offsetWidth + 12;
+    const idx = Math.round(carousel.scrollLeft / slideW);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+
+  carousel.addEventListener('scroll', updateDots, { passive: true });
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const idx = parseInt(dot.dataset.idx);
+      const slideW = carousel.querySelector('.mobile-partner-slide').offsetWidth + 12;
+      carousel.scrollTo({ left: idx * slideW, behavior: 'smooth' });
+    });
+  });
+})();
+
 // Intersection observer reveals
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
