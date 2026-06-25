@@ -225,7 +225,7 @@ function SiteFooter() {
         <span className="site-footer-brand">CULTIVE 文化活</span>
         <div className="site-footer-links">
           <a
-            href="/partnerships.html"
+            href="/partnerships"
             className="site-footer-link"
           >
             Partnerships
