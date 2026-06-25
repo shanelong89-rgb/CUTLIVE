@@ -37,6 +37,135 @@ body {
   background: var(--white);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  padding-top: 64px;
+}
+
+/* ── Site nav (mirrors main app) ── */
+.site-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 2000;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  height: 64px;
+}
+.site-nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.site-nav-logo {
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none; flex-shrink: 0;
+}
+.site-nav-logo-text {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.35rem; color: #030213;
+  letter-spacing: -0.03em; line-height: 1;
+}
+.site-nav-logo-sub {
+  font-size: 0.7rem; color: #717182;
+  letter-spacing: 0.1em;
+}
+.site-nav-links {
+  display: flex; align-items: center; gap: 4px;
+}
+.site-nav-link {
+  padding: 8px 16px;
+  font-size: 0.85rem; font-weight: 500;
+  color: #4a4a5a;
+  text-decoration: none; border-radius: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.site-nav-link:hover { color: #030213; background: #f8f8f8; }
+.site-nav-btn {
+  padding: 10px 20px;
+  font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: #fff; background: #030213;
+  border: none; border-radius: 4px;
+  cursor: pointer; text-decoration: none;
+  transition: opacity 0.15s; white-space: nowrap;
+}
+.site-nav-btn:hover { opacity: 0.85; }
+@media (max-width: 600px) {
+  .site-nav-links { display: none; }
+  .site-nav-btn { padding: 8px 14px; font-size: 0.75rem; }
+}
+
+/* ── Site footer (mirrors main app) ── */
+.site-footer-bar {
+  border-top: 1px solid rgba(0,0,0,0.1);
+  padding: 28px 5vw;
+  margin-top: 48px;
+}
+.site-footer-bar-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+  flex-wrap: wrap;
+}
+.site-footer-bar-brand {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.05em; color: #717182;
+}
+.site-footer-bar-links {
+  display: flex; align-items: center; gap: 20px;
+}
+.site-footer-bar-link {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; font-weight: 500;
+  color: #717182; text-decoration: none;
+  transition: color 0.15s;
+}
+.site-footer-bar-link:hover { color: #030213; }
+
+/* ── Mobile partnership cards (shown instead of canvas on small screens) ── */
+.mobile-partner-cards {
+  display: none;
+  gap: 0;
+  margin: 8px 0 24px;
+}
+.mobile-partner-card {
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.mobile-partner-card-num {
+  font-size: 8pt; font-weight: 700;
+  letter-spacing: +0.15em; text-transform: uppercase;
+  color: #717182; margin-bottom: 8px;
+}
+.mobile-partner-card-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 13pt; font-weight: 900;
+  color: #030213; margin-bottom: 10px; line-height: 1.2;
+}
+.mobile-partner-card-desc {
+  font-size: 10.5pt; color: #4a4a5a;
+  line-height: 1.55; margin-bottom: 10px;
+}
+.mobile-partner-card-example {
+  font-size: 9.5pt; font-style: italic;
+  color: #717182; line-height: 1.5;
+  border-left: 2px solid rgba(0,0,0,0.15);
+  padding-left: 12px;
+}
+@media (max-width: 768px) {
+  #radialCanvas, .radial-hint { display: none; }
+  .mobile-partner-cards { display: block; }
 }
 
 .section {
@@ -516,6 +645,22 @@ p { font-size: 11pt; margin-bottom: 10px; }
 </head>
 <body>
 
+<!-- Site header -->
+<header class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-nav-logo">
+      <span class="site-nav-logo-text">CULTIVE</span>
+      <span class="site-nav-logo-sub">文化活</span>
+    </a>
+    <nav class="site-nav-links">
+      <a href="/" class="site-nav-link">Discover</a>
+      <a href="/saved" class="site-nav-link">Saved</a>
+      <a href="/tickets" class="site-nav-link">Tickets</a>
+    </nav>
+    <a href="/" class="site-nav-btn">Back to site</a>
+  </div>
+</header>
+
 <div class="progress-bar" id="progressBar"></div>
 
 <nav class="nav-dots" id="navDots">
@@ -770,6 +915,32 @@ p { font-size: 11pt; margin-bottom: 10px; }
 
     <canvas id="radialCanvas" class="reveal-scale"></canvas>
     <div class="radial-hint reveal">Drag to explore</div>
+
+    <!-- Mobile fallback: readable cards instead of canvas carousel -->
+    <div class="mobile-partner-cards reveal">
+      <div class="mobile-partner-card">
+        <div class="mobile-partner-card-num">01</div>
+        <div class="mobile-partner-card-title">Curated Placement</div>
+        <div class="mobile-partner-card-desc">Your venue gets recommended inside the WhatsApp conversation. Not as a listing — as a specific reason to go there tonight.</div>
+        <div class="mobile-partner-card-example">"There's a new cocktail bar in Sheung Wan. The team behind it used to run [notable spot]. The negroni is worth the trip."</div>
+      </div>
+      <div class="mobile-partner-card">
+        <div class="mobile-partner-card-num">02</div>
+        <div class="mobile-partner-card-title">Insider Access</div>
+        <div class="mobile-partner-card-desc">CULTIVE members get a small but meaningful upgrade at your venue. A welcome drink. Priority booking. Something that makes the WhatsApp message feel like a secret worth having.</div>
+        <div class="mobile-partner-card-example">"Show this message for a welcome drink."</div>
+      </div>
+      <div class="mobile-partner-card">
+        <div class="mobile-partner-card-num">03</div>
+        <div class="mobile-partner-card-title">Cultural Trails</div>
+        <div class="mobile-partner-card-desc">Your venue becomes part of a multi-stop itinerary. Dim sum in the morning. Your gallery in the afternoon. Live music at night. The person gets a full day's plan, not a single pin on a map.</div>
+      </div>
+      <div class="mobile-partner-card">
+        <div class="mobile-partner-card-num">04</div>
+        <div class="mobile-partner-card-title">Co-Branded Evenings</div>
+        <div class="mobile-partner-card-desc">We curate and host an event together. Your brand gets associated with culture. We handle the curation, the audience, and the experience. You get the right people in the room.</div>
+      </div>
+    </div>
 
     <div class="divider reveal"></div>
 
@@ -1747,6 +1918,24 @@ document.querySelectorAll('.nav-dot').forEach(dot => {
   }
 })();
 </script>
+
+<!-- Site footer -->
+<footer class="site-footer-bar">
+  <div class="site-footer-bar-inner">
+    <span class="site-footer-bar-brand">CULTIVE 文化活</span>
+    <div class="site-footer-bar-links">
+      <a href="/" class="site-footer-bar-link">Discover</a>
+      <a href="https://www.instagram.com/cultive.city/" target="_blank" rel="noopener noreferrer" class="site-footer-bar-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+        Instagram
+      </a>
+    </div>
+  </div>
+</footer>
 
 </body>
 </html>
