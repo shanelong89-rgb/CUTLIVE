@@ -1,0 +1,54 @@
+Now I have the complete picture. Let me explain the issue and the fix:
+
+---
+
+Here's the breakdown of the problem:
+
+The event has:
+- is_exclusive: true (set in Supabase)
+- ticket_url: "https://luma.com/the-agentic-mixer" (the actual RSVP link on Luma)
+
+What the code does (EventDetail.tsx lines 372-389):
+
+The CTA button logic is:
+1. If there's a ticket/source URL AND event is NOT exclusive → show the external link
+2. If event IS exclusive → always show "Get Membership" button (regardless of whether a ticket_url exists)
+3. Else if RSVP enabled → "RSVP Free"
+
+So the isExclusive branch takes priority over hasTicketUrl, hiding the Luma link entirely.
+
+What clicking "Get Membership" does (handleRSVP, line 197-203):
+- Opens the generic AuthModal (sign in / sign up)
+- The modal is just a generic auth gate — after login it just closes
+- After login, the button STILL says "Get Membership" — there's no auth-aware logic to change it to something useful
+
+Two separate bugs:
+
+1. Pri 1: isExclusive check should respect ticket_url — For events that are exclusive BUT also have a real ticket_url (like this Luma link), the CTA should redirect authenticated users to the external link. The "Get Membership" gate should only appear for exclusive events that DON'T have a ticket_url (i.e., actual CULTIVE membership events, which don't exist yet).
+
+2. Pri 2: After login, nothing changes — The button text/link doesn't update based on auth state. A logged-in user still sees "Get Membership" instead of being sent to Luma.
+
+The fix:
+
+// In the CTA section, change the priority logic:
+{(hasTicketUrl || hasSourceUrl) && !isExclusive ? (
+  // Non-exclusive with external link → show it
+  <a ... href={ticketUrl || sourceUrl}>{externalLabel} ↗</a>
+) : isExclusive && user ? (
+  // Exclusive event, user IS signed in → show the external link if it exists
+  hasTicketUrl || hasSourceUrl ? (
+    <a ... href={ticketUrl || sourceUrl}>Apply via Luma ↗</a>
+  ) : (
+    <button ...>Contact Organizer</button>
+  )
+) : isExclusive ? (
+  // Exclusive event, user NOT signed in → gate
+  <button onClick={handleRSVP}>Get Membership</button>
+) : event.rsvp_enabled ? (
+  <button onClick={handleRSVP}>RSVP Free</button>
+) : null}
+
+
+And pass user from useAuth() into EventDetail (it's already available in App.tsx).
+
+Want me to implement this fix? It's a frontend change on Replit though — per the boundary, that's Shane's domain. I can write the patch for you to send to him, or if you want me to do it, I'll need access to the Replit/source.

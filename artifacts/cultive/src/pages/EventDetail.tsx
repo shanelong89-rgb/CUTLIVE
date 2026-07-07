@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getEventById } from '../lib/supabase';
 import type { Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
+import { useAuth } from '../hooks/useAuth';
 import { formatTime, displayDateRange } from '../lib/utils';
 import { track } from '../lib/analytics';
 
@@ -110,6 +111,7 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const { isSaved, toggle } = useSavedEvents();
+  const { user } = useAuth();
   const saved = event ? isSaved(event.id) : false;
 
   useEffect(() => {
@@ -389,6 +391,19 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
           >
             {externalLabel} ↗
           </a>
+        ) : isExclusive && user && (hasTicketUrl || hasSourceUrl) ? (
+          <a
+            className="cta-primary"
+            href={hasTicketUrl ? ticketUrl : sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {externalLabel} ↗
+          </a>
+        ) : isExclusive && user ? (
+          <button className="cta-primary" onClick={() => alert('Contact the organiser directly to apply.')}>
+            Contact Organiser
+          </button>
         ) : isExclusive ? (
           <button className="cta-primary" onClick={handleRSVP}>
             Get Membership
