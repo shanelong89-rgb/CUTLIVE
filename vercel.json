@@ -4,11 +4,17 @@
   "installCommand": "pnpm install",
   "outputDirectory": "artifacts/cultive/dist/public",
   "framework": null,
+  "functions": {
+    "api/event/[slug].js": {
+      "includeFiles": "artifacts/cultive/dist/public/index.html"
+    }
+  },
   "redirects": [
     { "source": "/partnerships.html", "destination": "/partnerships", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/partnerships", "destination": "/partnerships.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/event/:slug", "destination": "/api/event/:slug" },
+    { "source": "/partnerships",  "destination": "/partnerships.html" },
+    { "source": "/(.*)",          "destination": "/index.html" }
   ]
 }
