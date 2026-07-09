@@ -756,9 +756,10 @@ export async function linkWhatsApp(phone: string): Promise<{ ok: boolean; error?
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: 'Not signed in' };
 
-  const normalized = phone.replace(/[^\d+]/g, '');
+  let normalized = phone.replace(/[^\d+]/g, '');
+  if (normalized && !normalized.startsWith('+')) normalized = `+${normalized}`;
   if (!/^\+\d{8,15}$/.test(normalized)) {
-    return { ok: false, error: 'Enter a valid phone number with country code, e.g. +852 1234 5678' };
+    return { ok: false, error: 'Enter a valid phone number with country code, e.g. 852 1234 5678' };
   }
 
   const { error: profileError } = await supabase
