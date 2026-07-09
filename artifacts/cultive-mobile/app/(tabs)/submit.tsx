@@ -16,22 +16,11 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CANONICAL_CATEGORIES, CATEGORY_LABELS, AVAILABLE_TAGS } from "@/data/events";
 import { useColors } from "@/hooks/useColors";
 import { submitEvent, supabase, uploadSubmissionImage } from "@/lib/supabase";
 
-const CATEGORY_OPTIONS = ["Music", "Arts", "Nightlife", "Food", "Wellness", "Market", "Workshops"];
-
-const AVAILABLE_TAGS = [
-  { id: "music",      label: "Music" },
-  { id: "electronic", label: "Electronic" },
-  { id: "nightlife",  label: "Nightlife" },
-  { id: "art",        label: "Art" },
-  { id: "market",     label: "Market" },
-  { id: "food",       label: "Food" },
-  { id: "wellness",   label: "Wellness" },
-  { id: "workshops",  label: "Workshops" },
-  { id: "community",  label: "Community" },
-];
+const CATEGORY_OPTIONS = CANONICAL_CATEGORIES.map((id) => CATEGORY_LABELS[id]);
 
 export default function SubmitScreen() {
   const colors = useColors();
