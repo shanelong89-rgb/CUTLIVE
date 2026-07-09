@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { signOut, supabase, getUserCredits, getOrCreateReferralCode, type CreditTransaction } from '../lib/supabase';
+import { signOut, supabase, getUserCredits, getOrCreateReferralCode, linkWhatsApp, getLinkedWhatsApp, type CreditTransaction } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 import { useInbox } from '../contexts/InboxContext';
 import { track } from '../lib/analytics';
@@ -60,6 +60,10 @@ export function Account({ setIsAuthOpen }: AccountProps) {
   const [creditTx, setCreditTx] = useState<CreditTransaction[]>([]);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralCopied, setReferralCopied] = useState(false);
+  const [waPhone, setWaPhone] = useState('+852 ');
+  const [waLinked, setWaLinked] = useState<string | null>(null);
+  const [waState, setWaState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [waError, setWaError] = useState('');
 
   const handleChangePassword = async () => {
     if (!user?.email || pwResetState === 'sending' || pwResetState === 'sent') return;
@@ -140,6 +144,32 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     })();
     return () => { active = false; };
   }, [user]);
+
+  // ── WhatsApp linking ─────────────────────────────────────────
+  useEffect(() => {
+    if (!user) { setWaLinked(null); return; }
+    let active = true;
+    (async () => {
+      const phone = await getLinkedWhatsApp();
+      if (active) setWaLinked(phone);
+    })();
+    return () => { active = false; };
+  }, [user]);
+
+  const handleLinkWhatsApp = async () => {
+    if (waState === 'saving') return;
+    setWaState('saving');
+    setWaError('');
+    const result = await linkWhatsApp(waPhone);
+    if (result.ok) {
+      setWaState('saved');
+      setWaLinked(waPhone.replace(/[^\d+]/g, ''));
+      track('whatsapp_linked');
+    } else {
+      setWaState('error');
+      setWaError(result.error ?? 'Something went wrong — try again.');
+    }
+  };
 
   const inviteBase = referralCode ? `${window.location.origin}?ref=${referralCode}` : null;
 
@@ -348,6 +378,51 @@ export function Account({ setIsAuthOpen }: AccountProps) {
           </>
         ) : (
           <p className="account-credit-empty">Generating your invite link…</p>
+        )}
+      </div>
+
+      {/* WhatsApp linking */}
+      <div className="account-section-head">
+        <span className="account-section-label">— WHATSAPP —</span>
+      </div>
+      <div className="account-invite-panel">
+        {waLinked ? (
+          <>
+            <p className="account-invite-desc">
+              ✓ Linked to <strong>{waLinked}</strong>. We'll text you curated picks — reply anytime to chat.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="account-invite-desc">
+              Want event picks on WhatsApp? Link your number and we'll text you when something good comes up.
+            </p>
+            <div className="account-invite-link-row">
+              <input
+                type="tel"
+                className="account-invite-link-text"
+                style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', font: 'inherit' }}
+                value={waPhone}
+                onChange={(e) => { setWaPhone(e.target.value); setWaState('idle'); }}
+                placeholder="+852 1234 5678"
+              />
+              <button
+                className="account-invite-copy"
+                onClick={handleLinkWhatsApp}
+                disabled={waState === 'saving'}
+              >
+                {waState === 'saving' ? 'Linking…' : 'Link WhatsApp'}
+              </button>
+            </div>
+            {waState === 'error' && (
+              <p className="account-credit-empty" style={{ color: 'var(--error, #c0392b)' }}>{waError}</p>
+            )}
+            {waState === 'saved' && (
+              <p className="account-credit-empty">
+                We'll text you at {waPhone}. Reply "yes" on WhatsApp to confirm.
+              </p>
+            )}
+          </>
         )}
       </div>
 

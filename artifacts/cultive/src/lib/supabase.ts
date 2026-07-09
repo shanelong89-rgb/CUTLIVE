@@ -752,6 +752,44 @@ export async function applyReferralCode(code: string): Promise<boolean> {
   return !!data;
 }
 
+export async function linkWhatsApp(phone: string): Promise<{ ok: boolean; error?: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'Not signed in' };
+
+  const normalized = phone.replace(/[^\d+]/g, '');
+  if (!/^\+\d{8,15}$/.test(normalized)) {
+    return { ok: false, error: 'Enter a valid phone number with country code, e.g. +852 1234 5678' };
+  }
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ phone: normalized })
+    .eq('id', user.id);
+  if (profileError) return { ok: false, error: profileError.message };
+
+  const { error: linkError } = await supabase
+    .from('wa_links')
+    .upsert(
+      { wa_id: normalized, user_id: user.id, opted_in: true, last_seen_at: new Date().toISOString() },
+      { onConflict: 'wa_id' },
+    );
+  if (linkError) return { ok: false, error: linkError.message };
+
+  return { ok: true };
+}
+
+export async function getLinkedWhatsApp(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('phone')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return (data as { phone: string | null }).phone ?? null;
+}
+
 export async function awardSubmissionCredits(
   submitterUserId: string,
   submissionId: string,
