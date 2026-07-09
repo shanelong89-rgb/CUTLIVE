@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_CATEGORY_MAP } from '../data/events';
+import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_CATEGORY_MAP, CANONICAL_CATEGORIES, CATEGORY_LABELS } from '../data/events';
 import { RichTextEditor } from '../components/RichTextEditor';
 
 import {
@@ -555,14 +555,9 @@ function EventsTab({
                   });
                 }}
               >
-                <option>Music</option>
-                <option>Arts</option>
-                <option>Nightlife</option>
-                <option>Food</option>
-                <option>Wellness</option>
-                <option>Market</option>
-                <option>Workshops</option>
-                <option>Other</option>
+                {CANONICAL_CATEGORIES.map(id => (
+                  <option key={id} value={id}>{CATEGORY_LABELS[id]}</option>
+                ))}
               </select>
             </div>
           </div>

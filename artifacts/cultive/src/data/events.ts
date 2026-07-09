@@ -215,48 +215,54 @@ export const mockEvents: Event[] = [
   },
 ];
 
-export const categories = ['All', 'Music', 'Nightlife', 'Arts', 'Food', 'Wellness', 'Market', 'Workshops', 'Exclusive'];
-
-export const AVAILABLE_TAGS = [
-  { id: 'music',      label: 'Music' },
-  { id: 'electronic', label: 'Electronic' },
-  { id: 'nightlife',  label: 'Nightlife' },
-  { id: 'art',        label: 'Art' },
-  { id: 'market',     label: 'Market' },
-  { id: 'food',       label: 'Food' },
-  { id: 'wellness',   label: 'Wellness' },
-  { id: 'workshops',  label: 'Workshops' },
-  { id: 'community',  label: 'Community' },
+// Canonical categories — must match the DB CHECK constraint on events.category.
+// Any non-canonical value will be rejected by both Replit and Telegram imports.
+export const CANONICAL_CATEGORIES = [
+  'art', 'music', 'electronic', 'nightlife', 'market', 'food-drink',
+  'wellness', 'workshop', 'community', 'sports', 'film', 'literature',
+  'social', 'fitness', 'uncategorized',
 ];
 
-// Normalize non-canonical tag forms (e.g. singular) to their AVAILABLE_TAGS ids.
+export const CATEGORY_LABELS: Record<string, string> = {
+  'art':           'Art',
+  'music':         'Music',
+  'electronic':    'Electronic',
+  'nightlife':     'Nightlife',
+  'market':        'Market',
+  'food-drink':    'Food & Drink',
+  'wellness':      'Wellness',
+  'workshop':      'Workshop',
+  'community':     'Community',
+  'sports':        'Sports',
+  'film':          'Film',
+  'literature':    'Literature',
+  'social':        'Social',
+  'fitness':       'Fitness',
+  'uncategorized': 'Uncategorized',
+};
+
+export const categories = ['All', ...CANONICAL_CATEGORIES.map(id => CATEGORY_LABELS[id]), 'Exclusive'];
+
+export const AVAILABLE_TAGS = CANONICAL_CATEGORIES.map(id => ({ id, label: CATEGORY_LABELS[id] }));
+
+// Normalize non-canonical tag/category forms to their canonical ids.
 // Add entries here whenever Hermes or manual data entry uses a variant spelling.
 export const TAG_NORMALIZE: Record<string, string> = {
-  'workshop': 'workshops',
+  'workshops':     'workshop',
+  'food':          'food-drink',
+  'comedy':        'uncategorized',
+  'entertainment': 'uncategorized',
+  'fashion':       'uncategorized',
+  'lifestyle':     'uncategorized',
+  'talk':          'uncategorized',
 };
 
 // Canonical mapping: admin Category dropdown value → primary tag id
-export const CATEGORY_TAG_MAP: Record<string, string> = {
-  'Music':      'music',
-  'Arts':       'art',
-  'Nightlife':  'nightlife',
-  'Food':       'food',
-  'Wellness':   'wellness',
-  'Market':     'market',
-  'Workshops':  'workshops',
-  'Community':  'community',
-  'Other':      '',
-};
+export const CATEGORY_TAG_MAP: Record<string, string> = Object.fromEntries(
+  CANONICAL_CATEGORIES.map(id => [CATEGORY_LABELS[id], id])
+);
 
 // Reverse mapping: tag id → Category dropdown value
-export const TAG_CATEGORY_MAP: Record<string, string> = {
-  'music':      'Music',
-  'electronic': 'Music',
-  'nightlife':  'Nightlife',
-  'art':        'Arts',
-  'market':     'Market',
-  'food':       'Food',
-  'wellness':   'Wellness',
-  'workshops':  'Workshops',
-  'community':  'Other',
-};
+export const TAG_CATEGORY_MAP: Record<string, string> = Object.fromEntries(
+  CANONICAL_CATEGORIES.map(id => [id, CATEGORY_LABELS[id]])
+);

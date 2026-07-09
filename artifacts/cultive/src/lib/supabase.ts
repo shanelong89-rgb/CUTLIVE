@@ -195,7 +195,7 @@ export async function getEventById(slugOrId: string) {
 export async function getCategories() {
   const { data, error } = await supabase.from('events').select('category');
   if (error || !data) {
-    return ['All', 'Music', 'Arts', 'Nightlife', 'Food', 'Wellness', 'Market', 'Workshops', 'Exclusive'];
+    return ['All', 'Art', 'Music', 'Electronic', 'Nightlife', 'Market', 'Food & Drink', 'Wellness', 'Workshop', 'Community', 'Sports', 'Film', 'Literature', 'Social', 'Fitness', 'Uncategorized', 'Exclusive'];
   }
   const categories = [...new Set(data.map(e => e.category).filter(Boolean))];
   return ['All', ...categories, 'Exclusive'];

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { submitEvent, submitInstagramLink, supabase } from '../lib/supabase';
-import { AVAILABLE_TAGS } from '../data/events';
+import { AVAILABLE_TAGS, CANONICAL_CATEGORIES, CATEGORY_LABELS } from '../data/events';
 import { useAuth } from '../hooks/useAuth';
 import { AuthModal } from '../components/AuthModal';
 
@@ -313,13 +313,9 @@ export function Submit() {
           <div className="form-group">
             <label>Category *</label>
             <select name="category" value={formData.category} onChange={handleChange}>
-              <option value="Music">Music</option>
-              <option value="Arts">Arts</option>
-              <option value="Nightlife">Nightlife</option>
-              <option value="Food">Food</option>
-              <option value="Wellness">Wellness</option>
-              <option value="Market">Market</option>
-              <option value="Workshops">Workshops</option>
+              {CANONICAL_CATEGORIES.map(id => (
+                <option key={id} value={id}>{CATEGORY_LABELS[id]}</option>
+              ))}
             </select>
           </div>
 
