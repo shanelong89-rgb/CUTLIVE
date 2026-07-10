@@ -791,6 +791,52 @@ export async function getLinkedWhatsApp(): Promise<string | null> {
   return (data as { phone: string | null }).phone ?? null;
 }
 
+// ─── WhatsApp magic-link verification ────────────────────────
+// Verifies a phone+token pair against the wa_links row via a SECURITY DEFINER
+// RPC (see supabase/migrations/add_verify_wa_magic_link_rpc.sql). The RPC
+// itself clears the one-time code so it can't be replayed. This creates a
+// lightweight app-level session (localStorage), NOT a real Supabase Auth
+// session — RLS-gated writes elsewhere still require the user to sign in
+// properly (e.g. by setting an email/password on the Account page).
+const WA_SESSION_KEY = 'cultive-wa-user-id';
+
+export async function verifyWhatsAppMagicLink(
+  phone: string,
+  token: string,
+): Promise<{ ok: boolean; userId?: string; error?: string }> {
+  let normalized = phone.replace(/[^\d+]/g, '');
+  if (normalized && !normalized.startsWith('+')) normalized = `+${normalized}`;
+  if (!normalized || !token) {
+    return { ok: false, error: 'This link is missing information and can\'t be verified.' };
+  }
+
+  const { data, error } = await supabase.rpc('verify_wa_magic_link', {
+    p_phone: normalized,
+    p_token: token,
+  });
+
+  if (error) return { ok: false, error: error.message };
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row || !row.success || !row.user_id) {
+    return { ok: false, error: 'This link is invalid or has expired. Message us on WhatsApp for a new one.' };
+  }
+
+  try {
+    localStorage.setItem(WA_SESSION_KEY, row.user_id);
+  } catch { /* ignore */ }
+
+  return { ok: true, userId: row.user_id as string };
+}
+
+export function getWhatsAppSessionUserId(): string | null {
+  try {
+    return localStorage.getItem(WA_SESSION_KEY);
+  } catch {
+    return null;
+  }
+}
+
 export async function awardSubmissionCredits(
   submitterUserId: string,
   submissionId: string,

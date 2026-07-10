@@ -43,6 +43,7 @@ _Populate as you build — explicit user instructions worth remembering across s
   - `supabase/migrations/add_date_end_to_events_and_submissions.sql` — adds `date_end text` to both tables
   - `supabase/migrations/add_metadata_to_events_and_submissions.sql` — adds `metadata jsonb` to both tables
   - `supabase/migrations/prevent_auto_approve_on_enrich.sql` — DB trigger that keeps enriched submissions in `pending` instead of auto-approving them
+  - `supabase/migrations/add_verify_wa_magic_link_rpc.sql` — **not yet run**. Adds `verify_wa_magic_link(phone, token)` RPC used by `/auth/verify` (WhatsApp magic-link login). Must be run before that page will work.
 
 ## Pointers
 
