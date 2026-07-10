@@ -1,0 +1,77 @@
+Here's exactly what to tell your frontend (Replit) developer:
+
+---
+
+Magic Link Auth via WhatsApp
+
+What needs to happen:
+
+After WhatsApp onboarding completes (webhook creates the profile), we need to also:
+1. Generate a short-lived magic link token and store it in the DB
+2. Send the user a follow-up WhatsApp message with the link
+
+When user clicks the link on web:
+3. The web app verifies the token + phone number
+4. Creates a Supabase auth session (or just a cookie session)
+5. Redirects to a "set up your account" page (email, password, display name)
+
+Backend (my side — already done in webhook):
+
+I'll add this to the webhook's completion handler — after creating the profile, generate a token and store it:
+// After profile creation in the webhook
+const token = crypto.randomUUID(); // one-time magic token
+const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 min
+
+// Store in a new table or in profiles.metadata
+await supabase.from("magic_links").insert({
+  phone: from,
+  token: token,
+  profile_id: profileId,
+  expires_at: expires,
+  used: false,
+});
+
+// Send magic link message
+await sendText(from, 
+  `🔗 Activate your web account: cultive.city/auth/verify?phone=${encodeURIComponent(from)}&token=${token}\n\n` +
+  `This link expires in 15 minutes.`
+);
+Frontend (Replit side — what they need to build):
+
+Create a route/page at /auth/verify that:
+
+1. Reads phone and token from URL params
+2. Calls the Supabase REST API to verify:
+SELECT * FROM magic_links 
+   WHERE phone = :phone AND token = :token 
+   AND used = false AND expires_at > now()
+3. Marks it as used: UPDATE magic_links SET used = true WHERE token = :token
+4. Creates a session: Either:
+   - Supabase Auth session (supabase.auth.admin.createUser() + sign in)
+   - Or simple cookie-based session storing profile_id
+5. Redirects to /settings where they can set email/password/name
+
+Simpler alternative (no magic_links table): Use the profiles table itself with a one-time code:
+- Add column magic_code TEXT, magic_expires_at TIMESTAMPTZ to profiles
+- Webhook sets these after onboarding
+- Web app checks profiles.phone = ? AND profiles.magic_code = ? AND magic_expires_at > now()
+- On success, clears magic_code and creates session
+
+Key notes for Replit:
+
+Supabase URL
+• Value: https://qmjdqldmpmeguuyepbsw.supabase.co
+
+Anon key
+• Value: (available from your Supabase dashboard Settings → API)
+
+Table to query
+• Value: profiles
+
+What to match
+• Value: phone = input_phone and magic_code = input_token
+
+Session method
+• Value: Your choice — simplest is storing profile_id in a cookie or localStorage + checking it on page load
+
+Want me to go ahead and implement the backend part (generating the token + sending the magic link message in the webhook)?
