@@ -762,6 +762,11 @@ export async function linkWhatsApp(phone: string): Promise<{ ok: boolean; error?
     return { ok: false, error: 'Enter a valid phone number with country code, e.g. 852 1234 5678' };
   }
 
+  // wa_id is stored E.164 WITHOUT the leading '+' — matches exactly what the
+  // WhatsApp webhook writes (WhatsApp sends numbers without '+'). profiles.phone
+  // keeps the '+' for display purposes; wa_links.wa_id must match the webhook.
+  const waId = normalized.replace(/^\+/, '');
+
   const { error: profileError } = await supabase
     .from('profiles')
     .update({ phone: normalized })
@@ -771,7 +776,7 @@ export async function linkWhatsApp(phone: string): Promise<{ ok: boolean; error?
   const { error: linkError } = await supabase
     .from('wa_links')
     .upsert(
-      { wa_id: normalized, user_id: user.id, opted_in: true, last_seen_at: new Date().toISOString() },
+      { wa_id: waId, user_id: user.id, opted_in: true, last_seen_at: new Date().toISOString() },
       { onConflict: 'wa_id' },
     );
   if (linkError) return { ok: false, error: linkError.message };
@@ -804,14 +809,18 @@ export async function verifyWhatsAppMagicLink(
   phone: string,
   token: string,
 ): Promise<{ ok: boolean; userId?: string; error?: string }> {
-  let normalized = phone.replace(/[^\d+]/g, '');
-  if (normalized && !normalized.startsWith('+')) normalized = `+${normalized}`;
-  if (!normalized || !token) {
+  // wa_links.wa_id is stored E.164 WITHOUT the leading '+' (the webhook
+  // writes numbers exactly as WhatsApp sends them, with no '+'). Strip any
+  // non-digit characters (including a leading '+' if the link included one)
+  // before looking the row up, so this matches regardless of how the link
+  // formats the phone param.
+  const waId = phone.replace(/\D/g, '');
+  if (!waId || !token) {
     return { ok: false, error: 'This link is missing information and can\'t be verified.' };
   }
 
   const { data, error } = await supabase.rpc('verify_wa_magic_link', {
-    p_phone: normalized,
+    p_phone: waId,
     p_token: token,
   });
 
