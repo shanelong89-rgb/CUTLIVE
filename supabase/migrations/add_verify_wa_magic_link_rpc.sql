@@ -15,8 +15,11 @@ set search_path = public
 as $$
 declare
   v_row public.wa_links%rowtype;
+  v_phone text := regexp_replace(p_phone, '^\+', '');
 begin
-  select * into v_row from public.wa_links where wa_id = p_phone;
+  select * into v_row
+  from public.wa_links
+  where regexp_replace(wa_id, '^\+', '') = v_phone;
 
   if not found then
     return query select null::uuid, false;
@@ -32,7 +35,7 @@ begin
 
   update public.wa_links
   set metadata = metadata - 'magic_code' - 'magic_expires_at'
-  where wa_id = p_phone;
+  where wa_id = v_row.wa_id;
 
   return query select v_row.user_id, true;
 end;
