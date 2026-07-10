@@ -834,31 +834,68 @@ export async function verifyWhatsAppMagicLink(
   // wa_links.wa_id is stored E.164 WITHOUT the leading '+' (the webhook
   // writes numbers exactly as WhatsApp sends them, with no '+'). Strip any
   // non-digit characters (including a leading '+' if the link included one)
-  // before looking the row up, so this matches regardless of how the link
-  // formats the phone param.
+  // so the exchange matches regardless of how the link formats the phone.
   const waId = phone.replace(/\D/g, '');
   if (!waId || !token) {
     return { ok: false, error: 'This link is missing information and can\'t be verified.' };
   }
 
-  const { data, error } = await supabase.rpc('verify_wa_magic_link', {
-    p_phone: waId,
-    p_token: token,
-  });
-
-  if (error) return { ok: false, error: error.message };
-
-  const row = Array.isArray(data) ? data[0] : data;
-  if (!row || !row.success || !row.user_id) {
-    return { ok: false, error: 'This link is invalid or has expired. Message us on WhatsApp for a new one.' };
+  // Exchange the magic-link token for a REAL Supabase Auth session via the
+  // exchange-wa-magic-link Edge Function. It validates the token (via the
+  // verify_wa_magic_link RPC), signs the user in server-side, and returns
+  // genuine GoTrue JWT tokens — so RLS-protected reads/writes work natively.
+  let data: {
+    success?: boolean;
+    access_token?: string;
+    refresh_token?: string;
+    user_id?: string;
+    error?: string;
+  };
+  let res: Response;
+  try {
+    res = await fetch(`${supabaseUrl}/functions/v1/exchange-wa-magic-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: waId, token }),
+    });
+  } catch {
+    return { ok: false, error: 'Could not reach the login service. Please check your connection and try again.' };
   }
 
   try {
-    localStorage.setItem(WA_SESSION_KEY, row.user_id);
-    localStorage.setItem(WA_PHONE_KEY, waId);
+    data = await res.json();
+  } catch {
+    // Non-JSON body (e.g. gateway error page). Surface the HTTP status so
+    // failures are debuggable instead of collapsing into a generic message.
+    return { ok: false, error: `The login service returned an unexpected response (HTTP ${res.status}). Please try again.` };
+  }
+
+  if (!data.success || !data.access_token || !data.refresh_token) {
+    return {
+      ok: false,
+      error: data.error || 'This link is invalid or has expired. Message us on WhatsApp for a new one.',
+    };
+  }
+
+  // Install the real session so supabase.auth.getSession()/onAuthStateChange
+  // and useAuth() pick it up natively.
+  const { error: sessionError } = await supabase.auth.setSession({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+  });
+  if (sessionError) {
+    return { ok: false, error: sessionError.message };
+  }
+
+  // Keep the session across browser restarts (mirrors normal sign-in flows).
+  try {
+    localStorage.setItem('cultive-remember-me', 'true');
+    // Real session established — the localStorage pseudo-session is no longer
+    // needed; clear any leftovers from the old flow.
+    clearWhatsAppSession();
   } catch { /* ignore */ }
 
-  return { ok: true, userId: row.user_id as string };
+  return { ok: true, userId: data.user_id };
 }
 
 export function getWhatsAppSessionUserId(): string | null {
