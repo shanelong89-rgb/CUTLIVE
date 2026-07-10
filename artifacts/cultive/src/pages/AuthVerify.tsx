@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { verifyWhatsAppMagicLink } from '../lib/supabase';
 
 type Stage = 'checking' | 'success' | 'error';
@@ -13,7 +13,6 @@ type Stage = 'checking' | 'success' | 'error';
  */
 export function AuthVerify() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>('checking');
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -24,13 +23,17 @@ export function AuthVerify() {
     verifyWhatsAppMagicLink(phone, token).then((result) => {
       if (result.ok) {
         setStage('success');
-        setTimeout(() => navigate('/account'), 1800);
+        // Full page navigation (not react-router's navigate) so useAuth()
+        // remounts and re-reads the WhatsApp pseudo-session we just wrote
+        // to localStorage — a client-side route change wouldn't re-run its
+        // startup effect and the app would still show the guest view.
+        setTimeout(() => { window.location.href = '/account'; }, 1800);
       } else {
         setErrMsg(result.error ?? 'This link is invalid or has expired.');
         setStage('error');
       }
     });
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
   return (
     <div className="account-page" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

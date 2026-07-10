@@ -1,9 +1,26 @@
 import { useEffect, useState } from 'react';
-import { supabase, isAdmin as checkIsAdmin } from '../lib/supabase';
+import { supabase, isAdmin as checkIsAdmin, getWhatsAppSession } from '../lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
 
 const REMEMBER_ME_KEY = 'cultive-remember-me';
 const SESSION_ACTIVE_KEY = 'cultive-session-active';
+
+// Builds a minimal, UI-only stand-in for a Supabase `User` from the
+// WhatsApp pseudo-session (localStorage user_id + phone). There is no real
+// Supabase Auth JWT behind this — RLS-gated reads/writes still won't work
+// for these users. This exists purely so nav/ProfileMenu/Account recognize
+// "logged in via WhatsApp" instead of showing the signed-out guest view.
+function waPseudoUser(waSession: { userId: string; phone: string | null }): User {
+  return {
+    id: waSession.userId,
+    email: undefined,
+    phone: waSession.phone ?? undefined,
+    app_metadata: { provider: 'whatsapp' },
+    user_metadata: {},
+    aud: 'authenticated',
+    created_at: new Date().toISOString(),
+  } as unknown as User;
+}
 
 function isRemembered(): boolean {
   try {
@@ -41,7 +58,16 @@ export function useAuth() {
       }
 
       setSession(s);
-      setUser(s?.user ?? null);
+
+      // No real Supabase session (e.g. WhatsApp magic-link users don't get
+      // one) — fall back to the WhatsApp pseudo-session so nav/ProfileMenu/
+      // Account still recognize the user as logged in.
+      if (!s) {
+        const wa = getWhatsAppSession();
+        setUser(wa ? waPseudoUser(wa) : null);
+      } else {
+        setUser(s.user);
+      }
       setLoading(false);
 
       // Admin check is fast (email comparison + localStorage, no network).

@@ -620,6 +620,7 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
+  clearWhatsAppSession();
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }
@@ -804,6 +805,27 @@ export async function getLinkedWhatsApp(): Promise<string | null> {
 // session — RLS-gated writes elsewhere still require the user to sign in
 // properly (e.g. by setting an email/password on the Account page).
 const WA_SESSION_KEY = 'cultive-wa-user-id';
+const WA_PHONE_KEY = 'cultive-wa-phone';
+
+// Read back the WhatsApp pseudo-session written by verifyWhatsAppMagicLink.
+// useAuth() uses this to recognize the user as logged in app-wide (nav,
+// ProfileMenu, Account page) even though there's no real Supabase Auth JWT.
+export function getWhatsAppSession(): { userId: string; phone: string | null } | null {
+  try {
+    const userId = localStorage.getItem(WA_SESSION_KEY);
+    if (!userId) return null;
+    return { userId, phone: localStorage.getItem(WA_PHONE_KEY) };
+  } catch {
+    return null;
+  }
+}
+
+export function clearWhatsAppSession() {
+  try {
+    localStorage.removeItem(WA_SESSION_KEY);
+    localStorage.removeItem(WA_PHONE_KEY);
+  } catch { /* ignore */ }
+}
 
 export async function verifyWhatsAppMagicLink(
   phone: string,
@@ -833,6 +855,7 @@ export async function verifyWhatsAppMagicLink(
 
   try {
     localStorage.setItem(WA_SESSION_KEY, row.user_id);
+    localStorage.setItem(WA_PHONE_KEY, waId);
   } catch { /* ignore */ }
 
   return { ok: true, userId: row.user_id as string };
