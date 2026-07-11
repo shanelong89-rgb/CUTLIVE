@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { signIn, signInWithGoogle, signUp } from '../lib/supabase';
+import { signIn, signInWithGoogle, signUp, supabase } from '../lib/supabase';
 import { track, getSignUpSource } from '../lib/analytics';
 
 const REMEMBER_ME_KEY = 'cultive-remember-me';
@@ -109,9 +109,19 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             setErr(null);
             try {
               await signInWithGoogle();
-              track('login_completed', { method: 'google' });
-              if (mode === 'signup') track('sign_up', { method: 'google', source: getSignUpSource() });
-              onClose();
+              // Only close the modal if a real session was established.
+              // signInWithGoogle() resolves when the popup closes — which can
+              // happen without a successful sign-in (user dismisses the popup,
+              // popup blocked, etc.). Calling onClose() unconditionally was
+              // closing the AuthModal even when no login occurred.
+              const { data } = await supabase.auth.getSession();
+              if (data.session) {
+                track('login_completed', { method: 'google' });
+                if (mode === 'signup') track('sign_up', { method: 'google', source: getSignUpSource() });
+                onClose();
+              } else {
+                setBusy(false);
+              }
             } catch (e: any) { setErr(e?.message ?? 'Google sign-in failed.'); setBusy(false); }
           }}
           disabled={busy}
