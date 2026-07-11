@@ -753,36 +753,46 @@ export async function applyReferralCode(code: string): Promise<boolean> {
   return !!data;
 }
 
-export async function linkWhatsApp(phone: string): Promise<{ ok: boolean; error?: string }> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: 'Not signed in' };
+export async function linkWhatsApp(phone: string): Promise<{ ok: boolean; wa_id?: string; error?: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { ok: false, error: 'Not signed in' };
 
-  let normalized = phone.replace(/[^\d+]/g, '');
-  if (normalized && !normalized.startsWith('+')) normalized = `+${normalized}`;
-  if (!/^\+\d{8,15}$/.test(normalized)) {
-    return { ok: false, error: 'Enter a valid phone number with country code, e.g. 852 1234 5678' };
+  // Basic client-side length check — the Edge Function does the real
+  // normalisation (strips +, spaces, dashes) and conflict checking.
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 7 || digits.length > 15) {
+    return { ok: false, error: 'Enter a valid phone number with country code, e.g. 85261234567' };
   }
 
-  // wa_id is stored E.164 WITHOUT the leading '+' — matches exactly what the
-  // WhatsApp webhook writes (WhatsApp sends numbers without '+'). profiles.phone
-  // keeps the '+' for display purposes; wa_links.wa_id must match the webhook.
-  const waId = normalized.replace(/^\+/, '');
+  let res: Response;
+  try {
+    res = await fetch(`${supabaseUrl}/functions/v1/link-whatsapp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ phone }),
+    });
+  } catch {
+    return { ok: false, error: 'Could not reach the server. Please check your connection and try again.' };
+  }
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ phone: normalized })
-    .eq('id', user.id);
-  if (profileError) return { ok: false, error: profileError.message };
+  let data: { success?: boolean; wa_id?: string; error?: string };
+  try {
+    data = await res.json();
+  } catch {
+    return { ok: false, error: `Unexpected server response (HTTP ${res.status}). Please try again.` };
+  }
 
-  const { error: linkError } = await supabase
-    .from('wa_links')
-    .upsert(
-      { wa_id: waId, user_id: user.id, opted_in: true, last_seen_at: new Date().toISOString() },
-      { onConflict: 'wa_id' },
-    );
-  if (linkError) return { ok: false, error: linkError.message };
+  if (res.status === 409) {
+    return { ok: false, error: 'That number is already linked to a different account.' };
+  }
+  if (!data.success) {
+    return { ok: false, error: data.error ?? 'Something went wrong — please try again.' };
+  }
 
-  return { ok: true };
+  return { ok: true, wa_id: data.wa_id };
 }
 
 export async function getLinkedWhatsApp(): Promise<string | null> {

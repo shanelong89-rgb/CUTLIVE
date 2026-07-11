@@ -60,7 +60,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
   const [creditTx, setCreditTx] = useState<CreditTransaction[]>([]);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralCopied, setReferralCopied] = useState(false);
-  const [waPhone, setWaPhone] = useState('+852 ');
+  const [waPhone, setWaPhone] = useState('');
   const [waLinked, setWaLinked] = useState<string | null>(null);
   const [waState, setWaState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [waError, setWaError] = useState('');
@@ -162,8 +162,10 @@ export function Account({ setIsAuthOpen }: AccountProps) {
     setWaError('');
     const result = await linkWhatsApp(waPhone);
     if (result.ok) {
+      // Use the wa_id the Edge Function normalised and stored — it's the
+      // canonical digits-only form that matches the webhook's convention.
+      setWaLinked(result.wa_id ?? waPhone.replace(/\D/g, ''));
       setWaState('saved');
-      setWaLinked(waPhone.replace(/[^\d+]/g, ''));
       track('whatsapp_linked');
     } else {
       setWaState('error');
@@ -404,7 +406,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
                 style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', font: 'inherit' }}
                 value={waPhone}
                 onChange={(e) => { setWaPhone(e.target.value); setWaState('idle'); }}
-                placeholder="+852 1234 5678"
+                placeholder="85261234567"
               />
               <button
                 className="account-invite-copy"
@@ -419,7 +421,7 @@ export function Account({ setIsAuthOpen }: AccountProps) {
             )}
             {waState === 'saved' && (
               <p className="account-credit-empty">
-                We'll text you at {waPhone}. Reply "yes" on WhatsApp to confirm.
+                Linked! Check WhatsApp — we just sent you a welcome message.
               </p>
             )}
           </>
