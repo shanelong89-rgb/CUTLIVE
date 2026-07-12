@@ -178,18 +178,42 @@ export async function getEventById(slugOrId: string) {
   }
 
   // Query by slug OR id so both old (ev_xxx) and new (title-slug) URLs work.
+  // Only include the id clause when the value could actually be an id —
+  // comparing a text slug against the uuid id column makes Postgres throw
+  // a cast error, which used to fail the whole lookup.
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
   const { data, error } = await supabase
     .from('events')
     .select('*')
-    .or(`slug.eq.${slugOrId},id.eq.${slugOrId}`)
+    .or(isUuid ? `slug.eq.${slugOrId},id.eq.${slugOrId}` : `slug.eq.${slugOrId}`)
     .limit(1)
     .maybeSingle();
 
   if (error) {
     console.error('Error fetching event:', error);
-    return mockEvents[0] || null;
+    return null;
   }
-  return data as Event;
+  if (data) return data as Event;
+
+  // Fallback: the backend occasionally regenerates slugs (e.g. shortening
+  // them with a date suffix), which breaks previously shared URLs. Try
+  // progressively shorter slug prefixes so old links still resolve —
+  // e.g. /event/traces-places-film-screening-zine-making still finds
+  // the renamed traces-places-film-zine-jul12.
+  const tokens = slugOrId.split('-').filter(Boolean);
+  for (let n = Math.min(tokens.length - 1, 5); n >= 2; n--) {
+    const prefix = tokens.slice(0, n).join('-');
+    const { data: fuzzy, error: fuzzyError } = await supabase
+      .from('events')
+      .select('*')
+      .ilike('slug', `${prefix}%`)
+      .limit(2);
+    if (fuzzyError) break;
+    if (fuzzy && fuzzy.length === 1) return fuzzy[0] as Event;
+    if (fuzzy && fuzzy.length > 1) break; // ambiguous — don't guess
+  }
+
+  return null;
 }
 
 export async function getCategories() {
