@@ -807,6 +807,31 @@ export async function getLinkedWhatsApp(): Promise<string | null> {
   return (data as { phone: string | null }).phone ?? null;
 }
 
+export interface AgentPreferences {
+  category_affinities: string[];   // e.g. ['music', 'food-drink']
+  explicit_interests:  string[];   // free-text or tag-form interests
+  vibe_tags:           string[];   // e.g. ['chill', 'underground']
+}
+
+// Reads the agent_preferences row for the current user (written by the
+// WhatsApp onboarding quiz). Returns null when the user has no preferences
+// stored yet (e.g. signed up via email before completing the WA quiz).
+export async function getAgentPreferences(): Promise<AgentPreferences | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from('agent_preferences')
+    .select('category_affinities, explicit_interests, vibe_tags')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    category_affinities: (data as any).category_affinities ?? [],
+    explicit_interests:  (data as any).explicit_interests  ?? [],
+    vibe_tags:           (data as any).vibe_tags           ?? [],
+  };
+}
+
 // ─── WhatsApp magic-link verification ────────────────────────
 // Verifies a phone+token pair against the wa_links row via a SECURITY DEFINER
 // RPC (see supabase/migrations/add_verify_wa_magic_link_rpc.sql). The RPC

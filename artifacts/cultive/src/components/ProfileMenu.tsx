@@ -225,23 +225,28 @@ export function ProfileMenu() {
                 <span className="profile-nav-label">My Account</span>
                 <span className="profile-nav-arrow">→</span>
               </a>
-              <a href="/saved" className="profile-nav-row" onClick={() => setOpen(false)}>
+              <a href="/settings" className="profile-nav-row" onClick={() => setOpen(false)}>
                 <span className="profile-nav-num">02</span>
+                <span className="profile-nav-label">Settings & Preferences</span>
+                <span className="profile-nav-arrow">→</span>
+              </a>
+              <a href="/saved" className="profile-nav-row" onClick={() => setOpen(false)}>
+                <span className="profile-nav-num">03</span>
                 <span className="profile-nav-label">Saved Events</span>
                 <span className="profile-nav-arrow">{displaySavedCount > 0 ? `${displaySavedCount} →` : '→'}</span>
               </a>
               <a href="/tickets" className="profile-nav-row" onClick={() => setOpen(false)}>
-                <span className="profile-nav-num">03</span>
+                <span className="profile-nav-num">04</span>
                 <span className="profile-nav-label">My Tickets</span>
                 <span className="profile-nav-arrow">→</span>
               </a>
               <a href="/submit" className="profile-nav-row" onClick={() => setOpen(false)}>
-                <span className="profile-nav-num">04</span>
+                <span className="profile-nav-num">05</span>
                 <span className="profile-nav-label">Submit Event</span>
                 <span className="profile-nav-arrow">→</span>
               </a>
               <a href="/inbox" className="profile-nav-row" onClick={() => setOpen(false)}>
-                <span className="profile-nav-num">05</span>
+                <span className="profile-nav-num">06</span>
                 <span className="profile-nav-label">Inbox</span>
                 <span className="profile-nav-arrow">
                   {unreadCount > 0 ? `${unreadCount > 9 ? '9+' : unreadCount} unread →` : '→'}
@@ -249,7 +254,7 @@ export function ProfileMenu() {
               </a>
               {isAdmin && (
                 <a href="/admin" className="profile-nav-row" onClick={() => setOpen(false)}>
-                  <span className="profile-nav-num">06</span>
+                  <span className="profile-nav-num">07</span>
                   <span className="profile-nav-label">Admin Console</span>
                   <span className="profile-nav-arrow">→</span>
                 </a>

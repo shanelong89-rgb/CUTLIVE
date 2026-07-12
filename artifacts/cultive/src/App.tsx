@@ -12,6 +12,7 @@ import { ResetPassword } from './pages/ResetPassword';
 import { MySubmissions } from './pages/MySubmissions';
 import { AuthCallback } from './pages/AuthCallback';
 import { AuthVerify } from './pages/AuthVerify';
+import { Settings } from './pages/Settings';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
@@ -146,6 +147,7 @@ function App() {
         <Route path="/account" element={<Account setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/verify" element={<AuthVerify />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/my-submissions" element={<MySubmissions />} />
         <Route path="/admin/*" element={<Admin />} />

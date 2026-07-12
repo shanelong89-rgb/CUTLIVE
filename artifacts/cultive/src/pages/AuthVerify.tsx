@@ -54,6 +54,18 @@ export function AuthVerify() {
         {stage === 'error' && (
           <>
             <p className="account-meta-value" style={{ marginTop: 12, color: '#c0392b' }}>{errMsg}</p>
+            <p className="account-meta-value" style={{ marginTop: 10, color: '#888', fontSize: '0.875rem' }}>
+              Send <strong>/web</strong> to{' '}
+              <a
+                href="https://wa.me/85255271026?text=/web"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'inherit', textDecoration: 'underline' }}
+              >
+                WhatsApp +852 5527 1026
+              </a>{' '}
+              to get a fresh link.
+            </p>
             <Link to="/" className="account-invite-copy" style={{ display: 'inline-block', marginTop: 16 }}>
               Back to CULTIVE
             </Link>
