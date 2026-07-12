@@ -120,6 +120,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 if (mode === 'signup') track('sign_up', { method: 'google', source: getSignUpSource() });
                 onClose();
               } else {
+                setErr('Google sign-in didn\'t complete. If you signed up with email and password, use the form below instead.');
                 setBusy(false);
               }
             } catch (e: any) { setErr(e?.message ?? 'Google sign-in failed.'); setBusy(false); }
