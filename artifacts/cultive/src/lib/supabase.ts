@@ -808,9 +808,26 @@ export async function getLinkedWhatsApp(): Promise<string | null> {
 }
 
 export interface AgentPreferences {
-  category_affinities: string[];   // e.g. ['music', 'food-drink']
+  // Category IDs ordered by affinity score (highest first). The DB stores
+  // this as an object of {category: score} (e.g. {"art": 12, "music": 6});
+  // we convert it to a sorted array of keys on read.
+  category_affinities: string[];
   explicit_interests:  string[];   // free-text or tag-form interests
   vibe_tags:           string[];   // e.g. ['chill', 'underground']
+}
+
+// The DB stores category_affinities as a score map ({"art": 12, "music": 6})
+// but older rows / other fields may be plain arrays. Accept both.
+function toStringArray(value: unknown, sortByScore = false): string[] {
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string');
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (sortByScore) {
+      entries.sort(([, a], [, b]) => (Number(b) || 0) - (Number(a) || 0));
+    }
+    return entries.map(([k]) => k);
+  }
+  return [];
 }
 
 // Reads the agent_preferences row for the current user (written by the
@@ -826,9 +843,9 @@ export async function getAgentPreferences(): Promise<AgentPreferences | null> {
     .maybeSingle();
   if (error || !data) return null;
   return {
-    category_affinities: (data as any).category_affinities ?? [],
-    explicit_interests:  (data as any).explicit_interests  ?? [],
-    vibe_tags:           (data as any).vibe_tags           ?? [],
+    category_affinities: toStringArray((data as any).category_affinities, true),
+    explicit_interests:  toStringArray((data as any).explicit_interests),
+    vibe_tags:           toStringArray((data as any).vibe_tags),
   };
 }
 
@@ -908,7 +925,7 @@ export async function verifyWhatsAppMagicLink(
   if (!data.success || !data.access_token || !data.refresh_token) {
     return {
       ok: false,
-      error: data.error || 'This link is invalid or has expired. Message us on WhatsApp for a new one.',
+      error: data.error || 'This link has expired. Send /web to your WhatsApp (+852 5527 1026) to get a fresh one.',
     };
   }
 

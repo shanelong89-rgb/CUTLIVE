@@ -29,7 +29,7 @@ export function AuthVerify() {
         // startup effect and the app would still show the guest view.
         setTimeout(() => { window.location.href = '/account'; }, 1800);
       } else {
-        setErrMsg(result.error ?? 'This link is invalid or has expired.');
+        setErrMsg(result.error ?? 'This link has expired. Send /web to your WhatsApp (+852 5527 1026) to get a fresh one.');
         setStage('error');
       }
     });

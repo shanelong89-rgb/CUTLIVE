@@ -1,0 +1,28 @@
+Frontend Audit Results
+
+✅ DONE: /auth/verify route exists now
+AuthVerify.tsx is built — receives ?phone=...&token=..., calls exchange-wa-magic-link Edge Function, gets real Supabase Auth JWT tokens, redirects to /account. The exchange-wa-magic-link Edge Function is deployed and responding. Clean flow end-to-end.
+
+✅ DONE: /settings page
+Reads agent_preferences via useAgentPreferences hook, shows categories (with canonical normalization), interest tags, vibe tags. WhatsApp connection status from profiles.phone. "Retake quiz" button links to wa.me/85255271026?text=/quiz.
+
+✅ DONE: TAG_NORMALIZE maps food → food-drink
+Line 252 of events.ts: 'food': 'food-drink'. The category mismatch between quiz (food) and DB (food-drink) is handled. Also maps workshops → workshop, comedy/entertainment/fashion → uncategorized.
+
+🔴 ERROR MESSAGE TO FIX (Shane's item #3)
+Two lines in supabase.ts need updating:
+
+Line 911 — change:
+'This link is invalid or has expired. Message us on WhatsApp for a new one.'
+to:
+'This link has expired. Send /web to your WhatsApp (+852 5527 1026) to get a fresh one.'
+Line 33 in AuthVerify.tsx — fallback shows correctly but the RPC error message is what most users will see. Fix it at the source (line 911 above).
+
+🔴 NOT DEPLOYED: verify_wa_magic_link RPC missing on Supabase
+The migration add_verify_wa_magic_link_rpc.sql exists in the repo but was never run against the production Supabase project. The RPC returns 404. The Edge Function calls this RPC to validate tokens — it'll fail on every verify. Needs to be run in the Supabase SQL Editor.
+
+🟡 TYPE MISMATCH: category_affinities as string[] vs object
+supabase.ts line 811 types it as string[] but the DB stores it as {"art": 12, "music": 6}. The (data as any).category_affinities ?? [] cast on an object won't become [] — it stays as the object. Then normalizeCategories(raw.category_affinities) calls .map() on an object, which returns undefined for each iteration (.map on objects returns empty). This means Settings won't show any categories. Fix: use Object.keys(raw.category_affinities) to get the array of category IDs.
+
+🟡 NO MAGIC CODES IN wa_links
+Current wa_links rows have no magic_code in metadata. The code is only set during the Edge Function webinar onboarding flow (line 649). The main.py /web handler also sets magic_code but it's never been tested end-to-end. When the RPC is deployed and someone actually completes onboarding, it'll work — there's just no data to verify against right now.
