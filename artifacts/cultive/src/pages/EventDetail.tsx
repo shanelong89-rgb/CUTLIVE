@@ -245,7 +245,7 @@ export function EventDetail({ setIsAuthOpen }: EventDetailProps) {
               <line x1="8" y1="2" x2="8" y2="6"/>
               <line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
-            {displayDateRange(event.date, event.date_end)}
+            {displayDateRange(event.date, event.date_end_iso ?? event.date_end)}
           </div>
           <div className="detail-row">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

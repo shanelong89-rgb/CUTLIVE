@@ -1,0 +1,1 @@
+- [Event end-date fields](event-date-fields.md) — always compute/display with `date_end_iso ?? date_end`; `date_end`/`date` may be display strings the strict ISO regex can't parse.

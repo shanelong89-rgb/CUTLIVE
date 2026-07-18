@@ -242,10 +242,13 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
     const dates = parseAllEventDates(event.date);
     if (dates.length === 0) return false;
 
-    // Use date_end so ongoing multi-day events match the active filter
+    // Use the ISO end date so ongoing multi-day events match the active filter.
+    // date_end_iso is machine-readable ("2026-07-20"); date_end may be a display
+    // string ("Jul 20, 2026") that the strict regex below can't parse.
     const endOverride = (() => {
-      if (!event.date_end) return null;
-      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(event.date_end.trim());
+      const endRaw = event.date_end_iso ?? event.date_end;
+      if (!endRaw) return null;
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endRaw.trim());
       if (!m) return null;
       const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
       return isNaN(d.getTime()) ? null : d;
@@ -296,7 +299,7 @@ function EventRow({ event, isPast = false }: { event: Event; isPast?: boolean })
     <Link to={`/event/${event.slug ?? event.id}`} className={`event-row${isPast ? ' event-row--past' : ''}`}>
       {/* Date + Time Column */}
       <div className="event-time">
-        {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end)}</span>}
+        {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end_iso ?? event.date_end)}</span>}
         <span>{formatTime(event.time) || '—'}</span>
       </div>
 
@@ -455,8 +458,9 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
       // • Without date_end, starts 9 pm+ → start time + 9 h grace (covers HK late nights til ~6 am)
       // • Otherwise → end of the calendar day (midnight + 24 h)
       let effectiveEndTs: number;
-      if (e.date_end) {
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date_end.trim());
+      const endRawIso = e.date_end_iso ?? e.date_end;
+      if (endRawIso) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endRawIso.trim());
         if (m) {
           const endDay = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
           endDay.setDate(endDay.getDate() + 1);

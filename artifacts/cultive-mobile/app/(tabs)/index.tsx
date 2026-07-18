@@ -199,10 +199,13 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
     const dates = parseAllEventDates(event.date);
     if (dates.length === 0) return false;
 
-    // Use date_end so ongoing multi-day events match the active filter
+    // Use the ISO end date so ongoing multi-day events match the active filter.
+    // date_end_iso is machine-readable ("2026-07-20"); date_end may be a
+    // display string ("Jul 20, 2026") the strict regex can't parse.
     const endOverride = (() => {
-      if (!event.date_end) return null;
-      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((event.date_end ?? "").trim());
+      const endRaw = event.date_end_iso ?? event.date_end;
+      if (!endRaw) return null;
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endRaw.trim());
       if (!m) return null;
       const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
       return isNaN(d.getTime()) ? null : d;
@@ -299,8 +302,9 @@ function sortUpcomingFirst(list: Event[]): Event[] {
       // • Without date_end → midnight of maxDate + start-time offset + 12 hr grace
       //   e.g. event starts 11:30 pm → effective end = 11:30 pm + 12 h = 11:30 am next day
       let effectiveEndTs: number;
-      if (e.date_end) {
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date_end.trim());
+      const endRawIso = e.date_end_iso ?? e.date_end;
+      if (endRawIso) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endRawIso.trim());
         if (m) {
           const endDay = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
           endDay.setDate(endDay.getDate() + 1); // end of that day = start of next
@@ -371,8 +375,13 @@ function displayDate(raw: string, rawEnd?: string | null): string {
   if (rawEnd) {
     const isoS = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
     const isoE = /^(\d{4})-(\d{2})-(\d{2})$/.exec(rawEnd.trim());
-    if (isoS && isoE) {
-      const s = new Date(Number(isoS[1]), Number(isoS[2]) - 1, Number(isoS[3]));
+    // Allow a display-string start (e.g. "Jul 16, 2026") with an ISO end —
+    // parse the start loosely so multi-day ranges still render.
+    const looseS = !isoS && isoE ? new Date(raw) : null;
+    if ((isoS || (looseS && !isNaN(looseS.getTime()))) && isoE) {
+      const s = isoS
+        ? new Date(Number(isoS[1]), Number(isoS[2]) - 1, Number(isoS[3]))
+        : (looseS as Date);
       const e = new Date(Number(isoE[1]), Number(isoE[2]) - 1, Number(isoE[3]));
       const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
       const dy = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -686,7 +695,7 @@ function EventRow({
       <View style={styles.timeCol}>
         {event.date ? (
           <Text style={[styles.dateText, { color: colors.foreground }]}>
-            {displayDate(event.date, event.date_end)}
+            {displayDate(event.date, event.date_end_iso ?? event.date_end)}
           </Text>
         ) : null}
         <Text style={[styles.timeText, { color: colors.mutedForeground }]}>

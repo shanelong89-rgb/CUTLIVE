@@ -42,6 +42,7 @@ export type Event = {
   ticket_url?: string | null;
   source_url?: string | null;
   date_end?: string | null;
+  date_end_iso?: string | null;
   rsvp_enabled?: boolean;
   tags?: string[];
   submitted_by?: string | null;

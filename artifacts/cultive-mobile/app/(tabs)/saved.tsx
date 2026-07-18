@@ -200,9 +200,9 @@ export default function SavedScreen() {
                   style={[styles.rowMeta, { color: colors.mutedForeground }]}
                   numberOfLines={1}
                 >
-                  {item.category} · {item.date_end ? (() => {
+                  {item.category} · {(item.date_end_iso ?? item.date_end) ? (() => {
                     const isoS = /^(\d{4})-(\d{2})-(\d{2})$/.exec((item.date || '').trim());
-                    const isoE = /^(\d{4})-(\d{2})-(\d{2})$/.exec(item.date_end.trim());
+                    const isoE = /^(\d{4})-(\d{2})-(\d{2})$/.exec((item.date_end_iso ?? item.date_end ?? '').trim());
                     if (isoS && isoE) {
                       const s = new Date(+isoS[1], +isoS[2]-1, +isoS[3]);
                       const e = new Date(+isoE[1], +isoE[2]-1, +isoE[3]);

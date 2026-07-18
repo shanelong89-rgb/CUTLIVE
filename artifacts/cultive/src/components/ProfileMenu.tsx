@@ -105,12 +105,12 @@ export function ProfileMenu() {
       (async () => {
         const { data } = await supabase
           .from('events')
-          .select('id, date, date_end')
+          .select('id, date, date_end, date_end_iso')
           .in('id', ids);
         if (!active) return;
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const n = (data ?? []).filter(e => {
-          const raw = e.date_end || e.date;
+          const raw = e.date_end_iso || e.date_end || e.date;
           if (!raw) return true;
           const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
           if (!m) return true;

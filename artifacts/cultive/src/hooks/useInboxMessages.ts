@@ -254,7 +254,8 @@ function buildSavedReminders(events: Event[]): InboxMessage[] {
 
     // For multi-day events (exhibitions, markets, festivals) use date_end so the
     // card stays visible for the full run, not just the first 14 days after start.
-    const endDate = ev.date_end ? parseEventDate(ev.date_end) : null;
+    const endRaw = ev.date_end_iso ?? ev.date_end;
+    const endDate = endRaw ? parseEventDate(endRaw) : null;
     const effectiveEnd = endDate ?? startDate;
 
     // Skip only if the event has fully passed the 14-day lookback window

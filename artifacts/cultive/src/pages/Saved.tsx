@@ -3,30 +3,7 @@ import { Link } from 'react-router-dom';
 import { getEvents, type Event } from '../lib/supabase';
 import { useSavedEvents } from '../hooks/useSavedEvents';
 import { googleCalendarUrl, downloadICS } from '../lib/calendar';
-
-function displayDateRange(date?: string, dateEnd?: string | null): string {
-  if (!date) return '';
-  const parseYMD = (s: string) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
-    if (!m) return null;
-    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-    return isNaN(d.getTime()) ? null : d;
-  };
-  const start = parseYMD(date);
-  if (!dateEnd) {
-    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return date;
-  }
-  const end = parseYMD(dateEnd);
-  if (!start || !end) {
-    if (start) return start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return date;
-  }
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()} – ${end.getDate()}`;
-  }
-  return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-}
+import { displayDateRange } from '../lib/utils';
 
 function CalendarDropdown({ event, onClose }: { event: Event; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -127,7 +104,7 @@ function parseEndDate(raw: string, currentYear: number): Date | null {
 function isEventPast(event: Event): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const endRaw = event.date_end || event.date;
+  const endRaw = event.date_end_iso || event.date_end || event.date;
   if (!endRaw) return false;
   const end = parseEndDate(endRaw, today.getFullYear());
   if (!end) return false;
@@ -189,7 +166,7 @@ export function Saved() {
     return (
       <div key={event.id} className={`event-row saved-row${isPast ? ' event-row--past' : ''}`}>
         <Link to={`/event/${event.slug ?? event.id}`} className="event-time">
-          {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end)}</span>}
+          {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end_iso ?? event.date_end)}</span>}
           <span>{event.time || '—'}</span>
         </Link>
         <Link to={`/event/${event.slug ?? event.id}`} className="event-thumb">

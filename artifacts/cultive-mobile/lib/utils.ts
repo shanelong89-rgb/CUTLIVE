@@ -17,6 +17,18 @@ export function displayDateRange(date?: string, dateEnd?: string | null): string
   const end = parseYMD(dateEnd);
   if (!start || !end) {
     if (start) return `${DAYS[start.getDay()]}, ${MONTHS[start.getMonth()]} ${start.getDate()}`;
+    // Start is a display string (e.g. "Jul 16, 2026") but end may be ISO —
+    // parse the start loosely so multi-day ranges still render.
+    if (end) {
+      const loose = new Date(date);
+      if (!isNaN(loose.getTime()) && loose.getTime() <= end.getTime()) {
+        if (loose.getMonth() === end.getMonth() && loose.getFullYear() === end.getFullYear()) {
+          if (loose.getDate() === end.getDate()) return `${DAYS[loose.getDay()]}, ${MONTHS[loose.getMonth()]} ${loose.getDate()}`;
+          return `${MONTHS[loose.getMonth()]} ${loose.getDate()} – ${end.getDate()}`;
+        }
+        return `${MONTHS[loose.getMonth()]} ${loose.getDate()} – ${MONTHS[end.getMonth()]} ${end.getDate()}`;
+      }
+    }
     return date;
   }
   // Same day — show as a single date

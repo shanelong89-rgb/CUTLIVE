@@ -29,6 +29,22 @@ export function displayDateRange(date?: string, dateEnd?: string | null): string
     return `${fmt(start, { month: 'short', day: 'numeric' })} – ${fmt(end, { month: 'short', day: 'numeric' })}`;
   }
 
+  // Start date is a display string (e.g. "Jul 16, 2026") but the end date may
+  // still be ISO — parse the start loosely so multi-day ranges still render.
+  if (dateEnd) {
+    const end = parseYMD(dateEnd);
+    if (end) {
+      const looseStart = new Date(date);
+      if (!isNaN(looseStart.getTime()) && looseStart.getTime() <= end.getTime()) {
+        if (looseStart.getFullYear() === end.getFullYear() && looseStart.getMonth() === end.getMonth() && looseStart.getDate() === end.getDate())
+          return fmt(looseStart, { weekday: 'short', month: 'short', day: 'numeric' });
+        if (looseStart.getMonth() === end.getMonth() && looseStart.getFullYear() === end.getFullYear())
+          return `${fmt(looseStart, { month: 'short' })} ${looseStart.getDate()} – ${end.getDate()}`;
+        return `${fmt(looseStart, { month: 'short', day: 'numeric' })} – ${fmt(end, { month: 'short', day: 'numeric' })}`;
+      }
+    }
+  }
+
   // Raw string fallback — strip the year and normalise the dash so it's
   // consistent with ISO-formatted events (e.g. "May 23 - June 7, 2026" → "May 23 – Jun 7")
   const crossMonth = date.match(

@@ -204,7 +204,7 @@ export default function EventDetailScreen() {
           </Text>
 
           <View style={[styles.meta, { borderColor: colors.border }]}>
-            <MetaRow icon="calendar" text={displayDateRange(event.date, event.date_end)} colors={colors} />
+            <MetaRow icon="calendar" text={displayDateRange(event.date, event.date_end_iso ?? event.date_end)} colors={colors} />
             <MetaRow icon="clock" text={formatTime(event.time)} colors={colors} />
             <MetaRow
               icon="map-pin"
