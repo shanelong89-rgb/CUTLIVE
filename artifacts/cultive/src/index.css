@@ -608,9 +608,14 @@ h1, h2, h3 {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
+  scroll-snap-type: x proximity;
   padding: 16px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
+}
+
+.date-filter-strip .date-chip {
+  scroll-snap-align: start;
 }
 
 .date-filter-strip::-webkit-scrollbar {
@@ -650,9 +655,14 @@ h1, h2, h3 {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
+  scroll-snap-type: x proximity;
   padding: 24px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
+}
+
+.category-strip .category-chip {
+  scroll-snap-align: start;
 }
 
 .category-strip::-webkit-scrollbar {
@@ -856,6 +866,41 @@ h1, h2, h3 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Compact rows — quieter layout for the Ongoing view so long-running
+   galleries/exhibitions don't visually dominate. */
+.event-row--compact .event-thumb img {
+  max-width: 56px;
+  max-height: 56px;
+  border-radius: 6px;
+}
+
+.event-row--compact .event-thumb-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+}
+
+.event-row--compact .event-details {
+  padding: 10px 16px;
+}
+
+.event-row--compact .event-title {
+  font-size: 0.95rem;
+  margin-bottom: 3px;
+}
+
+.event-row--compact .event-meta {
+  font-size: 0.72rem;
+}
+
+.event-row--compact .event-tag-pills {
+  display: none;
+}
+
+.event-row--compact .event-curator {
+  display: none;
 }
 
 .event-row--past {

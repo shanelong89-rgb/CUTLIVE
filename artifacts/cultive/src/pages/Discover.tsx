@@ -210,7 +210,19 @@ const dateFilters = [
   { id: 'weekend', label: 'This Weekend' },
   { id: 'week', label: 'This Week' },
   { id: 'month', label: 'This Month' },
+  { id: 'ongoing', label: 'Ongoing' },
 ];
+
+// Parse an ISO end date (date_end_iso preferred; date_end may be a display
+// string the strict regex can't parse — that's fine, we return null).
+function parseIsoEndDate(event: Event): Date | null {
+  const endRaw = event.date_end_iso ?? event.date_end;
+  if (!endRaw) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endRaw.trim());
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return isNaN(d.getTime()) ? null : d;
+}
 
 // Filter events by date using actual parsed dates, not string matching.
 function filterByDate(events: Event[], dateFilter: string): Event[] {
@@ -238,21 +250,24 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
+  // Ongoing: long-running events (galleries, exhibitions) — has an ISO end
+  // date more than 7 days after today. Doesn't require parseable start dates.
+  if (dateFilter === 'ongoing') {
+    const cutoff = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 7);
+    return events.filter(event => {
+      const end = parseIsoEndDate(event);
+      return !!end && end.getTime() > cutoff.getTime();
+    });
+  }
+
   return events.filter(event => {
     const dates = parseAllEventDates(event.date);
     if (dates.length === 0) return false;
 
     // Use the ISO end date so ongoing multi-day events match the active filter.
     // date_end_iso is machine-readable ("2026-07-20"); date_end may be a display
-    // string ("Jul 20, 2026") that the strict regex below can't parse.
-    const endOverride = (() => {
-      const endRaw = event.date_end_iso ?? event.date_end;
-      if (!endRaw) return null;
-      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endRaw.trim());
-      if (!m) return null;
-      const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-      return isNaN(d.getTime()) ? null : d;
-    })();
+    // string ("Jul 20, 2026") that the strict regex can't parse.
+    const endOverride = parseIsoEndDate(event);
 
     const inRange = (start: Date, end: Date) => {
       if (dates.some(d => d.getTime() >= start.getTime() && d.getTime() < end.getTime())) return true;
@@ -289,18 +304,18 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
 }
 
 // Event Row Component - Editorial grid style
-function EventRow({ event, isPast = false }: { event: Event; isPast?: boolean }) {
+function EventRow({ event, isPast = false, compact = false }: { event: Event; isPast?: boolean; compact?: boolean }) {
   const title = event.title;
   const district = event.district || event.venue.split(',')[0] || '';
   const venueName = event.venue;
   const isExclusive = event.is_exclusive || event.isExclusive;
 
   return (
-    <Link to={`/event/${event.slug ?? event.id}`} className={`event-row${isPast ? ' event-row--past' : ''}`}>
+    <Link to={`/event/${event.slug ?? event.id}`} className={`event-row${isPast ? ' event-row--past' : ''}${compact ? ' event-row--compact' : ''}`}>
       {/* Date + Time Column */}
       <div className="event-time">
         {event.date && <span className="event-date">{displayDateRange(event.date, event.date_end_iso ?? event.date_end)}</span>}
-        <span>{formatTime(event.time) || '—'}</span>
+        {!compact && <span>{formatTime(event.time) || '—'}</span>}
       </div>
 
       {/* Thumbnail */}
@@ -449,7 +464,18 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
     const todayTs = todayStart.getTime();
     const decorated = filtered.map((e) => {
       const all = parseAllEventDates(e.date, true);
-      if (all.length === 0) return { e, parsed: null, isPast: false, endTs: 0 };
+      if (all.length === 0) {
+        // No parseable start date — fall back to the ISO end date (if any) so
+        // Ongoing sorting and past detection still work for these events.
+        const isoEnd = parseIsoEndDate(e);
+        if (isoEnd) {
+          const endOfDay = new Date(isoEnd);
+          endOfDay.setDate(endOfDay.getDate() + 1);
+          const endTs = endOfDay.getTime();
+          return { e, parsed: null, isPast: nowTs >= endTs, endTs };
+        }
+        return { e, parsed: null, isPast: false, endTs: 0 };
+      }
       const minDate = all.reduce((a, b) => a.getTime() < b.getTime() ? a : b);
       const maxDate = all.reduce((a, b) => a.getTime() > b.getTime() ? a : b);
 
@@ -497,6 +523,8 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
       return { e, parsed: maxDate, isPast: true, endTs: effectiveEndTs };
     });
     decorated.sort((a, b) => {
+      // Ongoing view: soonest-ending first, so "last chance" events surface.
+      if (activeDateFilter === 'ongoing') return a.endTs - b.endTs;
       if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
       if (a.isPast && b.isPast) {
         // Most recently ended → top of past section; oldest ended → bottom
@@ -576,7 +604,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
           ))}
         </div>
 
-        {/* Tag Filter — multi-select; clicking All resets */}
+        {/* Tag Filter — single-select; clicking the active pill (or All) resets */}
         <div className="category-strip">
           <button
             className={`category-chip ${activeTags.length === 0 ? 'active' : ''}`}
@@ -589,11 +617,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
               key={tag.id}
               className={`category-chip ${activeTags.includes(tag.id) ? 'active' : ''}`}
               onClick={() =>
-                setActiveTags(prev =>
-                  prev.includes(tag.id)
-                    ? prev.filter(t => t !== tag.id)
-                    : [...prev, tag.id]
-                )
+                setActiveTags(prev => (prev.includes(tag.id) ? [] : [tag.id]))
               }
             >
               {tag.label}
@@ -625,7 +649,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
           <>
             {(user ? pagedEvents : pagedEvents.slice(0, FREE_EVENT_LIMIT)).map(({ e, isPast }, idx) => (
               <Fragment key={e.id}>
-                <EventRow event={e} isPast={isPast} />
+                <EventRow event={e} isPast={isPast} compact={activeDateFilter === 'ongoing'} />
                 {!user && idx === SOFT_HOOK_AFTER && (
                   <div className="mid-list-hook">
                     <span className="mid-list-hook-text">
@@ -648,7 +672,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
               <div className="event-gate" ref={gateRef}>
                 <div className="event-gate-blur">
                   {pagedEvents.slice(FREE_EVENT_LIMIT, FREE_EVENT_LIMIT + 3).map(({ e, isPast }) => (
-                    <EventRow key={e.id} event={e} isPast={isPast} />
+                    <EventRow key={e.id} event={e} isPast={isPast} compact={activeDateFilter === 'ongoing'} />
                   ))}
                 </div>
                 <div className="event-gate-wall">
