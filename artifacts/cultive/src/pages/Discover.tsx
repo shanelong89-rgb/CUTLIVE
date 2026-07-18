@@ -250,13 +250,33 @@ function filterByDate(events: Event[], dateFilter: string): Event[] {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  // Ongoing: long-running events (galleries, exhibitions) — has an ISO end
-  // date more than 7 days after today. Doesn't require parseable start dates.
+  // Ongoing: long-running events (galleries, exhibitions) only. Requires:
+  // (a) ISO end date more than 7 days after today, AND
+  // (b) total span longer than 7 days — filters out single-day and short
+  //     multi-day events that would otherwise clutter the view.
   if (dateFilter === 'ongoing') {
     const cutoff = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 7);
+    const parseIsoDay = (raw?: string | null): Date | null => {
+      if (!raw) return null;
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+      if (!m) return null;
+      const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      return isNaN(d.getTime()) ? null : d;
+    };
     return events.filter(event => {
       const end = parseIsoEndDate(event);
-      return !!end && end.getTime() > cutoff.getTime();
+      if (!end || end.getTime() <= cutoff.getTime()) return false;
+      // Start date: prefer machine-readable date_iso, then an ISO-formatted
+      // date field, then the earliest loosely-parsed date as a fallback.
+      const start =
+        parseIsoDay(event.date_iso) ??
+        parseIsoDay(event.date) ??
+        (() => {
+          const all = parseAllEventDates(event.date, true);
+          return all.length > 0 ? all.reduce((a, b) => (a.getTime() < b.getTime() ? a : b)) : null;
+        })();
+      if (!start) return false;
+      return end.getTime() - start.getTime() > 7 * 86400000;
     });
   }
 

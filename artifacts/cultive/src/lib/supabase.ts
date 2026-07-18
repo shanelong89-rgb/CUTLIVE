@@ -41,6 +41,7 @@ export type Event = {
   district?: string;
   ticket_url?: string | null;
   source_url?: string | null;
+  date_iso?: string | null;
   date_end?: string | null;
   date_end_iso?: string | null;
   rsvp_enabled?: boolean;
