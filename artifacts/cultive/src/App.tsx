@@ -23,6 +23,13 @@ import { supabase, applyReferralCode } from './lib/supabase';
 const REF_CODE_KEY = 'cultive:pending-ref';
 const INVITE_BANNER_KEY = 'cultive:invite-banner';
 
+function AboutRedirect() {
+  useEffect(() => {
+    window.location.replace('/about.html');
+  }, []);
+  return null;
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation();
   const navType = useNavigationType();
@@ -148,6 +155,7 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/verify" element={<AuthVerify />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/about" element={<AboutRedirect />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/my-submissions" element={<MySubmissions />} />
         <Route path="/admin/*" element={<Admin />} />
