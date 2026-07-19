@@ -3255,15 +3255,34 @@ h1, h2, h3 {
   }
   
   .detail-content {
-    padding: 28px 5vw 180px;
+    padding: 32px 6vw 180px;
   }
   
   .detail-title {
     font-size: 1.75rem;
+    margin-bottom: 24px;
   }
   
   .detail-meta {
     grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .detail-header {
+    margin-bottom: 16px;
+  }
+
+  .directions-btn {
+    margin-top: 24px;
+  }
+
+  .wa-save-btn {
+    margin-bottom: 20px;
+  }
+
+  .share-row {
+    margin-top: 20px;
+    margin-bottom: 32px;
   }
 
   /* Lift the bottom CTA bar above the mobile tab bar */
@@ -4197,6 +4216,7 @@ h1, h2, h3 {
   background: transparent;
   border: 1px solid var(--n-text);
   color: var(--n-text);
+  margin-top: 28px;
 }
 .directions-btn:hover {
   background: var(--n-text);
