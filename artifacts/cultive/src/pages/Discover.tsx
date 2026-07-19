@@ -662,8 +662,18 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
       {/* Event List - Editorial Grid */}
       <div className="event-list">
         {loading ? (
-          <div style={{ padding: '48px 5vw', textAlign: 'center', color: 'var(--n-muted)', fontSize: '0.9rem' }}>
-            Loading events...
+          <div aria-busy="true" aria-label="Loading events">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="skeleton-row">
+                <div className="skeleton-block skeleton-time" />
+                <div className="skeleton-block skeleton-thumb" />
+                <div className="skeleton-lines">
+                  <div className="skeleton-block skeleton-line-lg" />
+                  <div className="skeleton-block skeleton-line-sm" />
+                  <div className="skeleton-block skeleton-line-md" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : pagedEvents.length > 0 ? (
           <>
