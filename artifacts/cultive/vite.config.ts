@@ -29,6 +29,7 @@ const basePath = rawBasePath ?? "/";
 
 const staticPageRewrites: { from: RegExp; to: string }[] = [
   { from: /^\/partnerships$/, to: '/partnerships.html' },
+  { from: /^\/about$/, to: '/about.html' },
 ];
 
 export default defineConfig({

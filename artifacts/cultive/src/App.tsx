@@ -13,7 +13,6 @@ import { MySubmissions } from './pages/MySubmissions';
 import { AuthCallback } from './pages/AuthCallback';
 import { AuthVerify } from './pages/AuthVerify';
 import { Settings } from './pages/Settings';
-import { About } from './pages/About';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
@@ -149,7 +148,6 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/verify" element={<AuthVerify />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/about" element={<About />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/my-submissions" element={<MySubmissions />} />
         <Route path="/admin/*" element={<Admin />} />
@@ -230,9 +228,9 @@ function SiteFooter() {
       <div className="site-footer-inner">
         <span className="site-footer-brand">CULTIVE 文化活</span>
         <div className="site-footer-links">
-          <Link to="/about" className="site-footer-link">
+          <a href="/about" className="site-footer-link">
             About
-          </Link>
+          </a>
           <a
             href="/partnerships"
             className="site-footer-link"
