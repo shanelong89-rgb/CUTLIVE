@@ -234,10 +234,29 @@ function WebNav({
   );
 }
 
+const ABOUT_WELCOME_KEY = 'cultive:about-welcome-seen';
+
 function SiteFooter() {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const location = useLocation();
   const isDiscoverPage = location.pathname === '/';
+
+  // Welcome popup: auto-open the About overlay once per visitor on first landing.
+  // Skipped for invite links, which auto-open the sign-up modal instead.
+  useEffect(() => {
+    if (!isDiscoverPage) return undefined;
+    let seen = false;
+    let hasInvite = false;
+    try { seen = localStorage.getItem(ABOUT_WELCOME_KEY) === '1'; } catch { /* ignore */ }
+    try { hasInvite = sessionStorage.getItem(INVITE_BANNER_KEY) === '1'; } catch { /* ignore */ }
+    if (seen || hasInvite) return undefined;
+    const t = setTimeout(() => {
+      setIsAboutOpen(true);
+      try { localStorage.setItem(ABOUT_WELCOME_KEY, '1'); } catch { /* ignore */ }
+    }, 900);
+    return () => clearTimeout(t);
+  }, [isDiscoverPage]);
+
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">

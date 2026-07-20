@@ -1153,5 +1153,15 @@ document.querySelectorAll('.stats-row').forEach(g => statsObserver.observe(g));
 })();
 </script>
 
+<script>
+  // Embed mode: hide the site nav when loaded inside the About popup (?embed=1)
+  (function () {
+    if (new URLSearchParams(location.search).get('embed') === '1') {
+      var st = document.createElement('style');
+      st.textContent = '.web-nav{display:none!important}body{padding-top:0!important}';
+      document.head.appendChild(st);
+    }
+  })();
+</script>
 </body>
 </html>

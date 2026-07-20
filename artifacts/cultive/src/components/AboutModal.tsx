@@ -26,7 +26,7 @@ export function AboutModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        <iframe src="/about.html" title="About CULTIVE" className="about-modal-frame" />
+        <iframe src="/about.html?embed=1" title="About CULTIVE" className="about-modal-frame" />
       </div>
     </div>
   );
