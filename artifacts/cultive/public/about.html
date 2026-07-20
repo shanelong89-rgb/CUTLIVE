@@ -1145,9 +1145,17 @@ document.querySelectorAll('.stats-row').forEach(g => statsObserver.observe(g));
         var d = (e.district || (e.venue || '').split(',')[0] || '').trim().toLowerCase();
         if (d) districts[d] = true;
       });
-      document.getElementById('stat-events').dataset.target = rows.length;
-      document.getElementById('stat-categories').dataset.target = Object.keys(categories).length;
-      document.getElementById('stat-districts').dataset.target = Object.keys(districts).length;
+      var pairs = [
+        ['stat-events', rows.length],
+        ['stat-categories', Object.keys(categories).length],
+        ['stat-districts', Object.keys(districts).length]
+      ];
+      pairs.forEach(function(pair) {
+        var el = document.getElementById(pair[0]);
+        if (!el) return;
+        el.dataset.target = pair[1];
+        animateCounter(el);
+      });
     })
     .catch(function() {});
 })();

@@ -1917,5 +1917,42 @@ document.querySelectorAll('.nav-dot').forEach(dot => {
   </div>
 </footer>
 
+<script>
+// ── Live stats from Supabase ──
+(function() {
+  var SUPABASE_URL = 'https://qmjdqldmpmeguuyepbsw.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtamRxbGRtcG1lZ3V1eWVwYnN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNDkxMzksImV4cCI6MjA5NDgyNTEzOX0.FPUO7-RuPyb1FWwQRKGHnWyDeoDZIVf54xspUsh2_rc';
+  fetch(SUPABASE_URL + '/rest/v1/events?select=category,district,venue', { headers: { apikey: SUPABASE_ANON_KEY } })
+    .then(function(r) { return r.json(); })
+    .then(function(rows) {
+      if (!Array.isArray(rows) || !rows.length) return;
+      var categories = {}, districts = {};
+      rows.forEach(function(e) {
+        if (e.category) categories[e.category] = true;
+        var d = (e.district || (e.venue || '').split(',')[0] || '').trim().toLowerCase();
+        if (d) districts[d] = true;
+      });
+      var counts = {
+        events: rows.length,
+        districts: Object.keys(districts).length,
+        categories: Object.keys(categories).length
+      };
+      document.querySelectorAll('.stat-item').forEach(function(item) {
+        var labelEl = item.querySelector('.stat-label');
+        var numEl = item.querySelector('.stat-number[data-target]');
+        if (!labelEl || !numEl) return;
+        var label = labelEl.textContent.toLowerCase();
+        var value = null;
+        if (label.indexOf('event') !== -1) value = counts.events;
+        else if (label.indexOf('district') !== -1) value = counts.districts;
+        else if (label.indexOf('categor') !== -1) value = counts.categories;
+        if (value === null) return;
+        numEl.dataset.target = value;
+        animateCounter(numEl);
+      });
+    })
+    .catch(function() {});
+})();
+</script>
 </body>
 </html>
