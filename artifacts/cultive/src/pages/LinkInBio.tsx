@@ -158,6 +158,7 @@ export function LinkInBio() {
           >
             About
           </button>
+          {/* Popup keeps IG visitors on this page instead of navigating away */}
         </div>
       </div>
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />

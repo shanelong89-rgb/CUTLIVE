@@ -236,15 +236,23 @@ function WebNav({
 
 function SiteFooter() {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const location = useLocation();
+  const isDiscoverPage = location.pathname === '/';
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">
         <span className="site-footer-brand">CULTIVE 文化活</span>
         <div className="site-footer-links">
-          <button className="site-footer-link" onClick={() => setIsAboutOpen(true)}>
-            About
-          </button>
-          <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
+          {isDiscoverPage ? (
+            <button className="site-footer-link" onClick={() => setIsAboutOpen(true)}>
+              About
+            </button>
+          ) : (
+            <a href="/about" className="site-footer-link">
+              About
+            </a>
+          )}
+          {isDiscoverPage && <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />}
           <a
             href="/partnerships"
             className="site-footer-link"
