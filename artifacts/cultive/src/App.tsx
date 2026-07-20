@@ -16,6 +16,7 @@ import { Settings } from './pages/Settings';
 import { LinkInBio } from './pages/LinkInBio';
 import { AuthModal } from './components/AuthModal';
 import { AboutModal } from './components/AboutModal';
+import { WelcomeModal } from './components/WelcomeModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
 import { useInbox } from './contexts/InboxContext';
@@ -234,25 +235,26 @@ function WebNav({
   );
 }
 
-const ABOUT_WELCOME_KEY = 'cultive:about-welcome-seen';
+const WELCOME_KEY = 'cultive:welcome-seen';
 
 function SiteFooter() {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const location = useLocation();
   const isDiscoverPage = location.pathname === '/';
 
-  // Welcome popup: auto-open the About overlay once per visitor on first landing.
+  // Welcome popup: auto-open the link-in-bio overlay once per visitor on first landing.
   // Skipped for invite links, which auto-open the sign-up modal instead.
   useEffect(() => {
     if (!isDiscoverPage) return undefined;
     let seen = false;
     let hasInvite = false;
-    try { seen = localStorage.getItem(ABOUT_WELCOME_KEY) === '1'; } catch { /* ignore */ }
+    try { seen = localStorage.getItem(WELCOME_KEY) === '1'; } catch { /* ignore */ }
     try { hasInvite = sessionStorage.getItem(INVITE_BANNER_KEY) === '1'; } catch { /* ignore */ }
     if (seen || hasInvite) return undefined;
     const t = setTimeout(() => {
-      setIsAboutOpen(true);
-      try { localStorage.setItem(ABOUT_WELCOME_KEY, '1'); } catch { /* ignore */ }
+      setIsWelcomeOpen(true);
+      try { localStorage.setItem(WELCOME_KEY, '1'); } catch { /* ignore */ }
     }, 900);
     return () => clearTimeout(t);
   }, [isDiscoverPage]);
@@ -272,6 +274,7 @@ function SiteFooter() {
             </a>
           )}
           {isDiscoverPage && <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />}
+          {isDiscoverPage && <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />}
           <a
             href="/partnerships"
             className="site-footer-link"

@@ -4754,3 +4754,21 @@ button.linkbio-footer-link {
   font: inherit;
   cursor: pointer;
 }
+
+/* =====================================================
+   WELCOME MODAL (link-in-bio content in a popup)
+   ===================================================== */
+.welcome-modal {
+  max-width: 520px;
+}
+
+.welcome-modal-scroll {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.welcome-modal .linkbio-page {
+  min-height: 0;
+  padding: 48px 24px 40px;
+}
