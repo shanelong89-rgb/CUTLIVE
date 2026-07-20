@@ -13,6 +13,7 @@ import { MySubmissions } from './pages/MySubmissions';
 import { AuthCallback } from './pages/AuthCallback';
 import { AuthVerify } from './pages/AuthVerify';
 import { Settings } from './pages/Settings';
+import { LinkInBio } from './pages/LinkInBio';
 import { AuthModal } from './components/AuthModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
@@ -82,6 +83,7 @@ function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isBarePage = isAdminPage || location.pathname.replace(/\/+$/, '') === '/link';
   const { unreadCount } = useInbox();
   const { user, loading } = useAuth();
   const appliedRef = useRef(false);
@@ -141,8 +143,8 @@ function App() {
   return (
     <div className="app">
       <ScrollToTop />
-      {!isAdminPage && <WebNav setIsAuthOpen={setIsAuthOpen} unreadCount={unreadCount} />}
-      {!isAdminPage && <InviteBanner onSignUp={() => setIsAuthOpen(true)} />}
+      {!isBarePage && <WebNav setIsAuthOpen={setIsAuthOpen} unreadCount={unreadCount} />}
+      {!isBarePage && <InviteBanner onSignUp={() => setIsAuthOpen(true)} />}
 
       <Routes>
         <Route path="/" element={<Discover setIsAuthOpen={setIsAuthOpen} />} />
@@ -156,13 +158,14 @@ function App() {
         <Route path="/auth/verify" element={<AuthVerify />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/about" element={<AboutRedirect />} />
+        <Route path="/link" element={<LinkInBio />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/my-submissions" element={<MySubmissions />} />
         <Route path="/admin/*" element={<Admin />} />
       </Routes>
 
-      {!isAdminPage && <SiteFooter />}
-      {!isAdminPage && <TabBar unreadCount={unreadCount} />}
+      {!isBarePage && <SiteFooter />}
+      {!isBarePage && <TabBar unreadCount={unreadCount} />}
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </div>
