@@ -15,7 +15,6 @@ import { AuthVerify } from './pages/AuthVerify';
 import { Settings } from './pages/Settings';
 import { LinkInBio } from './pages/LinkInBio';
 import { AuthModal } from './components/AuthModal';
-import { AboutModal } from './components/AboutModal';
 import { WelcomeModal } from './components/WelcomeModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
@@ -238,7 +237,6 @@ function WebNav({
 const WELCOME_KEY = 'cultive:welcome-seen';
 
 function SiteFooter() {
-  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const location = useLocation();
   const isDiscoverPage = location.pathname === '/';
@@ -264,16 +262,9 @@ function SiteFooter() {
       <div className="site-footer-inner">
         <span className="site-footer-brand">CULTIVE 文化活</span>
         <div className="site-footer-links">
-          {isDiscoverPage ? (
-            <button className="site-footer-link" onClick={() => setIsAboutOpen(true)}>
-              About
-            </button>
-          ) : (
-            <a href="/about" className="site-footer-link">
-              About
-            </a>
-          )}
-          {isDiscoverPage && <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />}
+          <a href="/about" className="site-footer-link">
+            About
+          </a>
           {isDiscoverPage && <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />}
           <a
             href="/partnerships"

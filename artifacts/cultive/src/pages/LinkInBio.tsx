@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { getEvents, type Event } from '../lib/supabase';
 import { displayDateRange } from '../lib/utils';
 import { track } from '../lib/analytics';
-import { AboutModal } from '../components/AboutModal';
 
 const WA_NUMBER = '85255271026';
 const WA_DISPLAY = '+852 5527 1026';
@@ -59,7 +58,6 @@ function pickFeatured(events: Event[]): { label: string; picks: Event[] } {
 
 export function LinkInBio() {
   const [featured, setFeatured] = useState<{ label: string; picks: Event[] } | null>(null);
-  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   useEffect(() => {
     track('linkinbio_view');
@@ -152,16 +150,11 @@ export function LinkInBio() {
           <a href="/partnerships" className="linkbio-footer-link" onClick={() => track('linkinbio_partnerships_click')}>
             Partnerships
           </a>
-          <button
-            className="linkbio-footer-link"
-            onClick={() => { track('linkinbio_about_click'); setIsAboutOpen(true); }}
-          >
+          <a href="/about" className="linkbio-footer-link" onClick={() => track('linkinbio_about_click')}>
             About
-          </button>
-          {/* Popup keeps IG visitors on this page instead of navigating away */}
+          </a>
         </div>
       </div>
-      <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
     </div>
   );
 }
