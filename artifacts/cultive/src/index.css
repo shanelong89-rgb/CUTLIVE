@@ -1,5 +1,6 @@
 /* CULTIVE Neutral Editorial Theme - Web & Mobile */
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600&family=Noto+Sans+HK:wght@400;500&display=swap');
+/* Fonts are loaded via <link> tags in index.html (faster and more reliable than @import,
+   especially in in-app browsers like Instagram's) */
 
 * {
   margin: 0;
