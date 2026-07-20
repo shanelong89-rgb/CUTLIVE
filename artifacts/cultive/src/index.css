@@ -4761,10 +4761,12 @@ button.linkbio-footer-link {
    ===================================================== */
 .welcome-modal {
   max-width: 520px;
+  height: auto;
+  max-height: 85vh;
 }
 
 .welcome-modal-scroll {
-  height: 100%;
+  max-height: 85vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
