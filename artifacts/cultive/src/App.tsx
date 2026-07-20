@@ -234,14 +234,16 @@ function WebNav({
 }
 
 function SiteFooter() {
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">
         <span className="site-footer-brand">CULTIVE 文化活</span>
         <div className="site-footer-links">
-          <a href="/about" className="site-footer-link">
+          <button className="site-footer-link" onClick={() => setIsAboutOpen(true)}>
             About
-          </a>
+          </button>
+          <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
           <a
             href="/partnerships"
             className="site-footer-link"
