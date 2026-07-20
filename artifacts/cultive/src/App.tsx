@@ -15,6 +15,7 @@ import { AuthVerify } from './pages/AuthVerify';
 import { Settings } from './pages/Settings';
 import { LinkInBio } from './pages/LinkInBio';
 import { AuthModal } from './components/AuthModal';
+import { AboutModal } from './components/AboutModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { useAuth } from './hooks/useAuth';
 import { useInbox } from './contexts/InboxContext';
