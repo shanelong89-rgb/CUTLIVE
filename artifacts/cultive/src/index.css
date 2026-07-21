@@ -4775,3 +4775,44 @@ button.linkbio-footer-link {
   min-height: 0;
   padding: 48px 24px 40px;
 }
+
+/* =====================================================
+   UX POLISH — entrance animations (CSS-only)
+   ===================================================== */
+@keyframes cultive-slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cultive-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Staggered entrance for event rows */
+.event-list .event-row {
+  animation: cultive-slide-up 0.35s ease both;
+}
+.event-list .event-row:nth-child(1) { animation-delay: 0.02s; }
+.event-list .event-row:nth-child(2) { animation-delay: 0.06s; }
+.event-list .event-row:nth-child(3) { animation-delay: 0.1s; }
+.event-list .event-row:nth-child(4) { animation-delay: 0.14s; }
+.event-list .event-row:nth-child(5) { animation-delay: 0.18s; }
+.event-list .event-row:nth-child(6) { animation-delay: 0.22s; }
+.event-list .event-row:nth-child(n+7) { animation-delay: 0.26s; }
+
+/* Images ease in instead of popping */
+.event-row img,
+.detail-image,
+.linkbio-event-thumb img {
+  animation: cultive-fade-in 0.35s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-list .event-row,
+  .event-row img,
+  .detail-image,
+  .linkbio-event-thumb img {
+    animation: none;
+  }
+}
