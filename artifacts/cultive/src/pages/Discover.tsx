@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigationType } from 'react-router-dom';
 import { AVAILABLE_TAGS, CATEGORY_TAG_MAP, TAG_NORMALIZE } from '../data/events';
 import { getEvents, type Event } from '../lib/supabase';
@@ -378,7 +378,6 @@ function scrollToTop() {
   document.body.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-const SOFT_HOOK_AFTER = 4; // insert mid-list prompt after the Nth event (0-indexed)
 
 export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) => void }) {
   const { user } = useAuth();
@@ -595,7 +594,7 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
         <div className="above-fold-hook">
           <div className="above-fold-hook-inner">
             <span className="above-fold-hook-text">
-              ✦ Every event on CULTIVE is reviewed by a real person. Join free to save, get reminders, and never miss the ones that matter.
+              ✦ Every event on CULTIVE is reviewed by a real person. Create a free account to save events and get reminders.
             </span>
             <button
               className="above-fold-hook-cta"
@@ -677,26 +676,8 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
           </div>
         ) : pagedEvents.length > 0 ? (
           <>
-            {(user ? pagedEvents : pagedEvents.slice(0, FREE_EVENT_LIMIT)).map(({ e, isPast }, idx) => (
-              <Fragment key={e.id}>
-                <EventRow event={e} isPast={isPast} compact={activeDateFilter === 'ongoing'} />
-                {!user && idx === SOFT_HOOK_AFTER && (
-                  <div className="mid-list-hook">
-                    <span className="mid-list-hook-text">
-                      You've been browsing for a minute. Save them now — we'll remind you before the night.
-                    </span>
-                    <button
-                      className="mid-list-hook-cta"
-                      onClick={() => {
-                        track('cta_clicked', { location: 'mid_list' });
-                        setIsAuthOpen?.(true);
-                      }}
-                    >
-                      Create your free account →
-                    </button>
-                  </div>
-                )}
-              </Fragment>
+            {(user ? pagedEvents : pagedEvents.slice(0, FREE_EVENT_LIMIT)).map(({ e, isPast }) => (
+              <EventRow key={e.id} event={e} isPast={isPast} compact={activeDateFilter === 'ongoing'} />
             ))}
             {!user && filteredEvents.length > FREE_EVENT_LIMIT && (
               <div className="event-gate" ref={gateRef}>
@@ -707,11 +688,11 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                 </div>
                 <div className="event-gate-wall">
                   <p className="event-gate-count">
-                    +{filteredEvents.length - FREE_EVENT_LIMIT} events you'll kick yourself for missing
+                    +{filteredEvents.length - FREE_EVENT_LIMIT} more events this week
                   </p>
                   <h3 className="event-gate-headline">The best nights in HK are behind this wall.</h3>
                   <p className="event-gate-body">
-                    We've been thinking about what to do this weekend so you don't have to. Every event hand-picked. Every detail triple-checked. Yours free.
+                    We spend the week finding what's worth your weekend. Every event hand-picked. Every detail triple-checked.
                   </p>
                   <button
                     className="event-gate-cta"
@@ -720,12 +701,8 @@ export function Discover({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) =>
                       setIsAuthOpen?.(true);
                     }}
                   >
-                    See what you're missing →
+                    Create your free account →
                   </button>
-                  <p className="event-gate-sub-earn">
-                    Know an event we're missing?{' '}
-                    <a href="/submit" className="event-gate-link">Submit it and earn HK$50</a> when we approve it.
-                  </p>
                   <p className="event-gate-sub">Already a member? <button className="event-gate-link" onClick={() => setIsAuthOpen?.(true)}>Sign in</button></p>
                 </div>
               </div>

@@ -1,0 +1,94 @@
+OK — the "+ SHANE" button in the screenshot must be user-specific content that only shows for logged-in users (Shane). Let me now compile the full audit.
+
+Here's my paywall audit:
+
+---
+
+CULTIVE Paywall Audit
+
+What's currently on the page (for non-logged-in visitors):
+
+1. Mid-list soft hook (after event #5, 0-indexed = the 5th visible event):
+ "You've been browsing for a minute. Save them now — we'll remind you before the night."
+ [Create your free account →]
+
+2. Gate wall (after 10 events, with 3 blurred preview rows beneath):
+ "+{N} events you'll kick yourself for missing"
+ "The best nights in HK are behind this wall."
+ "We've been thinking about what to do this weekend so you don't have to. Every event hand-picked. Every detail triple-checked. Yours free."
+ [See what you're missing →]
+ "Know an event we're missing? Submit it and earn HK$50 when we approve it."
+ "Already a member? Sign in"
+
+3. Sub-header blurb (under date filters):
+ "✦ Every event on CULTIVE is reviewed by a real person. Join free to save, get reminders, and never miss the ones that matter."
+
+---
+
+Issues I See
+
+A) The mid-list hook is redundant with the gate wall — and weaker.
+
+You've got two conversion asks within a few scrolls of each other. The first one (after event 5) is generic and low-stakes — "save them, we'll remind you." The second (after event 10) is the real emotional sell. The first dilutes the second. Users who scrolled past the soft hook now have banner blindness when they hit the gate.
+
+Recommendation: Cut the mid-list hook entirely. Let users scroll through 10 events uninterrupted. The gate wall after 10 is a natural, earned interruption — you've proven value, now you ask.
+
+---
+
+B) The gate headline is fine, but the body copy has a voice problem.
+
+ "We've been thinking about what to do this weekend so you don't have to."
+
+This is the CULTIVE voice — editorial, slightly wry, "we" collective. That's good.
+
+ "Every event hand-picked. Every detail triple-checked. Yours free."
+
+This is also solid. But "Yours free" at the end is abrupt — it lands like a price tag, not a value proposition. CULTIVE isn't "free" in a freemium sense — it's a curated editorial product you're choosing to share.
+
+Recommendation: Drop "Yours free." Replace with something that reinforces the editorial promise:
+
+ "We've been thinking about what to do this weekend so you don't have to. Every event hand-picked. Every detail triple-checked. Create an account and we'll keep you in the loop."
+
+---
+
+C) The "+N events you'll kick yourself for missing" is tonally off.
+
+"Kick yourself for missing" is casual/anxious — it's FOMO marketing copy, not editorial voice. CULTIVE doesn't sell FOMO. CULTIVE tells you what's good.
+
+Recommendation: Something observational, not urgent:
+
+ "+{N} more events this week"
+ or
+ "+{N} events worth knowing about"
+
+No emotional manipulation — just a statement of what's behind the wall.
+
+---
+
+D) The CTA button text doesn't match the promise.
+
+ "See what you're missing →"
+
+This implies the user is currently missing something — again, FOMO framing. The actual offer is: create an account, save events, get reminders. The CTA should match the promise.
+
+Recommendation:
+
+ "Join free to save events →"
+ or
+ "Create your free account →" (already used in the mid-list hook — but if we cut that, this becomes fresh)
+
+---
+
+E) Three CTAs with different copy is confusing.
+
+Current state:
+1. Sub-header: "Join free to save, get reminders..."
+2. Mid-list hook: "Create your free account →"  
+3. Gate wall: "See what you're missing →"
+
+That's three different framings for the same action. Users subconsciously ask: "Wait, what am I signing up for?"
+
+Recommendation: Unify to one framing: "Create your free account →" — it's the clearest, least manipulative, and matches the actual action. Use it in all three places (or two, if we cut the mid-list hook).
+
+---
+ (1/2)

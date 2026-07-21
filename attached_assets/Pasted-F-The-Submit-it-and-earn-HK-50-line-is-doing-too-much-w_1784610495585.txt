@@ -1,0 +1,50 @@
+F) The "Submit it and earn HK$50" line is doing too much work.
+
+It's buried below the gate wall. It's a different offer entirely (earn money vs. save events). It competes with the primary CTA and muddies what you're asking users to do.
+
+Recommendation: Move it to a separate, lighter section — or drop it from the gate wall entirely. If you want to keep it, make it visually distinct and below the "Already a member? Sign in" line, so the primary CTA stands alone.
+
+---
+
+Proposed Rewrite
+
+Here's what I'd ship:
+
+Sub-header (under date filters):
+✦ Every event on CULTIVE is reviewed by a real person.
+  Create a free account to save events and get reminders.
+
+Gate wall (after 10 events, with 3 blurred previews):
++{N} more events this week
+
+The best nights in HK are behind this wall.
+
+We spend the week finding what's worth your weekend.
+Every event hand-picked. Every detail triple-checked.
+
+[Create your free account →]
+
+Already a member? Sign in
+
+
+Removed:
+- Mid-list hook (cut entirely — one interruption > two)
+- "you'll kick yourself for missing" (too FOMO)
+- "Yours free" (abrupt, transactional)
+- "Submit and earn HK$50" (separate offer, competing with primary CTA — can live elsewhere)
+
+Kept:
+- The gate wall structure (proven value → ask)
+- "The best nights in HK are behind this wall" (good headline, editorial confidence)
+- Blurred event previews (excellent — shows value without giving it away)
+- "Already a member? Sign in" (necessary escape hatch)
+
+---
+
+Other Minor Fix
+
+The mid-list hook currently appears at position 5 (after the 5th visible event). That means the page layout is: 5 events → banner → 5 more events → gate wall. It interrupts the flow right when users are getting into a scroll rhythm. Cutting it makes the experience: 10 clean events → gate wall. Cleaner, more respectful, and the gate wall hits harder because it's the first and only interruption.
+
+---
+
+Want me to make the code edits? I can patch Discover.tsx directly — cut the mid-list hook, rewrite the gate wall copy, and update the sub-header blurb — then commit to git. (2/2)
