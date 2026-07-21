@@ -97,6 +97,28 @@ export function Submit() {
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const DISTRICT_MAP: Record<string, string> = {
+    'central': 'Central', 'sheung-wan': 'Sheung Wan',
+    'sai-ying-pun': 'Sai Ying Pun', 'tsim-sha-tsui': 'Tsim Sha Tsui',
+    'wan-chai': 'Wan Chai', 'causeway-bay': 'Causeway Bay',
+    'hung-hom': 'Hung Hom', 'wong-chuk-hang': 'Wong Chuk Hang',
+    'north-point': 'North Point', 'tai-kok-tsui': 'Tai Kok Tsui',
+    'west-kowloon': 'West Kowloon', 'kwai-chung': 'Kwai Chung',
+  };
+
+  const normalizeDistrict = (raw: string): string => {
+    const trimmed = raw.trim();
+    if (!trimmed) return '';
+    const key = trimmed.toLowerCase().replace(/\s+/g, '-');
+    if (DISTRICT_MAP[key]) return DISTRICT_MAP[key];
+    // Fallback: Title Case each word (handles hyphens and spaces)
+    return trimmed
+      .replace(/-/g, ' ')
+      .split(/\s+/)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -112,7 +134,7 @@ export function Submit() {
         description: formData.description,
         image: '',
         is_exclusive: false,
-        district: formData.venue.split(',')[0] || '',
+        district: normalizeDistrict(formData.venue.split(',')[0] || ''),
         ticket_url: formData.ticket_url.trim() || null,
         tags: selectedTags,
         submitter_name: formData.submitter_name,
