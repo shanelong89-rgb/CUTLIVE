@@ -1,0 +1,104 @@
+Here's how your projects filter UX works on shanelong.co. It's really well architected — here's the breakdown:
+
+---
+
+Architecture
+
+Data Model (src/app/data/projects.ts)
+filterCategories = [
+  { label: 'Strategy & Direction',  tags: ['BRAND STRATEGY', 'BRAND DEVELOPMENT', ...] },
+  { label: 'Design & Technical',    tags: ['DESIGN', 'TECHNICAL DESIGN', ...] },
+  { label: 'Product Creation',      tags: ['PRODUCT DEVELOPMENT', ...] },
+  ...
+]
+Each project has a tags: string[] array. Filtering is just projects.filter(p => p.tags.includes(activeTag)).
+
+---
+
+Filter UX (ProjectsListPage.tsx)
+
+Two-level pill system:
+
+**Top row**
+• What: ALL + 6 category labels
+• Interaction: Click a category → expands its sub-tags below
+
+**Expanded row**
+• What: Sub-tags for the selected category
+• Interaction: Each tag shows a count. Click toggles filter on/off
+
+Key details:
+- Pills are 10px uppercase, rounded-full, tracking-[0.08em]
+- Active = bg-black text-white border-black, inactive = transparent with hover border reveal
+- Category with an active sub-tag gets the active style too (so you can see which category the filtered tag belongs to)
+- Sub-tags show item count in faded text (opacity-40)
+- AnimatePresence mode="wait" on the expanded row — slides open with opacity 0→1, height 0→auto
+- Clicking an already-active tag deselects it (back to ALL)
+
+---
+
+Card Hover (FeaturedProjectCard.tsx + grid items)
+
+Both cards use the same hover pattern:
+- translateY(-6px) + box-shadow: 0 20px 40px rgba(0,0,0,0.12) — lifts off the page
+- brightness(1.06) on the image — subtle glow
+- Gradient overlay fades in (opacity 0.4→1)
+- "View Project →" slides up into view
+- Title nudges right 3px
+- All transitions: duration-400 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
+- Image prefetching on hover (prefetchImage)
+
+---
+
+Animation System (utils/motion.ts)
+
+This is the real gem — a centralized Apple HIG-inspired motion system:
+
+Spring presets:
+- SPRING_SNAPPY — toggles, pills (stiffness 500)
+- SPRING_GENTLE — modals, sheets (stiffness 200)
+- SPRING_QUICK — micro-interactions (stiffness 600)
+- SPRING_LAYOUT — page transitions (stiffness 300)
+
+Variant factories (all return hidden/visible/exit):
+- fadeVariants(delay) 
+- slideUpVariants(delay, distance) — the workhorse
+- slideInVariants(delay, distance) — horizontal
+- pushVariants('forward'|'back') — iOS nav
+- pageVariants(delay) — scale+blur "breathing" effect
+
+Stagger system:
+- staggerDelay(index, total, maxTotal=0.15) — clamps total stagger to 150ms regardless of list size
+- Each project card gets slideUpVariants(staggerDelay(i, n))
+
+Accessibility:
+- prefersReducedMotion() — checks OS preference
+- respectMotion(value) — strips transforms, keeps only opacity
+- motionProps(variants) — wrapper that auto-gates behind reduced motion
+- scrollRevealProps(variants) — whileInView version
+
+---
+
+What CULTIVE can steal:
+
+**Two-level pill filter**
+• Source file: ProjectsListPage.tsx lines 68-146
+• Effort: Copy + adapt tags
+
+**Card hover lift**
+• Source file: FeaturedProjectCard.tsx lines 43-95
+• Effort: The translateY + boxShadow + brightness triple
+
+**Motion system**
+• Source file: utils/motion.ts (entire file)
+• Effort: Drop-in — no deps beyond motion/react
+
+**Stagger system**
+• Source file: staggerDelay() + slideUpVariants()
+• Effort: Just import from motion.ts
+
+**Tag count badges**
+• Source file: Line 126,139 in ProjectsListPage
+• Effort: projects.filter(p => p.tags.includes(tag)).length
+
+CULTIVE already has motion installed, so utils/motion.ts ports directly with zero changes. The two-level pill filter would need the tag taxonomy adapted to CULTIVE's categories (nightlife, music, art, food,

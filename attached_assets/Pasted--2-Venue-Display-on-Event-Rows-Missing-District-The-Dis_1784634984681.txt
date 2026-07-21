@@ -1,0 +1,81 @@
+...2. 🔴 Venue Display on Event Rows (Missing District)
+
+The Discover page event rows show category · district (e.g. "art · Wong Chuk Hang") but never show the venue name directly on the row. On the screenshot you sent, venues like "Axel Vervoordt Gallery" only appear in smaller text after the title. The venue is buried.
+
+Meanwhile, EventDetail correctly makes venue a tappable Google Maps link with a pin icon. Good.
+
+But on LinkInBio, venue is appended to the meta line as date · venue_name. Some venues have long parentheticals:
+"Jul 24, 2026 · 自由空間大盒 (Grand Box), West Kowloon Cultural District"
+ "Jul 24, 2026 · AER (UG/F, Ming Hing House, 52-56 Staunton St, Soho, Central)"
+That's a mess on mobile — the venue overwhelms the date.
+
+Fix: On LinkInBio, show district instead of full venue string in the meta line:
+<span className="linkbio-event-meta">
+  {displayDateRange(event.date, event.date_end_iso ?? event.date_end)}
+  {event.district ? ` · ${normalizeDistrict(event.district)}` : ''}
+</span>
+...---
+
+3. 🔴 Tag / Category Filter is Broken for Most Tags
+
+This is the biggest functional issue. The filter buttons only show 15 canonical categories:
+Art, Music, Electronic, Nightlife, Market, Food & Drink,
+Wellness, Workshop, Community, Sports, Film, Literature,
+Social, Fitness, Uncategorized
+...But 449 events have 503 unique non-canonical tags that don't match any filter pill:
+
+exhibition
+• Events affected: 62 events — clicking "Art" hides them
+
+techno
+• Events affected: 35 events — clicking "Music" hides them
+
+dj
+• Events affected: 30 events
+
+live-music
+• Events affected: 30 events
+
+jazz
+• Events affected: 14 events
+
+cocktails
+• Events affected: 30 events
+
+pop-up
+• Events affected: 32 events
+
+hip-hop
+• Events affected: 7 events
+
+festival
+• Events affected: 7 events
+
+The TAG_NORMALIZE map only handles 7 tags. Everything else falls through to the category fallback, which means those events only appear when "All" is selected. Click any specific filter and they vanish.
+
+Fix: Expand TAG_NORMALIZE in src/data/events.ts to cover at minimum the top 30 non-canonical tags. Map sub-genres to their parent category:
+ (1/2)
+
+
+export const TAG_NORMALIZE: Record<string, string> = {
+  // Existing
+  'workshops': 'workshop', 'food': 'food-drink', 'comedy': 'uncategorized',
+  'entertainment': 'uncategorized', 'fashion': 'uncategorized', 'lifestyle': 'uncategorized',
+  'talk': 'uncategorized',
+  
+  // Sub-genres → parent categories
+  'exhibition': 'art', 'contemporary': 'art', 'performance': 'art', 'sculpture': 'art',
+  'techno': 'electronic', 'house': 'electronic', 'dj': 'electronic', 'club-night': 'electronic',
+  'club': 'electronic', 'dance': 'electronic', 'hip-hop': 'music', 'vinyl': 'music',
+  'live-music': 'music', 'live': 'music', 'jazz': 'music', 'concert': 'music',
+  'indie': 'music', 'experimental': 'music',
+  'pop-up': 'market', 'cocktails': 'food-drink', 'wine': 'food-drink',
+  'party': 'nightlife', 'underground': 'nightlife',
+  'festival': 'community', 'free': 'community', 'free-entry': 'community',
+  'anniversary': 'community',
+  
+  // Districts (not categories, but used as tags) → ignore or map to uncategorized
+  'central': 'uncategorized', 'wan-chai': 'uncategorized', 'sheung-wan': 'uncategorized',
+  'causeway-bay': 'uncategorized', 'sai-ying-pun': 'uncategorized',
+};
+...This gets you to ~90% coverage. The remaining 470 rare tags can stay as-is — they're one-offs....

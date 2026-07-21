@@ -248,6 +248,7 @@ export const AVAILABLE_TAGS = CANONICAL_CATEGORIES.map(id => ({ id, label: CATEG
 // Normalize non-canonical tag/category forms to their canonical ids.
 // Add entries here whenever Hermes or manual data entry uses a variant spelling.
 export const TAG_NORMALIZE: Record<string, string> = {
+  // Variant spellings
   'workshops':     'workshop',
   'food':          'food-drink',
   'comedy':        'uncategorized',
@@ -255,6 +256,42 @@ export const TAG_NORMALIZE: Record<string, string> = {
   'fashion':       'uncategorized',
   'lifestyle':     'uncategorized',
   'talk':          'uncategorized',
+
+  // Sub-genres → parent categories
+  'exhibition':    'art',
+  'contemporary':  'art',
+  'performance':   'art',
+  'sculpture':     'art',
+  'techno':        'electronic',
+  'house':         'electronic',
+  'dj':            'electronic',
+  'club-night':    'electronic',
+  'club':          'electronic',
+  'dance':         'electronic',
+  'hip-hop':       'music',
+  'vinyl':         'music',
+  'live-music':    'music',
+  'live':          'music',
+  'jazz':          'music',
+  'concert':       'music',
+  'indie':         'music',
+  'experimental':  'music',
+  'pop-up':        'market',
+  'cocktails':     'food-drink',
+  'wine':          'food-drink',
+  'party':         'nightlife',
+  'underground':   'nightlife',
+  'festival':      'community',
+  'free':          'community',
+  'free-entry':    'community',
+  'anniversary':   'community',
+
+  // District names used as tags → not categories
+  'central':       'uncategorized',
+  'wan-chai':      'uncategorized',
+  'sheung-wan':    'uncategorized',
+  'causeway-bay':  'uncategorized',
+  'sai-ying-pun':  'uncategorized',
 };
 
 // Canonical mapping: admin Category dropdown value → primary tag id

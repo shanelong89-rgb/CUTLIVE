@@ -121,7 +121,7 @@ export function LinkInBio() {
                   <span className="linkbio-event-title">{event.title}</span>
                   <span className="linkbio-event-meta">
                     {displayDateRange(event.date, event.date_end_iso ?? event.date_end)}
-                    {event.venue ? ` · ${event.venue}` : ''}
+                    {event.district ? ` · ${event.district}` : ''}
                   </span>
                 </span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" width="16" height="16" className="linkbio-event-arrow">
