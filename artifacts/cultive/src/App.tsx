@@ -157,7 +157,7 @@ function App() {
         <Route path="/account" element={<Account setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/verify" element={<AuthVerify />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings" element={<Settings setIsAuthOpen={setIsAuthOpen} />} />
         <Route path="/about" element={<AboutRedirect />} />
         <Route path="/link" element={<LinkInBio />} />
         <Route path="/reset-password" element={<ResetPassword />} />

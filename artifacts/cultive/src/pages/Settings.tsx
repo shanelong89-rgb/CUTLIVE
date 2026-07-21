@@ -27,7 +27,7 @@ function TagPill({ label }: { label: string }) {
   );
 }
 
-export function Settings() {
+export function Settings({ setIsAuthOpen }: { setIsAuthOpen?: (open: boolean) => void }) {
   const { user, loading: authLoading } = useAuth();
   const { preferences, loading: prefsLoading } = useAgentPreferences();
   const [waPhone, setWaPhone] = useState<string | null>(null);
@@ -55,6 +55,13 @@ export function Settings() {
           <p className="account-meta-value" style={{ marginTop: 16 }}>
             Sign in to view your settings.
           </p>
+          <button
+            className="account-cta"
+            style={{ marginTop: 20 }}
+            onClick={() => setIsAuthOpen?.(true)}
+          >
+            Sign In / Sign Up
+          </button>
         </div>
       </div>
     );
