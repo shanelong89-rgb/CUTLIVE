@@ -573,14 +573,10 @@ h1, h2, h3 {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
   padding: 16px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
-}
-
-.date-filter-strip .date-chip {
-  scroll-snap-align: start;
 }
 
 .date-filter-strip::-webkit-scrollbar {
@@ -620,14 +616,10 @@ h1, h2, h3 {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
   padding: 24px 0;
   border-bottom: 1px solid var(--n-border-subtle);
   max-width: 900px;
-}
-
-.category-strip .category-chip {
-  scroll-snap-align: start;
 }
 
 .category-strip::-webkit-scrollbar {
