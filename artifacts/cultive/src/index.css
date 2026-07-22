@@ -4740,8 +4740,8 @@ button.linkbio-footer-link {
   to   { opacity: 1; }
 }
 
-/* Staggered entrance for event rows */
-.event-list .event-row {
+/* Staggered entrance for event rows (past rows skip it so their dimmed opacity isn't overridden) */
+.event-list .event-row:not(.event-row--past) {
   animation: cultive-slide-up 0.35s ease both;
 }
 .event-list .event-row:nth-child(1) { animation-delay: 0.02s; }
